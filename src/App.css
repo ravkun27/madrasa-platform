@@ -1,42 +1,64 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+/* CSS Variables */
+:root {
+  --color-primary: #2b7a78;
+  --color-secondary: #ffa62b;
+  --color-accent: #234e5a;
+  --color-light-teal: #e4f3f5;
+  --color-cream: #f5f1e6;
+  --color-slate: #4a4a4a;
+  --color-amber-dark: #ff8e00;
+  --color-white: #ffffff;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+/* Custom Classes */
+.bg-gradient-landing {
+  background: linear-gradient(
+    160deg,
+    var(--color-cream) 0%,
+    var(--color-light-teal) 100%
+  );
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.bg-primary-gradient {
+  background: linear-gradient(
+    to right,
+    var(--color-primary),
+    var(--color-accent)
+  );
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.bg-secondary-gradient {
+  background: linear-gradient(
+    to right,
+    var(--color-secondary),
+    var(--color-amber-dark)
+  );
 }
 
-.card {
-  padding: 2em;
+.text-primary {
+  color: var(--color-primary);
 }
 
-.read-the-docs {
-  color: #888;
+.text-secondary {
+  color: var(--color-secondary);
+}
+
+.bg-light-teal {
+  background-color: var(--color-light-teal);
+}
+
+.border-light-teal {
+  border-color: var(--color-light-teal);
+}
+
+.text-slate {
+  color: var(--color-slate);
+}
+
+.bg-cream {
+  background-color: var(--color-cream);
+}
+
+.hover\:bg-amber-dark:hover {
+  background-color: var(--color-amber-dark);
 }

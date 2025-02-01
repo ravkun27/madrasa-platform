@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
@@ -8,215 +9,273 @@ import {
   FaUsers,
 } from "react-icons/fa";
 
-const LandingPage = () => {
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
-      {/* Hero Section */}
-      <motion.div
-        className="text-center py-20 px-4"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-5xl md:text-7xl font-bold text-gray-800 mb-6">
-            Transform Learning with{" "}
-            <span className="text-blue-600">CourseCodes</span>
-          </h1>
-          <p className="text-xl text-gray-600 mb-8">
-            Educators: Create courses and share unique codes. Students: Join
-            instantly with your code.
-          </p>
+interface StepCardProps {
+  icon: React.ElementType;
+  title: string;
+  steps: string[];
+  color: "primary" | "secondary";
+}
 
-          {/* Course Code Search */}
-          <motion.div
-            className="max-w-md mx-auto mb-12"
-            initial={{ scale: 0.9 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.2 }}
+const LandingPage = () => {
+  const [searchValue, setSearchValue] = useState("");
+
+  const fadeInUp = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 },
+  };
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2,
+      },
+    },
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-white to-light-teal">
+      {/* Hero Section */}
+      <motion.section
+        className="relative pt-20 pb-24 px-4 overflow-hidden bg-gradient-landing"
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
+      >
+        <motion.div
+          className="absolute top-0 right-0 w-1/2 h-1/2 bg-primary/10 rounded-full blur-3xl"
+          animate={{
+            scale: [1, 1.1, 1],
+            opacity: [0.3, 0.5, 0.3],
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+
+        <div className="max-w-6xl mx-auto relative z-10">
+          <motion.h1
+            className="text-5xl md:text-7xl font-bold text-accent text-center mb-6"
+            variants={fadeInUp}
           >
-            <div className="flex items-center bg-white rounded-lg shadow-lg p-4">
-              <FaSearch className="text-gray-400 mr-3" />
+            Transform Learning with{" "}
+            <span className="text-primary">Madarasa</span>
+          </motion.h1>
+
+          <motion.p
+            className="text-xl text-slate text-center mb-12"
+            variants={fadeInUp}
+          >
+            Join the future of education with our innovative learning platform
+          </motion.p>
+
+          {/* Search Bar */}
+          <motion.div className="max-w-lg mx-auto mb-12" variants={fadeInUp}>
+            <div className="flex items-center bg-white rounded-xl shadow-lg p-4 border border-light-teal">
+              <FaSearch className="text-primary" />
               <input
                 type="text"
-                placeholder="Enter Course Code"
-                className="flex-1 outline-none"
+                value={searchValue}
+                onChange={(e) => setSearchValue(e.target.value)}
+                placeholder="Enter course code to join..."
+                className="flex-1 ml-3 outline-none bg-transparent text-accent placeholder-primary/50"
               />
-              <button className="ml-2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="ml-4 bg-primary-gradient text-white px-6 py-2 rounded-lg hover:shadow-lg transition-all"
+              >
                 Join Now
-              </button>
+              </motion.button>
             </div>
           </motion.div>
 
-          <div className="space-x-4">
-            <Link
-              to="/auth?role=teacher"
-              className="bg-blue-600 text-white px-8 py-3 rounded-lg text-lg hover:bg-blue-700 transition duration-300"
-            >
-              Create Course (Teachers)
-            </Link>
-            <Link
-              to="/auth?role=student"
-              className="bg-purple-600 text-white px-8 py-3 rounded-lg text-lg hover:bg-purple-700 transition duration-300"
-            >
-              Sign Up (Students)
-            </Link>
-          </div>
+          {/* CTA Buttons */}
+          <motion.div
+            className="flex flex-col sm:flex-row justify-center gap-4 sm:gap-6"
+            variants={fadeInUp}
+          >
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Link
+                to="/auth?role=teacher"
+                className="block text-center bg-secondary-gradient text-white px-8 py-3 rounded-lg text-lg hover:shadow-xl transition-all"
+              >
+                Create Course
+              </Link>
+            </motion.div>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Link
+                to="/auth?role=student"
+                className="block text-center bg-primary-gradient text-white px-8 py-3 rounded-lg text-lg hover:shadow-xl transition-all"
+              >
+                Join as Student
+              </Link>
+            </motion.div>
+          </motion.div>
         </div>
-      </motion.div>
+      </motion.section>
 
       {/* Features Section */}
-      <div className="px-6 py-16 bg-white">
-        <div className="container mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold text-center text-gray-800 mb-16">
+      <motion.section
+        className="py-24 bg-white"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+        variants={containerVariants}
+      >
+        <div className="max-w-6xl mx-auto px-4">
+          <motion.h2
+            className="text-3xl md:text-4xl font-bold text-center text-accent mb-16"
+            variants={fadeInUp}
+          >
             Platform Features
-          </h2>
-          <div className="flex justify-center gap-8">
+          </motion.h2>
+
+          <motion.div
+            className="grid md:grid-cols-2 gap-8"
+            variants={containerVariants}
+          >
             {[
               {
                 icon: FaChalkboardTeacher,
                 title: "For Teachers",
-                desc: "Create courses, generate unique codes, and manage student access effortlessly.",
-                color: "text-blue-600",
+                description:
+                  "Create and manage courses effortlessly with our intuitive tools",
+                colorClass: "text-primary",
+                bgColorClass: "bg-light-teal",
               },
               {
                 icon: FaUserGraduate,
                 title: "For Students",
-                desc: "Join courses instantly with provided codes, track progress, and access materials.",
-                color: "text-purple-600",
+                description:
+                  "Access course materials and track your progress seamlessly",
+                colorClass: "text-secondary",
+                bgColorClass: "bg-amber-50",
               },
             ].map((feature, index) => (
               <motion.div
                 key={index}
-                className="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-100 w-1/3"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 + 0.3 }}
+                className={`${feature.bgColorClass} rounded-xl p-8 shadow-lg border border-light-teal`}
+                variants={fadeInUp}
+                whileHover={{ y: -5 }}
               >
-                <feature.icon className={`text-4xl mb-6 ${feature.color}`} />
-                <h3 className="text-2xl font-semibold text-gray-800 mb-4">
+                <feature.icon
+                  className={`${feature.colorClass} text-4xl mb-6`}
+                />
+                <h3 className="text-xl font-bold text-accent mb-4">
                   {feature.title}
                 </h3>
-                <p className="text-gray-600">{feature.desc}</p>
+                <p className="text-slate">{feature.description}</p>
               </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
-      </div>
+      </motion.section>
 
-      {/* How It Works */}
-      <motion.div
-        className="py-16 bg-gray-50"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.2 }}
-      >
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl md:text-4xl font-bold text-center text-gray-800 mb-16">
+      {/* How It Works Section */}
+      <section className="py-24 bg-cream">
+        <div className="max-w-6xl mx-auto px-4">
+          <motion.h2
+            className="text-3xl md:text-4xl font-bold text-center text-accent mb-16"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
             How It Works
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-            {/* Teacher Flow */}
-            <motion.div
-              className="bg-white p-8 rounded-xl shadow-lg"
-              whileHover={{ y: -5 }}
-            >
-              <div className="flex items-center mb-6">
-                <FaKey className="text-3xl text-blue-600 mr-4" />
-                <h3 className="text-2xl font-bold text-gray-800">
-                  For Teachers
-                </h3>
-              </div>
-              <div className="space-y-4">
-                <div className="flex items-center">
-                  <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mr-4">
-                    1
-                  </div>
-                  <p>Create your course in dashboard</p>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mr-4">
-                    2
-                  </div>
-                  <p>Get unique course code</p>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mr-4">
-                    3
-                  </div>
-                  <p>Share code with students</p>
-                </div>
-              </div>
-            </motion.div>
+          </motion.h2>
 
-            {/* Student Flow */}
-            <motion.div
-              className="bg-white p-8 rounded-xl shadow-lg"
-              whileHover={{ y: -5 }}
-            >
-              <div className="flex items-center mb-6">
-                <FaUsers className="text-3xl text-purple-600 mr-4" />
-                <h3 className="text-2xl font-bold text-gray-800">
-                  For Students
-                </h3>
-              </div>
-              <div className="space-y-4">
-                <div className="flex items-center">
-                  <div className="w-8 h-8 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mr-4">
-                    1
-                  </div>
-                  <p>Sign up for free account</p>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-8 h-8 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mr-4">
-                    2
-                  </div>
-                  <p>Enter course code from teacher</p>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-8 h-8 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mr-4">
-                    3
-                  </div>
-                  <p>Start learning immediately</p>
-                </div>
-              </div>
-            </motion.div>
+          <div className="grid md:grid-cols-2 gap-8">
+            <StepCard
+              icon={FaKey}
+              title="For Teachers"
+              steps={[
+                "Create your course",
+                "Get unique course code",
+                "Share with students",
+              ]}
+              color="primary"
+            />
+            <StepCard
+              icon={FaUsers}
+              title="For Students"
+              steps={[
+                "Sign up for free",
+                "Enter course code",
+                "Start learning",
+              ]}
+              color="secondary"
+            />
           </div>
         </div>
-      </motion.div>
+      </section>
 
       {/* CTA Section */}
-      <div className="bg-blue-600 text-white py-16">
-        <div className="container mx-auto text-center">
+      <motion.section
+        className="py-24 bg-primary-gradient"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+        variants={containerVariants}
+      >
+        <div className="max-w-xl mx-auto px-4 text-center">
           <motion.h2
-            className="text-3xl md:text-4xl font-bold mb-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            className="text-3xl md:text-4xl font-bold text-white mb-8"
+            variants={fadeInUp}
           >
-            Ready to Transform Your Classroom?
+            Ready to Transform Your Teaching?
           </motion.h2>
-          <p className="text-xl mb-8 max-w-2xl mx-auto">
-            Join thousands of educators and students already using CourseCodes
-            for seamless learning experiences.
-          </p>
-          <div className="space-x-4">
+
+          <motion.p className="text-xl text-white/90 mb-12" variants={fadeInUp}>
+            Join thousands of educators and students already using our platform
+          </motion.p>
+
+          <motion.div
+            className="flex flex-col sm:flex-row justify-center gap-4"
+            variants={fadeInUp}
+          >
             <Link
               to="/auth?role=teacher"
-              className="bg-white text-blue-600 px-8 py-3 rounded-lg text-lg hover:bg-blue-50 hover:scale-105 transition duration-300"
+              className="block text-center bg-white text-primary px-8 py-3 rounded-lg text-lg hover:bg-amber-dark hover:text-white transition-all shadow-lg"
             >
               Start Teaching
             </Link>
+
             <Link
               to="/auth?role=student"
-              className="border-2 border-white text-white px-8 py-3 rounded-lg text-lg hover:bg-white hover:text-blue-600 transition duration-300"
+              className="block text-center border border-white text-white px-8 py-3 rounded-lg text-lg hover:bg-white/10 transition-colors shadow-md"
             >
-              Join as Student
+              Start Learning
             </Link>
-          </div>
+          </motion.div>
         </div>
-      </div>
+      </motion.section>
     </div>
   );
 };
+
+const StepCard = ({ icon: Icon, title, steps, color }: StepCardProps) => (
+  <motion.div
+    className="bg-white rounded-xl p-8 shadow-lg border border-light-teal"
+    initial={{ opacity: 0, y: 20 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true }}
+    whileHover={{ y: -5 }}
+  >
+    <div className="flex items-center mb-8">
+      <Icon className={`text-${color} mr-4`} size={28} />
+      <h3 className="text-xl font-bold text-accent">{title}</h3>
+    </div>
+    <ul className="list-disc list-inside space-y-2">
+      {steps.map((step, index) => (
+        <li key={index} className="text-slate">
+          {step}
+        </li>
+      ))}
+    </ul>
+  </motion.div>
+);
 
 export default LandingPage;
