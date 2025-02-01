@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { motion } from "framer-motion"
 import { useNavigate } from "react-router-dom"
-import { login, register } from "../../../../client/src/services/api"
+// import { login, register } from "../../../../client/src/services/api"
 
 const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true)
@@ -11,23 +11,23 @@ const AuthPage = () => {
   const [role, setRole] = useState("student")
   const navigate = useNavigate()
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    try {
-      if (isLogin) {
-        const response = await login(email, password)
-        localStorage.setItem("token", response.data.token)
-        localStorage.setItem("user", JSON.stringify(response.data.user))
-        navigate(`/${response.data.user.role}`)
-      } else {
-        await register(name, email, password, role)
-        setIsLogin(true)
-      }
-    } catch (error) {
-      console.error("Authentication error:", error)
-      // Handle error (e.g., show error message to user)
-    }
-  }
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault()
+  //   try {
+  //     if (isLogin) {
+  //       const response = await login(email, password)
+  //       localStorage.setItem("token", response.data.token)
+  //       localStorage.setItem("user", JSON.stringify(response.data.user))
+  //       navigate(`/${response.data.user.role}`)
+  //     } else {
+  //       await register(name, email, password, role)
+  //       setIsLogin(true)
+  //     }
+  //   } catch (error) {
+  //     console.error("Authentication error:", error)
+  //     // Handle error (e.g., show error message to user)
+  //   }
+  // }
 
   const toggleAuthMode = () => {
     setIsLogin(!isLogin)
@@ -42,7 +42,7 @@ const AuthPage = () => {
         transition={{ duration: 0.5 }}
       >
         <h2 className="text-3xl font-bold text-center mb-6">{isLogin ? "Sign In" : "Sign Up"}</h2>
-        <form onSubmit={handleSubmit}>
+        {/* <form onSubmit={handleSubmit}>
           {!isLogin && (
             <div className="mb-4">
               <label htmlFor="name" className="block text-gray-700 mb-2">
@@ -111,7 +111,7 @@ const AuthPage = () => {
           >
             {isLogin ? "Sign In" : "Sign Up"}
           </button>
-        </form>
+        </form> */}
         <p className="mt-4 text-center">
           {isLogin ? "Don't have an account?" : "Already have an account?"}
           <button onClick={toggleAuthMode} className="ml-1 text-blue-500 hover:underline focus:outline-none">
