@@ -25,7 +25,7 @@ const Footer = () => {
                 theme === "light" ? "text-primary-dark" : "text-primary-light"
               }`}
             >
-              Madarasa Platform
+              Madrasa Platform
             </h3>
             <p
               className={`mt-2 text-sm ${
