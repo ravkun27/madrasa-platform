@@ -93,7 +93,7 @@ const LandingPage = () => {
           }}
         />
 
-        <div className="max-w-6xl mx-auto relative z-10">
+        <div className="md:max-w-6xl mx-auto relative z-10">
           <motion.h1
             className="text-4xl md:text-8xl font-extrabold text-center mb-6"
             variants={fadeInUp}
@@ -106,7 +106,7 @@ const LandingPage = () => {
                 theme === "light"
                   ? "from-[#5A2D91] via-[#57A3A2] to-[#1ABF9F]"
                   : "from-[#6E45E2] via-[#88D3CE] to-[#B8F2E6]"
-              } animate-gradient bg-300% bg-clip-text text-transparent`}
+              } animate-gradient bg-300% bg-clip-text text-transparent text-3xl md:text-4xl`}
             >
               Learning is Easier with
             </span>
