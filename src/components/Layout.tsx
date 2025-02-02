@@ -1,11 +1,18 @@
-// Layout.tsx
+import React, { useEffect } from "react";
 import { motion } from "framer-motion";
 import Header from "./Header";
 import Footer from "./Footer";
 import { Outlet } from "react-router-dom"; // Import Outlet
-import type React from "react"; // Added import for React
+import { useTheme } from "../context/ThemeContext";
 
 const Layout: React.FC = () => {
+  const { theme } = useTheme();
+
+  useEffect(() => {
+    document.documentElement.style.scrollBehavior = "smooth";
+    document.documentElement.classList.toggle("dark", theme === "dark");
+  }, [theme]);
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
       <Header />
