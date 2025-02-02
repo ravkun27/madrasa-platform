@@ -341,7 +341,7 @@ const LandingPage = () => {
             className="text-3xl md:text-4xl font-bold text-white mb-8"
             variants={fadeInUp}
           >
-            Ready to Transform Your Teaching?
+            Ready to Transform Your Education?
           </motion.h2>
 
           <motion.p className="text-xl text-white/90 mb-12" variants={fadeInUp}>
