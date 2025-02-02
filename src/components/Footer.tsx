@@ -79,7 +79,7 @@ const Footer = () => {
             theme === "light" ? "text-gray-600" : "text-gray-300"
           }`}
         >
-          &copy; {new Date().getFullYear()} Madarasa Platform. All rights
+          &copy; {new Date().getFullYear()} Madrasa Platform. All rights
           reserved.
         </div>
       </div>
