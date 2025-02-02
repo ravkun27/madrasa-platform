@@ -144,7 +144,7 @@ const Header = () => {
                 closed: {
                   opacity: 0,
                   height: 0,
-                  transition: { duration: 0.2, ease: "easeInOut" },
+                  transition: { duration: 0, ease: "easeInOut" },
                 },
                 open: {
                   opacity: 1,
