@@ -18,22 +18,55 @@ const Header = () => {
     >
       <nav className="container mx-auto px-4 sm:px-6 lg:px-8 py-3">
         <div className="flex justify-between items-center">
-          {/* Logo and Brand Name */}
-          <Link to="/" className="flex items-center space-x-2">
-            <motion.img
-              src={logo}
-              alt="TeachPlatform Logo"
-              className="h-10 w-auto sm:h-12"
+          {/* Logo and Brand Name - Enhanced Version */}
+          <Link
+            to="/"
+            className="flex items-center space-x-3 sm:space-x-4 group"
+          >
+            <motion.div
+              className="relative"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-            />
-            <span className="text-xl sm:text-2xl font-bold text-primary dark:text-primary-dark">
-              Madarasa Platform
-            </span>
+            >
+              <motion.img
+                src={logo}
+                alt="Madarasa Platform Logo"
+                className="h-12 w-auto sm:h-14 drop-shadow-lg"
+              />
+              {/* Add subtle shimmer effect to logo */}
+              <motion.span
+                className="absolute inset-0 bg-white/10 rounded-full opacity-0 group-hover:opacity-100"
+                transition={{ duration: 0.3 }}
+              />
+            </motion.div>
+
+            <motion.div
+              className="flex flex-col space-y-1"
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+            >
+              <span className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary to-sky-200 bg-clip-text text-transparent dark:from-primary-dark dark:to-sky-100">
+                Madarasa
+              </span>
+              <span className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-300 tracking-wider">
+                EDUCATION PLATFORM
+              </span>
+            </motion.div>
           </Link>
 
           {/* Mobile Menu Button */}
-          <div className="md:hidden">
+          <div className="md:hidden flex gap-2">
+            {/* Theme Toggle Button (Mobile) */}
+            <button
+              onClick={toggleTheme}
+              className="flex items-center justify-center p-2 text-gray-600 dark:text-text-dark hover:text-gray-800 dark:hover:text-primary transition duration-300"
+            >
+              {theme === "light" ? (
+                <FiMoon className="w-6 h-6" />
+              ) : (
+                <FiSun className="w-6 h-6" />
+              )}
+            </button>
             <button
               className="text-gray-800 dark:text-text-dark focus:outline-none"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -165,20 +198,6 @@ const Header = () => {
                       Sign Up
                     </Link>
                   </motion.div>
-                  {/* Theme Toggle Button (Mobile) */}
-                  <button
-                    onClick={toggleTheme}
-                    className="flex items-center justify-center p-2 text-gray-600 dark:text-text-dark hover:text-gray-800 dark:hover:text-primary transition duration-300"
-                  >
-                    {theme === "light" ? (
-                      <FiMoon className="w-6 h-6" />
-                    ) : (
-                      <FiSun className="w-6 h-6" />
-                    )}
-                    <span className="ml-2">
-                      {theme === "light" ? "Dark Mode" : "Light Mode"}
-                    </span>
-                  </button>
                 </div>
               </motion.div>
             </motion.div>

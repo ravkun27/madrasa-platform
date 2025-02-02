@@ -26,6 +26,10 @@ export default {
           DEFAULT: '#F97316', // Orange (secondary color)
           dark: '#C2410C', // Darker orange for dark mode
         },
+        accent: {
+          DEFAULT: '#234e5a', // Orange (secondary color)
+          dark: '#234e5a', // Darker orange for dark mode
+        },
         background: {
           DEFAULT: '#FFFFFF', // Light mode background
           dark: '#0F172A', // Dark mode background

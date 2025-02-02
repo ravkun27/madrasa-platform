@@ -48,20 +48,43 @@ const LandingPage = () => {
       <motion.section
         className={`relative pt-24 pb-24 px-4 overflow-hidden ${
           theme === "light"
-            ? "bg-gradient-landing"
-            : "bg-gradient-to-br from-background-dark to-background-dark/90"
+            ? "bg-gradient-to-br from-white to-gray-50"
+            : "bg-gradient-to-br from-gray-900 to-gray-800"
         }`}
         initial="hidden"
         animate="visible"
         variants={containerVariants}
       >
+        {/* Animated Background Blob */}
         <motion.div
-          className={`absolute top-0 right-0 w-1/2 h-1/2 ${
-            theme === "light" ? "bg-primary/10" : "bg-primary-dark/10"
-          } rounded-full blur-3xl`}
+          className={`absolute top-0 right-0 w-1/2 h-1/2 rounded-full blur-[100px] ${
+            theme === "light"
+              ? "bg-gradient-to-r from-[#6E45E2] via-[#FF6B6B] to-[#FFE66D]"
+              : "bg-gradient-to-r from-[#8B5CF6] via-[#FF6B6B] to-[#FFE66D]"
+          }`}
+          animate={{
+            scale: [1, 1.2, 1],
+            rotate: [0, 90, 180, 270, 360],
+            opacity: [0.4, 0.8, 0.4],
+          }}
+          transition={{
+            duration: 6,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+
+        {/* Optional: Add a second blob for more depth */}
+        <motion.div
+          className={`absolute bottom-0 left-0 w-1/3 h-1/3 rounded-full blur-[80px] ${
+            theme === "light"
+              ? "bg-gradient-to-r from-[#4f77e6] via-[#770cca] to-[#6E45E2]"
+              : "bg-gradient-to-r from-[#00C9A7] via-[#B8F2E6] to-[#8B5CF6]"
+          }`}
           animate={{
             scale: [1, 1.1, 1],
-            opacity: [0.3, 0.5, 0.3],
+            rotate: [0, -90, -180, -270, -360],
+            opacity: [0.3, 0.6, 0.3],
           }}
           transition={{
             duration: 8,
@@ -72,7 +95,7 @@ const LandingPage = () => {
 
         <div className="max-w-6xl mx-auto relative z-10">
           <motion.h1
-            className="text-5xl md:text-8xl font-extrabold text-center mb-6"
+            className="text-4xl md:text-8xl font-extrabold text-center mb-6"
             variants={fadeInUp}
             initial="hidden"
             animate="visible"
@@ -109,7 +132,7 @@ const LandingPage = () => {
           </motion.h1>
 
           <motion.p
-            className={`text-2xl ${
+            className={`text-xl md:text-2xl ${
               theme === "light" ? "text-[#1B3B4F]/90" : "text-[#F5F5F5]/90"
             } text-center mb-12 max-w-3xl mx-auto font-light tracking-wide`}
             variants={fadeInUp}
@@ -157,7 +180,8 @@ const LandingPage = () => {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className={`ml-4 bg-primary-gradient text-white px-6 py-2 rounded-lg hover:shadow-lg transition-all`}
+                className={`md:ml-4 bg-primary-gradient text-white px-4 md:px-6 py-2 rounded-lg hover:shadow-lg transition-all
+    whitespace-nowrap min-w-[80px] text-sm md:text-base inline-flex items-center justify-center`}
               >
                 Join Now
               </motion.button>
