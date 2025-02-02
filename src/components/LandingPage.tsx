@@ -126,7 +126,7 @@ const LandingPage = () => {
                 whileHover={{ scale: 1.05 }}
                 transition={{ type: "spring", stiffness: 300 }}
               >
-                Madarasa Platform
+                Madrasa Platform
               </motion.span>
             </span>
           </motion.h1>
