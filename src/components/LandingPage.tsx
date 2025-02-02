@@ -108,7 +108,7 @@ const LandingPage = () => {
                   : "from-[#6E45E2] via-[#88D3CE] to-[#B8F2E6]"
               } animate-gradient bg-300% bg-clip-text text-transparent`}
             >
-              Transform Learning
+              Learning is Easier with
             </span>
             <br />
             <span className="relative inline-block">
@@ -126,68 +126,53 @@ const LandingPage = () => {
                 whileHover={{ scale: 1.05 }}
                 transition={{ type: "spring", stiffness: 300 }}
               >
-                With Madarasa
+                Madarasa Platform
               </motion.span>
             </span>
           </motion.h1>
 
-          <motion.p
-            className={`text-xl md:text-2xl ${
-              theme === "light" ? "text-[#1B3B4F]/90" : "text-[#F5F5F5]/90"
-            } text-center mb-12 max-w-3xl mx-auto font-light tracking-wide`}
-            variants={fadeInUp}
-            initial="hidden"
-            animate="visible"
-            transition={{ duration: 0.8, delay: 0.4 }}
-          >
-            <motion.span
-              className={`bg-gradient-to-r ${
-                theme === "light"
-                  ? "from-[#6E45E2] via-[#5EA3A3] to-[#30E3CA]"
-                  : "from-[#6E45E2] via-[#88D3CE] to-[#B8F2E6]"
-              } bg-clip-text text-transparent animate-text`}
-              whileHover={{ scale: 1.02 }}
-              transition={{ type: "spring", stiffness: 300 }}
-            >
-              Learning is Easier with Madarasa Platform
-            </motion.span>
-          </motion.p>
-          {/* Search Bar */}
           <motion.div className="max-w-lg mx-auto mb-12" variants={fadeInUp}>
             <div
-              className={`flex items-center ${
+              className={`flex items-center gap-2 sm:gap-3 ${
                 theme === "light" ? "bg-white" : "bg-background-dark"
-              } rounded-xl shadow-lg p-4 border ${
+              } rounded-xl shadow-lg p-3 sm:p-4 border ${
                 theme === "light" ? "border-light-teal" : "border-primary-dark"
               }`}
             >
-              <FaSearch
-                className={`${
-                  theme === "light" ? "text-primary" : "text-primary-dark"
-                }`}
-              />
+              {/* Search Icon with proper spacing */}
+              <div className="relative flex-shrink-0">
+                <FaSearch
+                  className={`${
+                    theme === "light" ? "text-primary" : "text-primary-dark"
+                  } text-lg sm:text-xl`}
+                />
+              </div>
+
+              {/* Input Field */}
               <input
                 type="text"
                 value={searchValue}
                 onChange={(e) => setSearchValue(e.target.value)}
                 placeholder="Enter course code to join..."
-                className={`flex-1 ml-3 outline-none bg-transparent ${
+                className={`flex-1 min-w-[120px] outline-none bg-transparent text-sm sm:text-base ${
                   theme === "light"
                     ? "text-accent placeholder-primary/50"
                     : "text-text-dark placeholder-primary-dark/50"
                 }`}
               />
+
+              {/* Join Button with responsive sizing */}
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className={`md:ml-4 bg-primary-gradient text-white px-4 md:px-6 py-2 rounded-lg hover:shadow-lg transition-all
-    whitespace-nowrap min-w-[80px] text-sm md:text-base inline-flex items-center justify-center`}
+                className={`bg-primary-gradient text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg hover:shadow-lg transition-all
+        whitespace-nowrap min-w-[90px] sm:min-w-[100px] text-xs sm:text-sm
+        inline-flex items-center justify-center flex-shrink-0`}
               >
                 Join Now
               </motion.button>
             </div>
           </motion.div>
-
           {/* CTA Buttons */}
           <motion.div
             className="flex flex-col sm:flex-row justify-center gap-4 sm:gap-6"

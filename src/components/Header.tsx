@@ -1,27 +1,31 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
-import logo from "../assets/logo.png";
+import logoEng from "../assets/logoEng.png";
 import { useTheme } from "../context/ThemeContext"; // Import useTheme hook
 import { FiSun, FiMoon } from "react-icons/fi"; // Icons for light/dark mode
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { theme, toggleTheme } = useTheme(); // Get theme and toggle function
+  useEffect(() => {
+    document.documentElement.className = theme;
+  }, [theme]);
 
   return (
     <motion.header
       className="bg-white dark:bg-background-dark shadow-md sticky top-0 z-50"
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.5, ease: "easeOut" }}
+      initial={{ opacity: 0 }} // Start invisible
+      animate={{ opacity: 1 }} // Fade in
+      transition={{ duration: 0.5, ease: "easeOut", delay: 0.2 }} // Add a slight delay
     >
-      <nav className="container mx-auto px-4 sm:px-6 lg:px-8 py-3">
+      <nav className="container mx-auto px-4 lg:px-6 py-2">
+        {/* Main Flex Container */}
         <div className="flex justify-between items-center">
-          {/* Logo and Brand Name - Enhanced Version */}
+          {/* Logo and Brand Name */}
           <Link
             to="/"
-            className="flex items-center space-x-3 sm:space-x-4 group"
+            className="flex items-center space-x-2 md:space-x-4 group flex-shrink-0"
           >
             <motion.div
               className="relative"
@@ -29,67 +33,20 @@ const Header = () => {
               whileTap={{ scale: 0.95 }}
             >
               <motion.img
-                src={logo}
+                src={logoEng}
                 alt="Madarasa Platform Logo"
-                className="h-12 w-auto sm:h-14 drop-shadow-lg"
+                className="h-16 w-auto sm:h-12 drop-shadow-lg"
               />
-              {/* Add subtle shimmer effect to logo */}
+              {/* Subtle shimmer effect */}
               <motion.span
                 className="absolute inset-0 bg-white/10 rounded-full opacity-0 group-hover:opacity-100"
                 transition={{ duration: 0.3 }}
               />
             </motion.div>
-
-            <motion.div
-              className="flex flex-col space-y-1"
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-            >
-              <span className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary to-sky-200 bg-clip-text text-transparent dark:from-primary-dark dark:to-sky-100">
-                Madarasa
-              </span>
-              <span className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-300 tracking-wider">
-                EDUCATION PLATFORM
-              </span>
-            </motion.div>
           </Link>
 
-          {/* Mobile Menu Button */}
-          <div className="md:hidden flex gap-2">
-            {/* Theme Toggle Button (Mobile) */}
-            <button
-              onClick={toggleTheme}
-              className="flex items-center justify-center p-2 text-gray-600 dark:text-text-dark hover:text-gray-800 dark:hover:text-primary transition duration-300"
-            >
-              {theme === "light" ? (
-                <FiMoon className="w-6 h-6" />
-              ) : (
-                <FiSun className="w-6 h-6" />
-              )}
-            </button>
-            <button
-              className="text-gray-800 dark:text-text-dark focus:outline-none"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M4 6h16M4 12h16m-7 6h7"
-                ></path>
-              </svg>
-            </button>
-          </div>
-
-          {/* Navigation Links (Desktop) */}
-          <div className="hidden md:flex items-center space-x-6">
+          {/* Desktop Navigation Links */}
+          <div className="hidden md:flex items-center space-x-12 flex-grow justify-center ml-24">
             <Link
               to="/courses"
               className="text-gray-600 dark:text-text-dark hover:text-gray-800 dark:hover:text-primary transition duration-300 font-medium"
@@ -110,7 +67,7 @@ const Header = () => {
             </Link>
           </div>
 
-          {/* Auth Buttons and Theme Toggle (Desktop) */}
+          {/* Desktop Auth Buttons and Theme Toggle */}
           <div className="hidden md:flex items-center space-x-4">
             <Link
               to="/auth"
@@ -126,7 +83,7 @@ const Header = () => {
                 Sign Up
               </Link>
             </motion.div>
-            {/* Theme Toggle Button with Icon */}
+            {/* Theme Toggle Button */}
             <button
               onClick={toggleTheme}
               className="p-2 text-gray-600 dark:text-text-dark hover:text-gray-800 dark:hover:text-primary transition duration-300"
@@ -136,6 +93,41 @@ const Header = () => {
               ) : (
                 <FiSun className="w-6 h-6" />
               )}
+            </button>
+          </div>
+
+          {/* Mobile Menu Button and Theme Toggle */}
+          <div className="md:hidden flex items-center space-x-4">
+            {/* Theme Toggle Button (Mobile) */}
+            <button
+              onClick={toggleTheme}
+              className="p-2 text-gray-600 dark:text-text-dark hover:text-gray-800 dark:hover:text-primary transition duration-300"
+            >
+              {theme === "light" ? (
+                <FiMoon className="w-6 h-6" />
+              ) : (
+                <FiSun className="w-6 h-6" />
+              )}
+            </button>
+            {/* Mobile Menu Toggle Button */}
+            <button
+              className="text-gray-800 dark:text-text-dark focus:outline-none"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M4 6h16M4 12h16m-7 6h7"
+                ></path>
+              </svg>
             </button>
           </div>
         </div>

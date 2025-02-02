@@ -1,28 +1,34 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Layout from "./components/Layout";
 import LandingPage from "./components/LandingPage";
+import LoadingScreen from "./components/LoadingScreen";
+import { ThemeProvider } from "./context/ThemeContext";
 import "./App.css";
-// import AuthPage from "./components/AuthPage"; // Create this component
-import { useTheme } from "./context/ThemeContext";
 
 function App() {
-  const { theme } = useTheme();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     document.documentElement.style.scrollBehavior = "smooth";
-    document.documentElement.classList.toggle("dark", theme === "dark");
-  }, [theme]);
+    const timer = setTimeout(() => setLoading(false), 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading) {
+    return <LoadingScreen />;
+  }
 
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Layout />}>
-          <Route index element={<LandingPage />} />
-          {/* <Route path="/auth" element={<AuthPage />} /> */}
-        </Route>
-      </Routes>
-    </Router>
+    <ThemeProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<Layout />}>
+            <Route index element={<LandingPage />} />
+          </Route>
+        </Routes>
+      </Router>
+    </ThemeProvider>
   );
 }
 
