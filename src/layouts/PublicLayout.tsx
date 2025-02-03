@@ -1,11 +1,11 @@
 import React, { useEffect } from "react";
 import { motion } from "framer-motion";
-import Header from "./Header";
-import Footer from "./Footer";
+import Header from "../components/Header";
+import Footer from "../components/Footer";
 import { Outlet } from "react-router-dom"; // Import Outlet
 import { useTheme } from "../context/ThemeContext";
 
-const Layout: React.FC = () => {
+const PublicLayout: React.FC = () => {
   const { theme } = useTheme();
 
   useEffect(() => {
@@ -23,11 +23,11 @@ const Layout: React.FC = () => {
         exit={{ opacity: 0, y: -20 }}
         transition={{ duration: 0.3 }}
       >
-        <Outlet /> {/* Render child routes here */}
+        <Outlet />
       </motion.main>
       <Footer />
     </div>
   );
 };
 
-export default Layout;
+export default PublicLayout;

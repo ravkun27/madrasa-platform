@@ -106,7 +106,7 @@ const LandingPage = () => {
                 theme === "light"
                   ? "from-[#5A2D91] via-[#57A3A2] to-[#1ABF9F]"
                   : "from-[#6E45E2] via-[#88D3CE] to-[#B8F2E6]"
-              } animate-gradient bg-300% bg-clip-text text-transparent text-3xl md:text-4xl`}
+              } animate-gradient bg-300% bg-clip-text text-transparent text-3xl md:text-5xl`}
             >
               Learning is Easier with
             </span>
