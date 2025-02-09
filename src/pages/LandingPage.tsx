@@ -180,7 +180,7 @@ const LandingPage = () => {
           >
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Link
-                to="/auth?role=teacher"
+                to="/signup?role=teacher"
                 className={`block text-center ${
                   theme === "light" ? "bg-secondary" : "bg-secondary-dark"
                 } text-white px-8 py-3 rounded-lg text-lg hover:shadow-xl transition-all`}
@@ -190,7 +190,7 @@ const LandingPage = () => {
             </motion.div>
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Link
-                to="/auth?role=student"
+                to="/signup?role=student"
                 className={`block text-center ${
                   theme === "light" ? "bg-primary" : "bg-primary-dark"
                 } text-white px-8 py-3 rounded-lg text-lg hover:shadow-xl transition-all`}
@@ -353,7 +353,7 @@ const LandingPage = () => {
             variants={fadeInUp}
           >
             <Link
-              to="/auth?role=teacher"
+              to="/signup?role=teacher"
               className={`block text-center px-8 py-3 rounded-lg text-lg font-semibold transition-all shadow-lg ${
                 theme === "light"
                   ? "bg-primary text-white hover:bg-primary-dark"
@@ -365,7 +365,7 @@ const LandingPage = () => {
 
             {/* Start Learning Button */}
             <Link
-              to="/auth?role=student"
+              to="/signup?role=student"
               className={`block text-center px-8 py-3 rounded-lg text-lg font-semibold transition-colors shadow-md ${
                 theme === "light"
                   ? "bg-white border border-primary text-primary hover:bg-white/60"

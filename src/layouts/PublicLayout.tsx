@@ -14,10 +14,10 @@ const PublicLayout: React.FC = () => {
   }, [theme]);
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-100">
+    <div className="flex flex-col min-h-screen bg-background dark:bg-background-dark">
       <Header />
       <motion.main
-        className="flex-grow"
+        className="flex-grow p-6"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -20 }}

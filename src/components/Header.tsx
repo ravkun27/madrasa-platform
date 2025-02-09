@@ -70,14 +70,14 @@ const Header = () => {
           {/* Desktop Auth Buttons and Theme Toggle */}
           <div className="hidden md:flex items-center space-x-4">
             <Link
-              to="/auth"
+              to="/login"
               className="text-gray-600 dark:text-text-dark hover:text-gray-800 dark:hover:text-primary transition duration-300 font-medium"
             >
               Sign In
             </Link>
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Link
-                to="/auth"
+                to="/signup"
                 className="bg-primary-gradient text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300 font-medium"
               >
                 Sign Up

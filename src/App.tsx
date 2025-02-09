@@ -1,39 +1,34 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { RouterProvider } from "react-router-dom";
 import LoadingScreen from "./components/LoadingScreen";
 import { ThemeProvider } from "./context/ThemeContext";
-import router from "./router/AppRouter";
-import { Suspense } from "react";
-
+import router from "./routes/Router";
 import "./App.css";
+import ErrorBoundary from "./components/ErrorBoundary";
 
-function App() {
-  const [loading, setLoading] = useState(true);
+const App: React.FC = () => {
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    // Enable smooth scrolling globally
     document.documentElement.style.scrollBehavior = "smooth";
-
-    // Simulate loading delay (e.g., fetching data, initializing app)
     const timer = setTimeout(() => setLoading(false), 2000);
-
-    // Cleanup function to clear the timeout if the component unmounts
     return () => clearTimeout(timer);
   }, []);
 
-  // Render the loading screen while the app is loading
   if (loading) {
     return <LoadingScreen />;
   }
 
-  // Render the main app content once loading is complete
   return (
-    <ThemeProvider>
-      <Suspense fallback={<LoadingScreen />}>
-        <RouterProvider router={router} />
-      </Suspense>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <Suspense fallback={<LoadingScreen />}>
+          {/* AuthProvider is now INSIDE the router */}
+          <RouterProvider router={router} />
+        </Suspense>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
-}
+};
 
 export default App;
