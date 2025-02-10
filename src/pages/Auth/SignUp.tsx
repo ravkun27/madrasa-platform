@@ -1,20 +1,25 @@
 import { useState, FormEvent, useEffect } from "react";
-import { FaChalkboardTeacher, FaUserGraduate } from "react-icons/fa";
+import {
+  FaChalkboardTeacher,
+  FaUserGraduate,
+  FaCheck,
+  FaSpinner,
+} from "react-icons/fa";
 import { useTheme } from "../../context/ThemeContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { postFetch } from "../../utils/apiCall";
+import { toast, Toaster } from "react-hot-toast";
 
-// Define the expected response type for the signup API
 interface SignupResponse {
   success: boolean;
   data: {
     token: string;
+    role: string;
   };
   message?: string;
 }
 
-// Define the expected response type for the OTP API
 interface OtpResponse {
   success: boolean;
   message?: string;
@@ -28,44 +33,77 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
     lastName: "",
     email: "",
     password: "",
+    confirmPassword: "",
     role: "",
     otp: "",
+    phoneNumber: "",
+    TelegramOrWhatsapp: "",
   });
   const [isOtpSent, setIsOtpSent] = useState(false);
+  const [isOtpVerified, setIsOtpVerified] = useState(false);
   const [countdown, setCountdown] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Send OTP handler
   const handleSendOtp = async () => {
     if (!formData.email) {
-      alert("Please enter your email first");
+      toast.error("Please enter your email first");
       return;
     }
 
     setIsLoading(true);
+    setIsSendingOtp(true);
     try {
       const result = await postFetch<OtpResponse>(
         "/user/sendOTP?for=createUser",
-        {
-          email: formData.email,
-        }
+        { email: formData.email }
       );
 
       if (result.success) {
         setIsOtpSent(true);
-        setCountdown(60); // 60 seconds countdown
-        alert("OTP sent to your email!");
+        setCountdown(60);
+        toast.success("OTP sent to your email!");
       } else {
         throw new Error(result.message || "Failed to send OTP");
       }
     } catch (error: any) {
-      alert(error.message || "Failed to send OTP. Please try again.");
+      toast.error(error.message || "Failed to send OTP. Please try again.");
     } finally {
       setIsLoading(false);
+      setIsSendingOtp(false);
     }
   };
 
-  // Countdown timer for OTP resend
+  const handleVerifyOtp = async () => {
+    if (formData.otp.length !== 4) {
+      toast.error("Please enter a 4-digit OTP");
+      return;
+    }
+
+    setIsLoading(true);
+    setIsVerifyingOtp(true);
+    try {
+      const result = await postFetch<OtpResponse>("/user/verifyOtp", {
+        email: formData.email,
+        otp: formData.otp,
+      });
+
+      if (result.success) {
+        setIsOtpVerified(true);
+        toast.success("OTP verified successfully!");
+      } else {
+        throw new Error(result.message || "OTP verification failed");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to verify OTP. Please try again.");
+    } finally {
+      setIsLoading(false);
+      setIsVerifyingOtp(false);
+    }
+  };
+
   useEffect(() => {
     if (countdown > 0) {
       const timer = setInterval(() => setCountdown((prev) => prev - 1), 1000);
@@ -73,43 +111,65 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
     }
   }, [countdown]);
 
-  // Form submission handler
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-
-    if (formData.otp.length !== 4) {
-      alert("Please enter a 4-digit OTP");
-      return;
-    }
-
+    setIsSubmitting(true);
     try {
-      const result = await postFetch<SignupResponse>("/user/signup", {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        password: formData.password,
-        role: formData.role,
-        otp: formData.otp,
-      });
-      if (!result?.success) {
-        throw new Error(result?.message || "Signup failed. Please try again.");
+      if (formData.password !== formData.confirmPassword) {
+        toast.error("Passwords do not match");
+        return;
       }
 
-      if (result.success && result.data.token) {
-        localStorage.setItem("token", result.data.token);
-        localStorage.setItem("role", formData.role);
+      try {
+        const result = await postFetch<SignupResponse>("/user/signup", {
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          TelegramOrWhatsapp: formData.TelegramOrWhatsapp || undefined,
+          phoneNumber: formData.phoneNumber,
+          password: formData.password,
+          role: formData.role,
+          otp: formData.otp,
+        });
 
-        navigate("/login");
-      } else {
-        throw new Error(result.message || "Signup failed. Please try again.");
+        if (result.success && result.data) {
+          const { token, role } = result.data;
+          console.log("User Data:", result.data);
+
+          localStorage.setItem("token", token);
+          localStorage.setItem("role", role);
+
+          // Normalize role to lowercase for consistency
+          const normalizedRole = role.toLowerCase();
+
+          // Redirect based on role
+          switch (normalizedRole) {
+            case "student":
+              navigate("/student-dashboard");
+              break;
+            case "teacher":
+              navigate("/teacher-dashboard");
+              break;
+            default:
+              navigate("/dashboard"); // Fallback dashboard
+              break;
+          }
+        } else {
+          toast.error("Invalid credentials");
+        }
+      } catch (error) {
+        console.error("Login failed:", error);
+        toast.error("Something went wrong. Please try again.");
       }
-    } catch (error: any) {
-      alert(error.message || "Signup failed. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
     <div className="my-4 max-w-md mx-auto p-6 border-2 border-accent rounded-xl">
+      <Toaster position="top-right" reverseOrder={false} />
+
       <h1
         className={`text-3xl font-bold mb-8 text-center ${
           theme === "light" ? "text-primary" : "text-secondary"
@@ -150,7 +210,9 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
                 <div className="flex items-center gap-3">
                   <FaUserGraduate className="text-primary text-xl" />
                   <div>
-                    <h3 className="font-semibold">Student</h3>
+                    <h3 className="font-semibold text-text dark:text-text-dark">
+                      Student
+                    </h3>
                     <p className="text-sm text-gray-500">
                       Join courses and learn
                     </p>
@@ -172,7 +234,9 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
                 <div className="flex items-center gap-3">
                   <FaChalkboardTeacher className="text-secondary text-xl" />
                   <div>
-                    <h3 className="font-semibold">Teacher</h3>
+                    <h3 className="font-semibold text-text dark:text-text-dark">
+                      Teacher
+                    </h3>
                     <p className="text-sm text-gray-500">
                       Create and manage courses
                     </p>
@@ -214,67 +278,167 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
             </div>
 
             <div className="flex gap-2">
-              <input
-                type="email"
-                placeholder="Email"
-                required
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
-                className="flex-1 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              />
+              <div className="relative flex-1">
+                <input
+                  type="email"
+                  placeholder="Email"
+                  required
+                  value={formData.email}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
+                  disabled={isOtpVerified}
+                  className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-75"
+                />
+                {isOtpVerified && (
+                  <FaCheck className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500" />
+                )}
+              </div>
+              {/* Send OTP button */}
               <button
                 type="button"
                 onClick={handleSendOtp}
-                disabled={isLoading || countdown > 0}
-                className={`px-4 py-2 rounded-lg transition-colors ${
-                  countdown > 0 || isLoading
+                disabled={countdown > 0}
+                className={`w-32 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 ${
+                  countdown > 0 || isSendingOtp
+                    ? "bg-gray-300 cursor-not-allowed"
+                    : "bg-primary hover:bg-primary/90 text-white"
+                } ${isOtpVerified ? "hidden" : ""}`}
+              >
+                {isSendingOtp ? (
+                  <>
+                    <FaSpinner className="animate-spin" />
+                    Sending...
+                  </>
+                ) : countdown > 0 ? (
+                  `${countdown}s`
+                ) : (
+                  "Send OTP"
+                )}
+              </button>
+            </div>
+
+            {isOtpSent && !isOtpVerified && (
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <input
+                    type="number"
+                    placeholder="Enter 4-digit OTP"
+                    required
+                    value={formData.otp}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        otp: e.target.value.replace(/\D/g, "").slice(0, 4),
+                      })
+                    }
+                    className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                  {isOtpVerified && (
+                    <FaCheck className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500" />
+                  )}
+                </div>
+                {/* Verify OTP button */}
+                <button
+                  type="button"
+                  onClick={handleVerifyOtp}
+                  disabled={isLoading || isOtpVerified || isVerifyingOtp}
+                  className={`w-32 px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 ${
+                    isLoading || isOtpVerified || isVerifyingOtp
+                      ? "bg-gray-300 cursor-not-allowed"
+                      : "bg-primary hover:bg-primary/90 text-white"
+                  }`}
+                >
+                  {isVerifyingOtp ? (
+                    <>
+                      <FaSpinner className="animate-spin" />
+                      Verifying...
+                    </>
+                  ) : (
+                    "Verify"
+                  )}
+                </button>
+              </div>
+            )}
+
+            {isOtpVerified && (
+              <>
+                <input
+                  type="password"
+                  placeholder="Password"
+                  required
+                  value={formData.password}
+                  onChange={(e) =>
+                    setFormData({ ...formData, password: e.target.value })
+                  }
+                  className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+                <input
+                  type="password"
+                  placeholder="Confirm Password"
+                  required
+                  value={formData.confirmPassword}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      confirmPassword: e.target.value,
+                    })
+                  }
+                  className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+                <input
+                  type="text"
+                  placeholder="Phone Number"
+                  required
+                  value={formData.phoneNumber}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      phoneNumber: e.target.value
+                        .replace(/\D/g, "")
+                        .slice(0, 10),
+                    })
+                  }
+                  className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+                <select
+                  value={formData.TelegramOrWhatsapp}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      TelegramOrWhatsapp: e.target.value,
+                    })
+                  }
+                  className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                >
+                  <option value="">Select an option (Optional)</option>
+                  <option value="telegram">Telegram</option>
+                  <option value="whatsapp">WhatsApp</option>
+                </select>
+              </>
+            )}
+
+            {isOtpVerified && (
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className={`w-full py-3 rounded-lg transition-colors flex items-center justify-center gap-2 ${
+                  isSubmitting
                     ? "bg-gray-300 cursor-not-allowed"
                     : "bg-primary hover:bg-primary/90 text-white"
                 }`}
               >
-                {countdown > 0 ? `${countdown}s` : "Send OTP"}
+                {isSubmitting ? (
+                  <>
+                    <FaSpinner className="animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  "Create Account"
+                )}
               </button>
-            </div>
+            )}
 
-            <input
-              type="number"
-              placeholder="Enter 4-digit OTP"
-              required
-              value={formData.otp}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  otp: e.target.value.replace(/\D/g, "").slice(0, 4), // Limits to 4 digits
-                })
-              }
-              maxLength={4}
-              className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-
-            <input
-              type="password"
-              placeholder="Password"
-              required
-              value={formData.password}
-              onChange={(e) =>
-                setFormData({ ...formData, password: e.target.value })
-              }
-              className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-
-            <button
-              type="submit"
-              disabled={isLoading}
-              className={`w-full py-3 rounded-lg transition-colors ${
-                isLoading
-                  ? "bg-gray-300 cursor-not-allowed"
-                  : "bg-primary hover:bg-primary/90 text-white"
-              }`}
-            >
-              {isLoading ? "Creating..." : "Create Account"}
-            </button>
             <div className="flex gap-2 justify-center ">
               <p className="text-text dark:text-text-dark">
                 Already have Account?

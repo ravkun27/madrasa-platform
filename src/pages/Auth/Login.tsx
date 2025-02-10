@@ -26,20 +26,34 @@ const Login = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
         { email, password }
       );
 
-      if (result.success) {
-        localStorage.setItem("token", result.data.token);
-        localStorage.setItem("role", result.data.role);
+      if (result.success && result.data) {
+        const { token, role } = result.data;
+        console.log("User Data:", result.data);
 
-        if (result.data.role === "student") {
-          navigate("/student-dashboard");
-        } else {
-          navigate("/teacher-dashboard");
+        localStorage.setItem("token", token);
+        localStorage.setItem("role", role);
+
+        // Normalize role to lowercase for consistency
+        const normalizedRole = role.toLowerCase();
+
+        // Redirect based on role
+        switch (normalizedRole) {
+          case "student":
+            navigate("/student-dashboard");
+            break;
+          case "teacher":
+            navigate("/teacher-dashboard");
+            break;
+          default:
+            navigate("/dashboard"); // Fallback dashboard
+            break;
         }
       } else {
         alert("Invalid credentials");
       }
     } catch (error) {
-      console.error("Login failed", error);
+      console.error("Login failed:", error);
+      alert("Something went wrong. Please try again.");
     }
   };
 

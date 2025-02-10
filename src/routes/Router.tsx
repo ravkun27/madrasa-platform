@@ -11,6 +11,7 @@ import Unauthorized from "../pages/Unauthorized";
 import PublicLayout from "../layouts/PublicLayout";
 import LandingPage from "../pages/LandingPage";
 import { AuthProvider } from "../context/AuthContext";
+import ProtectedLayout from "../layouts/ProtectedLayout";
 
 // RootLayout wraps the entire app with AuthProvider
 const RootLayout = () => {
@@ -46,19 +47,20 @@ const protectedRoutes = [
     element: <PrivateRoute />, // Protect all routes inside
     children: [
       {
-        element: <RoleBasedRoute role="admin" />, // Role check
-        children: [{ path: "admin-dashboard", element: <AdminDashboard /> }],
-      },
-      {
-        element: <RoleBasedRoute role="student" />, // Role check
+        element: <ProtectedLayout />, // Public layout wrapper
         children: [
-          { path: "student-dashboard", element: <StudentDashboard /> },
-        ],
-      },
-      {
-        element: <RoleBasedRoute role="teacher" />, // Role check
-        children: [
-          { path: "teacher-dashboard", element: <TeacherDashboard /> },
+          {
+            element: <RoleBasedRoute role="student" />, // Role check
+            children: [
+              { path: "student-dashboard", element: <StudentDashboard /> },
+            ],
+          },
+          {
+            element: <RoleBasedRoute role="teacher" />, // Role check
+            children: [
+              { path: "teacher-dashboard", element: <TeacherDashboard /> },
+            ],
+          },
         ],
       },
     ],

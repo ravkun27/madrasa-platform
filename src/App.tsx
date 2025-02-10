@@ -23,7 +23,6 @@ const App: React.FC = () => {
     <ErrorBoundary>
       <ThemeProvider>
         <Suspense fallback={<LoadingScreen />}>
-          {/* AuthProvider is now INSIDE the router */}
           <RouterProvider router={router} />
         </Suspense>
       </ThemeProvider>

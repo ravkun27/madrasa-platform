@@ -1,4 +1,4 @@
-const apiUrl = "http://51.20.99.104/api/v1"; // Replace with the correct base URL
+const apiUrl = "http://3.111.242.103/api/v1"; // Replace with the correct base URL
 type ApiMethod = "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
 type ApiResponse<T> = Promise<T>;
 type ApiBody = Record<string, any> | FormData;
