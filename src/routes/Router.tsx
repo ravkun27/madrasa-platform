@@ -3,7 +3,6 @@ import PrivateRoute from "./PrivateRoute";
 import RoleBasedRoute from "./RoleBasedRoute";
 import Login from "../pages/Auth/Login";
 import Signup from "../pages/Auth/SignUp";
-import AdminDashboard from "../pages/Admin/Dashboard";
 import StudentDashboard from "../pages/Student/Dashboard";
 import TeacherDashboard from "../pages/Teacher/Dashboard";
 import NotFound from "../pages/shared/NotFound";

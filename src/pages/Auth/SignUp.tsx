@@ -443,7 +443,11 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
               <p className="text-text dark:text-text-dark">
                 Already have Account?
               </p>
-              <Link to={"/login"} className="font-bold text-primary">
+              <Link
+                to={"/login"}
+                onClick={() => setIsLogin(false)}
+                className="font-bold text-primary"
+              >
                 Sign In
               </Link>
             </div>
