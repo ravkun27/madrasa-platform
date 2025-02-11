@@ -28,36 +28,21 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const checkAuth = () => {
-      const token = localStorage.getItem("token");
-      const role = localStorage.getItem("role");
+    const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role");
 
-      // Ensure case consistency for roles
-      const normalizedRole = role?.toLowerCase();
+    if (token && role) {
+      console.log("Token and role found in localStorage:", { token, role });
+      setUser({ role });
+      setIsAuthenticated(true);
+    } else {
+      console.log("No valid token or role found in localStorage");
+      setUser(null);
+      setIsAuthenticated(false);
+    }
 
-      if (token && normalizedRole) {
-        console.log("Token and role found in localStorage:", {
-          token,
-          normalizedRole,
-        });
-        setUser({ role: normalizedRole });
-        setIsAuthenticated(true);
-      } else {
-        console.log("No valid token or role found in localStorage");
-        setUser(null);
-        setIsAuthenticated(false);
-      }
-
-      setLoading(false);
-    };
-
-    checkAuth();
+    setLoading(false); // Immediately set loading to false after checking
   }, []);
-
-  // Debugging: Log state changes
-  useEffect(() => {
-    console.log("Auth state updated:", { user, isAuthenticated, loading });
-  }, [user, isAuthenticated, loading]);
 
   const login = (token: string, role: string) => {
     const normalizedRole = role.toLowerCase();

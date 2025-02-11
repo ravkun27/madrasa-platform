@@ -3,11 +3,15 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import logoEng from "../assets/logoEng.png";
 import { useTheme } from "../context/ThemeContext"; // Import useTheme hook
-import { FiSun, FiMoon } from "react-icons/fi"; // Icons for light/dark mode
+import { useAuth } from "../context/AuthContext"; // Import Auth Context
+import { FiSun, FiMoon, FiUser, FiLogOut } from "react-icons/fi"; // Icons for light/dark mode
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const { theme, toggleTheme } = useTheme(); // Get theme and toggle function
+  const { user, logout } = useAuth(); // Get user & logout function
+
   useEffect(() => {
     document.documentElement.className = theme;
   }, [theme]);
@@ -69,132 +73,169 @@ const Header = () => {
 
           {/* Desktop Auth Buttons and Theme Toggle */}
           <div className="hidden md:flex items-center space-x-4">
-            <Link
-              to="/login"
-              className="text-gray-600 dark:text-text-dark hover:text-gray-800 dark:hover:text-primary transition duration-300 font-medium"
-            >
-              Sign In
-            </Link>
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Link
-                to="/signup"
-                className="bg-primary-gradient text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300 font-medium"
-              >
-                Sign Up
-              </Link>
-            </motion.div>
-            {/* Theme Toggle Button */}
-            <button
-              onClick={toggleTheme}
-              className="p-2 text-gray-600 dark:text-text-dark hover:text-gray-800 dark:hover:text-primary transition duration-300"
-            >
-              {theme === "light" ? (
-                <FiMoon className="w-6 h-6" />
-              ) : (
-                <FiSun className="w-6 h-6" />
-              )}
-            </button>
-          </div>
-
-          {/* Mobile Menu Button and Theme Toggle */}
-          <div className="md:hidden flex items-center space-x-4">
-            {/* Theme Toggle Button (Mobile) */}
-            <button
-              onClick={toggleTheme}
-              className="p-2 text-gray-600 dark:text-text-dark hover:text-gray-800 dark:hover:text-primary transition duration-300"
-            >
-              {theme === "light" ? (
-                <FiMoon className="w-6 h-6" />
-              ) : (
-                <FiSun className="w-6 h-6" />
-              )}
-            </button>
-            {/* Mobile Menu Toggle Button */}
-            <button
-              className="text-gray-800 dark:text-text-dark focus:outline-none"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M4 6h16M4 12h16m-7 6h7"
-                ></path>
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Navigation Links (Toggled by state) */}
-        <AnimatePresence>
-          {isMobileMenuOpen && (
-            <motion.div
-              className="md:hidden overflow-hidden"
-              initial="closed"
-              animate="open"
-              exit="closed"
-              variants={{
-                closed: {
-                  opacity: 0,
-                  height: 0,
-                  transition: { duration: 0, ease: "easeInOut" },
-                },
-                open: {
-                  opacity: 1,
-                  height: "300px",
-                  transition: { duration: 0.2, ease: "easeInOut" },
-                },
-              }}
-            >
-              <motion.div className="py-4 space-y-4">
-                <Link
-                  to="/courses"
-                  className="block text-gray-600 dark:text-text-dark hover:text-gray-800 dark:hover:text-primary transition duration-300 font-medium py-2"
-                >
-                  Courses
-                </Link>
-                <Link
-                  to="/about"
-                  className="block text-gray-600 dark:text-text-dark hover:text-gray-800 dark:hover:text-primary transition duration-300 font-medium py-2"
-                >
-                  About
-                </Link>
-                <Link
-                  to="/contact"
-                  className="block text-gray-600 dark:text-text-dark hover:text-gray-800 dark:hover:text-primary transition duration-300 font-medium py-2"
-                >
-                  Contact
-                </Link>
-                <div className="flex flex-col space-y-4 mt-4">
-                  <Link
-                    to="/auth"
-                    className="text-gray-600 dark:text-text-dark hover:text-gray-800 dark:hover:text-primary transition duration-300 font-medium"
+            {/* Desktop Auth & Theme Toggle */}
+            <div className="hidden md:flex items-center space-x-4">
+              {user ? (
+                // User Info Dropdown
+                <div className="relative">
+                  <button
+                    className="flex items-center space-x-2 text-gray-600 dark:text-text-dark hover:text-primary transition"
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   >
+                    <FiUser className="w-6 h-6" />
+                    <span>{user.role}</span>
+                  </button>
+
+                  {/* Dropdown Menu */}
+                  <AnimatePresence>
+                    {isDropdownOpen && (
+                      <motion.div
+                        className="absolute -right-2 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg p-4"
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                      >
+                        <Link
+                          to="/profile"
+                          className="dropdown-item text-text dark:text-text-dark"
+                        >
+                          Profile
+                        </Link>
+                        <button
+                          onClick={logout}
+                          className="dropdown-item flex items-center text-red-500 mt-2"
+                        >
+                          <FiLogOut className="mr-2 text-red-500" /> Logout
+                        </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              ) : (
+                // Sign In & Sign Up Buttons
+                <>
+                  <Link to="/login" className="nav-link">
                     Sign In
                   </Link>
-                  <motion.div
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                  <Link to="/signup" className="btn-primary">
+                    Sign Up
+                  </Link>
+                </>
+              )}
+
+              {/* Theme Toggle Button */}
+              <button
+                onClick={toggleTheme}
+                className="p-2 text-gray-600 dark:text-text-dark hover:text-gray-800 dark:hover:text-primary transition duration-300"
+              >
+                {theme === "light" ? (
+                  <FiMoon className="w-6 h-6" />
+                ) : (
+                  <FiSun className="w-6 h-6" />
+                )}
+              </button>
+            </div>
+
+            {/* Mobile Menu Button and Theme Toggle */}
+            <div className="md:hidden flex items-center space-x-4">
+              {/* Theme Toggle Button (Mobile) */}
+              <button
+                onClick={toggleTheme}
+                className="p-2 text-gray-600 dark:text-text-dark hover:text-gray-800 dark:hover:text-primary transition duration-300"
+              >
+                {theme === "light" ? (
+                  <FiMoon className="w-6 h-6" />
+                ) : (
+                  <FiSun className="w-6 h-6" />
+                )}
+              </button>
+              {/* Mobile Menu Toggle Button */}
+              <button
+                className="text-gray-800 dark:text-text-dark focus:outline-none"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M4 6h16M4 12h16m-7 6h7"
+                  ></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          {/* Mobile Navigation Links (Toggled by state) */}
+          <AnimatePresence>
+            {isMobileMenuOpen && (
+              <motion.div
+                className="md:hidden overflow-hidden"
+                initial="closed"
+                animate="open"
+                exit="closed"
+                variants={{
+                  closed: {
+                    opacity: 0,
+                    height: 0,
+                    transition: { duration: 0, ease: "easeInOut" },
+                  },
+                  open: {
+                    opacity: 1,
+                    height: "300px",
+                    transition: { duration: 0.2, ease: "easeInOut" },
+                  },
+                }}
+              >
+                <motion.div className="py-4 space-y-4">
+                  <Link
+                    to="/courses"
+                    className="block text-gray-600 dark:text-text-dark hover:text-gray-800 dark:hover:text-primary transition duration-300 font-medium py-2"
                   >
+                    Courses
+                  </Link>
+                  <Link
+                    to="/about"
+                    className="block text-gray-600 dark:text-text-dark hover:text-gray-800 dark:hover:text-primary transition duration-300 font-medium py-2"
+                  >
+                    About
+                  </Link>
+                  <Link
+                    to="/contact"
+                    className="block text-gray-600 dark:text-text-dark hover:text-gray-800 dark:hover:text-primary transition duration-300 font-medium py-2"
+                  >
+                    Contact
+                  </Link>
+                  <div className="flex flex-col space-y-4 mt-4">
                     <Link
                       to="/auth"
-                      className="bg-primary-gradient text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300 font-medium text-center block"
+                      className="text-gray-600 dark:text-text-dark hover:text-gray-800 dark:hover:text-primary transition duration-300 font-medium"
                     >
-                      Sign Up
+                      Sign In
                     </Link>
-                  </motion.div>
-                </div>
+                    <motion.div
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <Link
+                        to="/auth"
+                        className="bg-primary-gradient text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300 font-medium text-center block"
+                      >
+                        Sign Up
+                      </Link>
+                    </motion.div>
+                  </div>
+                </motion.div>
               </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            )}
+          </AnimatePresence>
+        </div>
       </nav>
     </motion.header>
   );
