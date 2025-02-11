@@ -25,31 +25,47 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const navigate = useNavigate();
   const [user, setUser] = useState<{ role: string } | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true); // ✅ Loading state
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    const role = localStorage.getItem("role");
+    const checkAuth = () => {
+      const token = localStorage.getItem("token");
+      const role = localStorage.getItem("role");
 
-    console.log("Fetching token from localStorage:", token);
-    console.log("Fetching role from localStorage:", role);
+      // Ensure case consistency for roles
+      const normalizedRole = role?.toLowerCase();
 
-    if (token && role) {
-      setUser({ role });
-      setIsAuthenticated(true);
-    } else {
-      setUser(null);
-      setIsAuthenticated(false);
-    }
+      if (token && normalizedRole) {
+        console.log("Token and role found in localStorage:", {
+          token,
+          normalizedRole,
+        });
+        setUser({ role: normalizedRole });
+        setIsAuthenticated(true);
+      } else {
+        console.log("No valid token or role found in localStorage");
+        setUser(null);
+        setIsAuthenticated(false);
+      }
 
-    setLoading(false); // ✅ Fix: Ensure loading is set to false
+      setLoading(false);
+    };
+
+    checkAuth();
   }, []);
 
+  // Debugging: Log state changes
+  useEffect(() => {
+    console.log("Auth state updated:", { user, isAuthenticated, loading });
+  }, [user, isAuthenticated, loading]);
+
   const login = (token: string, role: string) => {
+    const normalizedRole = role.toLowerCase();
     localStorage.setItem("token", token);
-    localStorage.setItem("role", role);
-    setUser({ role });
+    localStorage.setItem("role", normalizedRole);
+    setUser({ role: normalizedRole });
     setIsAuthenticated(true);
+    console.log("User logged in:", { role: normalizedRole });
   };
 
   const logout = () => {
@@ -58,6 +74,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setUser(null);
     setIsAuthenticated(false);
     navigate("/login");
+    console.log("User logged out");
   };
 
   return (

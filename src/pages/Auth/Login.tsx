@@ -28,26 +28,14 @@ const Login = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
 
       if (result.success && result.data) {
         const { token, role } = result.data;
-        console.log("User Data:", result.data);
 
-        localStorage.setItem("token", token);
-        localStorage.setItem("role", role);
-
-        // Normalize role to lowercase for consistency
+        // Store role in lowercase for consistency
         const normalizedRole = role.toLowerCase();
 
-        // Redirect based on role
-        switch (normalizedRole) {
-          case "student":
-            navigate("/student-dashboard");
-            break;
-          case "teacher":
-            navigate("/teacher-dashboard");
-            break;
-          default:
-            navigate("/dashboard"); // Fallback dashboard
-            break;
-        }
+        localStorage.setItem("token", token);
+        localStorage.setItem("role", normalizedRole); // Changed to store normalized role
+
+        navigate(`/${normalizedRole}-dashboard`);
       } else {
         alert("Invalid credentials");
       }
