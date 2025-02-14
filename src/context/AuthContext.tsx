@@ -35,21 +35,40 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       console.log("Token and role found in localStorage:", { token, role });
       setUser({ role });
       setIsAuthenticated(true);
+      switch (role.toLowerCase()) {
+        case "teacher":
+          navigate("/teacher-dashboard");
+          break;
+        case "student":
+          navigate("/student-dashboard");
+          break;
+        case "admin":
+          navigate("/admin-dashboard");
+          break;
+        default:
+          navigate("/"); // Fallback to landing page for unknown roles
+      }
     } else {
       console.log("No valid token or role found in localStorage");
       setUser(null);
       setIsAuthenticated(false);
     }
 
-    setLoading(false); // Immediately set loading to false after checking
+    setLoading(false);
   }, []);
 
   const login = (token: string, role: string) => {
-    const normalizedRole = role.toLowerCase();
+    if (!token || !role) {
+      console.error("Invalid login attempt: Missing token or role");
+      return;
+    }
+
+    const normalizedRole = role.toLowerCase().trim();
     localStorage.setItem("token", token);
     localStorage.setItem("role", normalizedRole);
     setUser({ role: normalizedRole });
     setIsAuthenticated(true);
+    setLoading(false); // Ensure loading is updated
     console.log("User logged in:", { role: normalizedRole });
   };
 
@@ -58,8 +77,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     localStorage.removeItem("role");
     setUser(null);
     setIsAuthenticated(false);
-    navigate("/login");
+    setLoading(false); // Ensure loading state is updated
     console.log("User logged out");
+
+    navigate("/login"); // Redirect after logout
   };
 
   return (

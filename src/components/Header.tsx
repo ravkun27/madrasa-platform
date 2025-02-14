@@ -76,14 +76,15 @@ const Header = () => {
             {/* Desktop Auth & Theme Toggle */}
             <div className="hidden md:flex items-center space-x-4">
               {user ? (
-                // User Info Dropdown
+                // User is logged in, show role
                 <div className="relative">
                   <button
                     className="flex items-center space-x-2 text-gray-600 dark:text-text-dark hover:text-primary transition"
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   >
                     <FiUser className="w-6 h-6" />
-                    <span>{user.role}</span>
+                    <span>{user?.role || "User"}</span>{" "}
+                    {/* Handle missing role */}
                   </button>
 
                   {/* Dropdown Menu */}
@@ -112,14 +113,25 @@ const Header = () => {
                   </AnimatePresence>
                 </div>
               ) : (
-                // Sign In & Sign Up Buttons
+                // User is NOT logged in, show login/signup buttons
                 <>
-                  <Link to="/login" className="nav-link">
+                  <Link
+                    to="/login"
+                    className="text-gray-600 dark:text-text-dark hover:text-gray-800 dark:hover:text-primary transition duration-300 font-medium"
+                  >
                     Sign In
                   </Link>
-                  <Link to="/signup" className="btn-primary">
-                    Sign Up
-                  </Link>
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Link
+                      to="/signup"
+                      className="bg-primary-gradient text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300 font-medium"
+                    >
+                      Sign Up
+                    </Link>
+                  </motion.div>
                 </>
               )}
 
@@ -135,103 +147,164 @@ const Header = () => {
                 )}
               </button>
             </div>
+          </div>
+          {/* Mobile Menu Button and Theme Toggle */}
+          <div className="relative md:hidden flex items-center space-x-4 z-50">
+            {/* Theme Toggle Button (Mobile) */}
+            <button
+              onClick={toggleTheme}
+              className="p-2 text-gray-600 dark:text-text-dark hover:text-gray-800 dark:hover:text-primary transition duration-300"
+            >
+              {theme === "light" ? (
+                <FiMoon className="w-6 h-6" />
+              ) : (
+                <FiSun className="w-6 h-6" />
+              )}
+            </button>
 
-            {/* Mobile Menu Button and Theme Toggle */}
-            <div className="md:hidden flex items-center space-x-4">
-              {/* Theme Toggle Button (Mobile) */}
-              <button
-                onClick={toggleTheme}
-                className="p-2 text-gray-600 dark:text-text-dark hover:text-gray-800 dark:hover:text-primary transition duration-300"
+            {/* Mobile Menu Toggle Button */}
+            <button
+              className="text-black dark:text-white focus:outline-none z-50"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              <svg
+                className="w-8 h-8"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
               >
-                {theme === "light" ? (
-                  <FiMoon className="w-6 h-6" />
-                ) : (
-                  <FiSun className="w-6 h-6" />
-                )}
-              </button>
-              {/* Mobile Menu Toggle Button */}
-              <button
-                className="text-gray-800 dark:text-text-dark focus:outline-none"
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M4 6h16M4 12h16m-7 6h7"
-                  ></path>
-                </svg>
-              </button>
-            </div>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M4 6h16M4 12h16m-7 6h7"
+                ></path>
+              </svg>
+            </button>
           </div>
 
           {/* Mobile Navigation Links (Toggled by state) */}
           <AnimatePresence>
             {isMobileMenuOpen && (
               <motion.div
-                className="md:hidden overflow-hidden"
-                initial="closed"
-                animate="open"
-                exit="closed"
-                variants={{
-                  closed: {
-                    opacity: 0,
-                    height: 0,
-                    transition: { duration: 0, ease: "easeInOut" },
-                  },
-                  open: {
-                    opacity: 1,
-                    height: "300px",
-                    transition: { duration: 0.2, ease: "easeInOut" },
-                  },
-                }}
+                className="md:hidden fixed top-16 left-0 w-full bg-white dark:bg-gray-900 shadow-lg z-40"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
               >
-                <motion.div className="py-4 space-y-4">
+                <div className="py-6 space-y-6 text-center flex flex-col items-center">
                   <Link
                     to="/courses"
-                    className="block text-gray-600 dark:text-text-dark hover:text-gray-800 dark:hover:text-primary transition duration-300 font-medium py-2"
+                    className="text-lg sm:text-xl block w-full max-w-xs text-gray-700 dark:text-white hover:text-gray-900 dark:hover:text-primary transition duration-300 font-medium py-3"
+                    onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Courses
                   </Link>
                   <Link
                     to="/about"
-                    className="block text-gray-600 dark:text-text-dark hover:text-gray-800 dark:hover:text-primary transition duration-300 font-medium py-2"
+                    className="text-lg sm:text-xl block w-full max-w-xs text-gray-700 dark:text-white hover:text-gray-900 dark:hover:text-primary transition duration-300 font-medium py-3"
+                    onClick={() => setIsMobileMenuOpen(false)}
                   >
                     About
                   </Link>
                   <Link
                     to="/contact"
-                    className="block text-gray-600 dark:text-text-dark hover:text-gray-800 dark:hover:text-primary transition duration-300 font-medium py-2"
+                    className="text-lg sm:text-xl block w-full max-w-xs text-gray-700 dark:text-white hover:text-gray-900 dark:hover:text-primary transition duration-300 font-medium py-3"
+                    onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Contact
                   </Link>
-                  <div className="flex flex-col space-y-4 mt-4">
-                    <Link
-                      to="/login"
-                      className="text-gray-600 dark:text-text-dark hover:text-gray-800 dark:hover:text-primary transition duration-300 font-medium"
-                    >
-                      Sign In
-                    </Link>
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <Link
-                        to="/signup"
-                        className="bg-primary-gradient text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300 font-medium text-center block"
-                      >
-                        Sign Up
-                      </Link>
-                    </motion.div>
+
+                  {/* Auth Buttons */}
+                  <div className="flex flex-col items-center space-y-4 mt-4 w-full">
+                    {user ? (
+                      // If user is logged in, show profile dropdown
+                      <div className="relative w-full flex flex-col items-center">
+                        <button
+                          className="flex items-center space-x-2 text-lg sm:text-xl text-secondary dark:text-secondary-dark hover:text-secondary-dark dark:hover:text-secondary transition font-medium"
+                          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                        >
+                          <FiUser className="w-6 h-6" />
+                          <span>{user?.role || "User"}</span>
+                          {/* Arrow Icon (Changes Direction Based on State) */}
+                          <svg
+                            className={`w-5 h-5 transition-transform ${
+                              isDropdownOpen ? "rotate-180" : "rotate-0"
+                            }`}
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M19 9l-7 7-7-7"
+                            />
+                          </svg>
+                        </button>
+
+                        {/* Dropdown for Profile and Logout */}
+                        <AnimatePresence>
+                          {isDropdownOpen && (
+                            <motion.div
+                              className="mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg p-3 text-center transition-all duration-300"
+                              initial={{ opacity: 0, y: -10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -10 }}
+                            >
+                              <Link
+                                to="/profile"
+                                className="block text-lg text-gray-700 dark:text-white hover:text-gray-900 dark:hover:text-primary transition duration-300 font-medium py-2"
+                                onClick={() => {
+                                  setIsMobileMenuOpen(false);
+                                  setIsDropdownOpen(false);
+                                }}
+                              >
+                                Profile
+                              </Link>
+                              <button
+                                onClick={() => {
+                                  logout();
+                                  setIsMobileMenuOpen(false);
+                                }}
+                                className="w-full text-lg text-red-500 flex items-center justify-center mt-2"
+                              >
+                                <FiLogOut className="mr-2 text-red-500" />
+                                Logout
+                              </button>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    ) : (
+                      // If no user, show Sign In / Sign Up buttons
+                      <>
+                        <Link
+                          to="/login"
+                          className="text-lg sm:text-xl text-gray-700 dark:text-white hover:text-gray-900 dark:hover:text-primary transition duration-300 font-medium"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          Sign In
+                        </Link>
+                        <motion.div
+                          whileHover={{ scale: 1.03 }}
+                          whileTap={{ scale: 0.97 }}
+                        >
+                          <Link
+                            to="/signup"
+                            className="text-lg sm:text-xl bg-primary-gradient text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition duration-300 font-semibold w-full max-w-xs text-center block"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                          >
+                            Sign Up
+                          </Link>
+                        </motion.div>
+                      </>
+                    )}
                   </div>
-                </motion.div>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>

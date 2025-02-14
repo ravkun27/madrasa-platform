@@ -2,7 +2,6 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Combobox } from "@headlessui/react";
 
-// Course Interface
 interface Course {
   id: string;
   code: string;
@@ -11,14 +10,13 @@ interface Course {
   joined: boolean;
 }
 
-// Mock Courses
 const allCourses: Course[] = [
   {
     id: "1",
     code: "CS101",
     name: "Intro to Computer Science",
     instructor: "Dr. Smith",
-    joined: false,
+    joined: true,
   },
   {
     id: "2",
@@ -32,7 +30,7 @@ const allCourses: Course[] = [
     code: "PHY301",
     name: "Modern Physics",
     instructor: "Dr. Williams",
-    joined: false,
+    joined: true,
   },
 ];
 
@@ -42,6 +40,7 @@ export default function Dashboard() {
   const [enrolledCourses, setEnrolledCourses] = useState<Course[]>(
     allCourses.filter((c) => c.joined)
   );
+  const [showEnrollSection, setShowEnrollSection] = useState(false);
 
   const filteredCourses =
     searchQuery === ""
@@ -68,101 +67,116 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 dark:text-gray-100">
-      {/* Navigation */}
       <nav className="bg-blue-600 dark:bg-blue-800 p-5 text-white shadow-lg">
         <div className="container mx-auto flex justify-between items-center">
           <h1 className="text-2xl font-bold">Student Dashboard</h1>
         </div>
       </nav>
 
-      {/* Main Content */}
       <main className="container mx-auto p-6">
-        {/* Welcome Section */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          className="mb-8 text-center"
         >
-          <h2 className="text-3xl font-semibold mb-2">
+          <h2 className="text-3xl font-semibold mb-4">
             Welcome back, Student!
           </h2>
-          <p className="text-gray-700 dark:text-gray-300">
-            Find and join courses easily.
-          </p>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setShowEnrollSection(!showEnrollSection)}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+          >
+            {showEnrollSection ? "Close Enrollment" : "Enroll in Course"}
+          </motion.button>
         </motion.section>
 
-        {/* Course Search */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="mb-6"
-        >
-          <div className="relative w-full max-w-md mx-auto">
-            <Combobox
-              as="div"
-              onChange={(course: Course) => joinCourse(course.id)}
-            >
-              <Combobox.Input
-                className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
-                placeholder="Search course code..."
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              <Combobox.Options className="absolute mt-2 w-full bg-white dark:bg-gray-800 shadow-md rounded-lg overflow-hidden">
-                {filteredCourses.length > 0 ? (
-                  filteredCourses.map((course) => (
-                    <Combobox.Option
-                      key={course.id}
-                      value={course}
-                      className={({ active }) =>
-                        `p-3 cursor-pointer transition ${
-                          active
-                            ? "bg-blue-500 text-white"
-                            : "text-gray-800 dark:text-gray-200"
-                        }`
-                      }
-                    >
-                      {course.code} - {course.name}
-                    </Combobox.Option>
-                  ))
-                ) : (
-                  <div className="p-3 text-gray-600 dark:text-gray-400">
-                    No matching courses
-                  </div>
-                )}
-              </Combobox.Options>
-            </Combobox>
-          </div>
-        </motion.div>
-
-        {/* Enrolled Courses */}
-        <section className="mb-8">
-          <h3 className="text-2xl font-semibold mb-4">Your Courses</h3>
-          {enrolledCourses.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {enrolledCourses.map((course) => (
+        {showEnrollSection && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-8"
+          >
+            <div className="max-w-2xl mx-auto">
+              <Combobox
+                as="div"
+                onChange={(course: Course) => joinCourse(course.id)}
+              >
+                <Combobox.Input
+                  className="w-full p-4 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                  placeholder="Search for courses by code..."
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <Combobox.Options className="absolute mt-2 w-full max-w-2xl bg-white dark:bg-gray-800 shadow-xl rounded-lg overflow-hidden ring-1 ring-black/5">
+                  {filteredCourses.length > 0 ? (
+                    filteredCourses.map((course) => (
+                      <Combobox.Option
+                        key={course.id}
+                        value={course}
+                        className={({ active }) =>
+                          `p-4 transition-colors ${
+                            active
+                              ? "bg-blue-500 text-white"
+                              : "text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                          }`
+                        }
+                      >
+                        <span className="font-semibold">{course.code}</span>
+                        <span className="block text-sm mt-1">
+                          {course.name}
+                        </span>
+                        <span className="block text-xs opacity-75 mt-1">
+                          {course.instructor}
+                        </span>
+                      </Combobox.Option>
+                    ))
+                  ) : (
+                    <div className="p-4 text-gray-600 dark:text-gray-400">
+                      No courses found matching "{searchQuery}"
+                    </div>
+                  )}
+                </Combobox.Options>
+              </Combobox>
+            </div>
+          </motion.div>
+        )}
+        <section className="p-4 mx-auto">
+          <h3 className="text-2xl font-semibold mb-6">Your Enrolled Courses</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {enrolledCourses.length > 0 ? (
+              enrolledCourses.map((course) => (
                 <motion.div
                   key={course.id}
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="p-5 rounded-lg bg-white dark:bg-gray-800 shadow-md border cursor-pointer border-gray-200 dark:border-gray-700"
+                  className="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-shadow border border-gray-200 dark:border-gray-700"
                 >
-                  <h4 className="text-xl font-medium text-blue-600 dark:text-blue-400 mb-2">
-                    {course.code}
-                  </h4>
-                  <p className="text-gray-600 dark:text-gray-300 mb-1">
-                    {course.name}
-                  </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {course.instructor}
-                  </p>
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h4 className="text-xl font-semibold text-blue-600 dark:text-blue-400 mb-2">
+                        {course.code}
+                      </h4>
+                      <p className="text-gray-700 dark:text-gray-300 mb-2">
+                        {course.name}
+                      </p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        {course.instructor}
+                      </p>
+                    </div>
+                    <span className="px-3 py-1 text-sm bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-100 rounded-full">
+                      Enrolled
+                    </span>
+                  </div>
                 </motion.div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-gray-600 dark:text-gray-400">
-              You're not enrolled in any courses yet.
-            </p>
-          )}
+              ))
+            ) : (
+              <div className="col-span-full text-center py-12 text-gray-600 dark:text-gray-400">
+                You're not enrolled in any courses yet. Search above to get
+                started!
+              </div>
+            )}
+          </div>
         </section>
       </main>
     </div>

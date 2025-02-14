@@ -254,190 +254,192 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
             onSubmit={handleSubmit}
             className="space-y-4"
           >
-            <div className="grid grid-cols-2 gap-4">
-              <input
-                type="text"
-                placeholder="First Name"
-                required
-                value={formData.firstName}
-                onChange={(e) =>
-                  setFormData({ ...formData, firstName: e.target.value })
-                }
-                className="p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-              <input
-                type="text"
-                placeholder="Last Name"
-                required
-                value={formData.lastName}
-                onChange={(e) =>
-                  setFormData({ ...formData, lastName: e.target.value })
-                }
-                className="p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-            </div>
-
-            <div className="flex gap-2">
-              <div className="relative flex-1">
+            <div className="space-y-4">
+              {/* Name Inputs */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <input
-                  type="email"
-                  placeholder="Email"
+                  type="text"
+                  placeholder="First Name"
                   required
-                  value={formData.email}
+                  value={formData.firstName}
                   onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
-                  }
-                  disabled={isOtpVerified}
-                  className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-75"
-                />
-                {isOtpVerified && (
-                  <FaCheck className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500" />
-                )}
-              </div>
-              {/* Send OTP button */}
-              <button
-                type="button"
-                onClick={handleSendOtp}
-                disabled={countdown > 0}
-                className={`w-32 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 ${
-                  countdown > 0 || isSendingOtp
-                    ? "bg-gray-300 cursor-not-allowed"
-                    : "bg-primary hover:bg-primary/90 text-white"
-                } ${isOtpVerified ? "hidden" : ""}`}
-              >
-                {isSendingOtp ? (
-                  <>
-                    <FaSpinner className="animate-spin" />
-                    Sending...
-                  </>
-                ) : countdown > 0 ? (
-                  `${countdown}s`
-                ) : (
-                  "Send OTP"
-                )}
-              </button>
-            </div>
-
-            {isOtpSent && !isOtpVerified && (
-              <div className="flex gap-2">
-                <div className="relative flex-1">
-                  <input
-                    type="number"
-                    placeholder="Enter 4-digit OTP"
-                    required
-                    value={formData.otp}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        otp: e.target.value.replace(/\D/g, "").slice(0, 4),
-                      })
-                    }
-                    className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                  />
-                  {isOtpVerified && (
-                    <FaCheck className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500" />
-                  )}
-                </div>
-                {/* Verify OTP button */}
-                <button
-                  type="button"
-                  onClick={handleVerifyOtp}
-                  disabled={isLoading || isOtpVerified || isVerifyingOtp}
-                  className={`w-32 px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 ${
-                    isLoading || isOtpVerified || isVerifyingOtp
-                      ? "bg-gray-300 cursor-not-allowed"
-                      : "bg-primary hover:bg-primary/90 text-white"
-                  }`}
-                >
-                  {isVerifyingOtp ? (
-                    <>
-                      <FaSpinner className="animate-spin" />
-                      Verifying...
-                    </>
-                  ) : (
-                    "Verify"
-                  )}
-                </button>
-              </div>
-            )}
-
-            {isOtpVerified && (
-              <>
-                <input
-                  type="password"
-                  placeholder="Password"
-                  required
-                  value={formData.password}
-                  onChange={(e) =>
-                    setFormData({ ...formData, password: e.target.value })
-                  }
-                  className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-                <input
-                  type="password"
-                  placeholder="Confirm Password"
-                  required
-                  value={formData.confirmPassword}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      confirmPassword: e.target.value,
-                    })
+                    setFormData({ ...formData, firstName: e.target.value })
                   }
                   className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                 />
                 <input
                   type="text"
-                  placeholder="Phone Number"
+                  placeholder="Last Name"
                   required
-                  value={formData.phoneNumber}
+                  value={formData.lastName}
                   onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      phoneNumber: e.target.value
-                        .replace(/\D/g, "")
-                        .slice(0, 10),
-                    })
+                    setFormData({ ...formData, lastName: e.target.value })
                   }
                   className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                 />
-                <select
-                  value={formData.TelegramOrWhatsapp}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      TelegramOrWhatsapp: e.target.value,
-                    })
-                  }
-                  className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                >
-                  <option value="">Select an option (Optional)</option>
-                  <option value="telegram">Telegram</option>
-                  <option value="whatsapp">WhatsApp</option>
-                </select>
-              </>
-            )}
+              </div>
 
-            {isOtpVerified && (
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className={`w-full py-3 rounded-lg transition-colors flex items-center justify-center gap-2 ${
-                  isSubmitting
-                    ? "bg-gray-300 cursor-not-allowed"
-                    : "bg-primary hover:bg-primary/90 text-white"
-                }`}
-              >
-                {isSubmitting ? (
-                  <>
-                    <FaSpinner className="animate-spin" />
-                    Creating...
-                  </>
-                ) : (
-                  "Create Account"
-                )}
-              </button>
-            )}
+              {/* Email & OTP */}
+              <div className="flex flex-col sm:flex-row gap-2">
+                <div className="relative flex-1">
+                  <input
+                    type="email"
+                    placeholder="Email"
+                    required
+                    value={formData.email}
+                    onChange={(e) =>
+                      setFormData({ ...formData, email: e.target.value })
+                    }
+                    disabled={isOtpVerified}
+                    className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-75"
+                  />
+                  {isOtpVerified && (
+                    <FaCheck className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500" />
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={handleSendOtp}
+                  disabled={countdown > 0}
+                  className={`w-full sm:w-32 px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 ${
+                    countdown > 0 || isSendingOtp
+                      ? "bg-gray-300 cursor-not-allowed"
+                      : "bg-primary hover:bg-primary/90 text-white"
+                  } ${isOtpVerified ? "hidden" : ""}`}
+                >
+                  {isSendingOtp ? (
+                    <>
+                      <FaSpinner className="animate-spin" />
+                      Sending...
+                    </>
+                  ) : countdown > 0 ? (
+                    `${countdown}s`
+                  ) : (
+                    "Send OTP"
+                  )}
+                </button>
+              </div>
+
+              {/* OTP Verification */}
+              {isOtpSent && !isOtpVerified && (
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <div className="relative flex-1">
+                    <input
+                      type="number"
+                      placeholder="Enter 4-digit OTP"
+                      required
+                      value={formData.otp}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          otp: e.target.value.replace(/\D/g, "").slice(0, 4),
+                        })
+                      }
+                      className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleVerifyOtp}
+                    disabled={isLoading || isOtpVerified || isVerifyingOtp}
+                    className={`w-full sm:w-32 px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 ${
+                      isLoading || isOtpVerified || isVerifyingOtp
+                        ? "bg-gray-300 cursor-not-allowed"
+                        : "bg-primary hover:bg-primary/90 text-white"
+                    }`}
+                  >
+                    {isVerifyingOtp ? (
+                      <>
+                        <FaSpinner className="animate-spin" />
+                        Verifying...
+                      </>
+                    ) : (
+                      "Verify"
+                    )}
+                  </button>
+                </div>
+              )}
+
+              {/* Passwords & Phone Number */}
+              {isOtpVerified && (
+                <>
+                  <input
+                    type="password"
+                    placeholder="Password"
+                    required
+                    value={formData.password}
+                    onChange={(e) =>
+                      setFormData({ ...formData, password: e.target.value })
+                    }
+                    className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                  <input
+                    type="password"
+                    placeholder="Confirm Password"
+                    required
+                    value={formData.confirmPassword}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        confirmPassword: e.target.value,
+                      })
+                    }
+                    className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Phone Number"
+                    required
+                    value={formData.phoneNumber}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        phoneNumber: e.target.value
+                          .replace(/\D/g, "")
+                          .slice(0, 10),
+                      })
+                    }
+                    className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                  <select
+                    value={formData.TelegramOrWhatsapp}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        TelegramOrWhatsapp: e.target.value,
+                      })
+                    }
+                    className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  >
+                    <option value="">Select an option (Optional)</option>
+                    <option value="telegram">Telegram</option>
+                    <option value="whatsapp">WhatsApp</option>
+                  </select>
+                </>
+              )}
+
+              {/* Submit Button */}
+              {isOtpVerified && (
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className={`w-full py-3 rounded-lg transition-colors flex items-center justify-center gap-2 ${
+                    isSubmitting
+                      ? "bg-gray-300 cursor-not-allowed"
+                      : "bg-primary hover:bg-primary/90 text-white"
+                  }`}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <FaSpinner className="animate-spin" />
+                      Creating...
+                    </>
+                  ) : (
+                    "Create Account"
+                  )}
+                </button>
+              )}
+            </div>
 
             <div className="flex gap-2 justify-center ">
               <p className="text-text dark:text-text-dark">

@@ -2,23 +2,28 @@ import { useState } from "react";
 import { useTheme } from "../../context/ThemeContext";
 import { Link, useNavigate } from "react-router-dom";
 import { postFetch } from "../../utils/apiCall";
+import { useAuth } from "../../context/AuthContext"; // Import AuthContext
 
 type LoginResponse = {
   success: boolean;
-  data: {
+  data?: {
     token: string;
     role: string;
   };
+  message?: string;
 };
 
 const Login = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
   const { theme } = useTheme();
+  const { login } = useAuth(); // Use login function from AuthContext
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async (event: React.FormEvent) => {
-    event.preventDefault(); // Prevent default form submission
+    event.preventDefault();
+    setLoading(true);
 
     try {
       const result: LoginResponse = await postFetch<LoginResponse>(
@@ -28,20 +33,16 @@ const Login = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
 
       if (result.success && result.data) {
         const { token, role } = result.data;
-
-        // Store role in lowercase for consistency
-        const normalizedRole = role.toLowerCase();
-
-        localStorage.setItem("token", token);
-        localStorage.setItem("role", normalizedRole); // Changed to store normalized role
-
-        navigate(`/${normalizedRole}-dashboard`);
+        login(token, role); // 🔹 Update authentication state
+        navigate(`/${role.toLowerCase()}-dashboard`);
       } else {
-        alert("Invalid credentials");
+        alert(result.message || "Invalid credentials");
       }
     } catch (error) {
       console.error("Login failed:", error);
       alert("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -93,9 +94,10 @@ const Login = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
               theme === "light"
                 ? "bg-primary text-white hover:bg-primary-dark"
                 : "bg-primary-dark text-white hover:bg-primary"
-            }`}
+            } ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
+            disabled={loading}
           >
-            Sign In
+            {loading ? "Signing In..." : "Sign In"}
           </button>
 
           <p

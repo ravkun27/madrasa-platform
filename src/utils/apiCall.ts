@@ -1,5 +1,4 @@
 const apiUrl = import.meta.env.VITE_API_URL;
-console.log(apiUrl); // Check if it's loading correctly
 type ApiMethod = "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
 type ApiResponse<T> = Promise<T>;
 type ApiBody = Record<string, any> | FormData;
