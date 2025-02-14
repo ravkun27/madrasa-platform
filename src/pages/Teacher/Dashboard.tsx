@@ -17,7 +17,7 @@ interface Course {
 }
 
 export default function TeacherDashboard() {
-  const [isApproved, setIsApproved] = useState(true); // Assuming the teacher is approved
+  // const [isApproved, setIsApproved] = useState(false); // Assuming the teacher is approved
   const [courses, setCourses] = useState<Course[]>([]);
   const [showCreateCoursePage, setShowCreateCoursePage] = useState(false);
 
@@ -26,31 +26,31 @@ export default function TeacherDashboard() {
     setShowCreateCoursePage(false); // Return to dashboard after creating the course
   };
 
-  if (!isApproved) {
-    return (
-      <div className={`min-h-screen `}>
-        <div className="dark:bg-gray-900 dark:text-gray-100 p-8 text-center">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="max-w-2xl mx-auto mt-20"
-          >
-            <h2 className="text-3xl font-semibold mb-4">Approval Pending</h2>
-            <p className="text-gray-600 dark:text-gray-300 mb-8">
-              Your account is awaiting administrator approval. You'll gain
-              access to the dashboard features once approved.
-            </p>
-            <motion.div
-              animate={{ rotate: [0, 180, 360] }} // Rotate animation
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} // Smooth looping
-            >
-              <div className="text-4xl">⏳</div>
-            </motion.div>
-          </motion.div>
-        </div>
-      </div>
-    );
-  }
+  // if (!isApproved) {
+  //   return (
+  //     <div className={`min-h-screen `}>
+  //       <div className="dark:bg-gray-900 dark:text-gray-100 p-8 text-center">
+  //         <motion.div
+  //           initial={{ opacity: 0 }}
+  //           animate={{ opacity: 1 }}
+  //           className="max-w-2xl mx-auto mt-20"
+  //         >
+  //           <h2 className="text-3xl font-semibold mb-4">Approval Pending</h2>
+  //           <p className="text-gray-600 dark:text-gray-300 mb-8">
+  //             Your account is awaiting administrator approval. You'll gain
+  //             access to the dashboard features once approved.
+  //           </p>
+  //           <motion.div
+  //             animate={{ rotate: [0, 180, 360] }} // Rotate animation
+  //             transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} // Smooth looping
+  //           >
+  //             <div className="text-4xl">⏳</div>
+  //           </motion.div>
+  //         </motion.div>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   if (showCreateCoursePage) {
     return <CreateCourse onSubmit={handleCreateCourse} />;
