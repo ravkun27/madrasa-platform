@@ -1,15 +1,19 @@
-import { useState, FormEvent, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   FaChalkboardTeacher,
   FaUserGraduate,
   FaCheck,
   FaSpinner,
+  FaWhatsapp,
+  FaSms,
 } from "react-icons/fa";
 import { useTheme } from "../../context/ThemeContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { postFetch } from "../../utils/apiCall";
 import { toast, Toaster } from "react-hot-toast";
+import { useFormik } from "formik";
+import * as Yup from "yup";
 
 interface SignupResponse {
   success: boolean;
@@ -28,148 +32,152 @@ interface OtpResponse {
 const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
   const { theme } = useTheme();
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-    role: "",
-    otp: "",
-    phoneNumber: "",
-    TelegramOrWhatsapp: "",
-  });
-  const [isOtpSent, setIsOtpSent] = useState(false);
-  const [isOtpVerified, setIsOtpVerified] = useState(false);
+  const [currentStep, setCurrentStep] = useState<
+    "role" | "email" | "phone" | "password"
+  >("role");
+  const [emailOtpSent, setEmailOtpSent] = useState(false);
+  const [phoneOtpSent, setPhoneOtpSent] = useState(false);
+  const [emailVerified, setEmailVerified] = useState(false);
+  const [phoneVerified, setPhoneVerified] = useState(false);
   const [countdown, setCountdown] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
   const [isSendingOtp, setIsSendingOtp] = useState(false);
-  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [verificationMethod, setVerificationMethod] = useState<
+    "whatsapp" | "sms"
+  >("sms");
 
-  const handleSendOtp = async () => {
-    if (!formData.email) {
-      toast.error("Please enter your email first");
-      return;
-    }
+  const formik = useFormik({
+    initialValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      role: "",
+      emailOtp: "",
+      phoneOtp: "",
+      phoneNumber: "",
+    },
+    validationSchema: Yup.object({
+      firstName: Yup.string().required("Required"),
+      lastName: Yup.string().required("Required"),
+      email: Yup.string().email("Invalid email").required("Required"),
+      password: Yup.string()
+        .min(8, "Minimum 8 characters")
+        .required("Required"),
+      confirmPassword: Yup.string()
+        .oneOf([Yup.ref("password")], "Passwords must match")
+        .required("Required"),
+      phoneNumber: Yup.string()
+        .matches(/^\+964\d{10}$/, "Must be 10 digits without country code")
+        .required("Required"),
+    }),
+    onSubmit: async (values) => {
+      try {
+        const result = await postFetch<SignupResponse>("/user/signup", {
+          ...values,
+          phoneNumber: values.phoneNumber.replace(/^0/, ""),
+        });
 
-    setIsLoading(true);
+        if (result.success && result.data) {
+          localStorage.setItem("token", result.data.token);
+          localStorage.setItem("role", result.data.role);
+          navigate(`/${result.data.role.toLowerCase()}-dashboard`);
+        }
+      } catch (error) {
+        toast.error("Signup failed. Please try again.");
+      }
+    },
+  });
+
+  // Unified OTP sending function
+  const sendOtp = async (payload: {
+    email?: string;
+    phoneNumber?: string;
+    method?: "whatsapp" | "sms";
+  }) => {
     setIsSendingOtp(true);
     try {
       const result = await postFetch<OtpResponse>(
         "/user/sendOTP?for=createUser",
-        { email: formData.email }
+        payload
       );
 
       if (result.success) {
-        setIsOtpSent(true);
         setCountdown(60);
-        toast.success("OTP sent to your email!");
-      } else {
-        throw new Error(result.message || "Failed to send OTP");
+        if (payload.email) setEmailOtpSent(true);
+        if (payload.phoneNumber) setPhoneOtpSent(true);
+        toast.success(`OTP sent to ${payload.email ? "email" : "phone"}!`);
       }
-    } catch (error: any) {
-      toast.error(error.message || "Failed to send OTP. Please try again.");
+    } catch (error) {
+      toast.error("Failed to send OTP");
     } finally {
-      setIsLoading(false);
       setIsSendingOtp(false);
     }
   };
+  const handleSendEmailOtp = async () => {
+    if (!formik.values.email) return toast.error("Email required");
+    await sendOtp({ email: formik.values.email });
+  };
 
-  const handleVerifyOtp = async () => {
-    if (formData.otp.length !== 4) {
-      toast.error("Please enter a 4-digit OTP");
-      return;
-    }
+  // Updated phone OTP handler
+  const handleSendPhoneOtp = async () => {
+    if (!formik.values.phoneNumber) return toast.error("Phone number required");
+    await sendOtp({
+      phoneNumber: formik.values.phoneNumber,
+      method: verificationMethod,
+    });
+  };
 
-    setIsLoading(true);
-    setIsVerifyingOtp(true);
+  // Unified verification handler
+  const verifyOtp = async (type: "email" | "phone") => {
+    setIsVerifying(true);
     try {
-      const result = await postFetch<OtpResponse>("/user/verifyOtp", {
-        email: formData.email,
-        otp: formData.otp,
-      });
+      const endpoint =
+        type === "email" ? "/user/verifyOtp" : "/user/verifyPhoneOtp";
+      const payload =
+        type === "email"
+          ? { email: formik.values.email, otp: formik.values.emailOtp }
+          : {
+              phoneNumber: formik.values.phoneNumber,
+              otp: formik.values.phoneOtp,
+            };
+
+      const result = await postFetch<OtpResponse>(endpoint, payload);
 
       if (result.success) {
-        setIsOtpVerified(true);
-        toast.success("OTP verified successfully!");
-      } else {
-        throw new Error(result.message || "OTP verification failed");
+        if (type === "email") {
+          setEmailVerified(true);
+          setCurrentStep("phone");
+        } else {
+          setPhoneVerified(true);
+          setCurrentStep("password");
+        }
+        toast.success(`${type} verified!`);
       }
-    } catch (error: any) {
-      toast.error(error.message || "Failed to verify OTP. Please try again.");
+    } catch (error) {
+      toast.error("Invalid OTP");
     } finally {
-      setIsLoading(false);
-      setIsVerifyingOtp(false);
+      setIsVerifying(false);
     }
   };
 
+  // Fix phone number input handling
+  const handlePhoneNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, "").slice(0, 11);
+    formik.setFieldValue("phoneNumber", value);
+  };
+
+  // Fix countdown timer
   useEffect(() => {
     if (countdown > 0) {
-      const timer = setInterval(() => setCountdown((prev) => prev - 1), 1000);
+      const timer = setInterval(() => setCountdown((prev) => prev - 1), 100);
       return () => clearInterval(timer);
     }
   }, [countdown]);
-
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    try {
-      if (formData.password !== formData.confirmPassword) {
-        toast.error("Passwords do not match");
-        return;
-      }
-
-      try {
-        const result = await postFetch<SignupResponse>("/user/signup", {
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          email: formData.email,
-          TelegramOrWhatsapp: formData.TelegramOrWhatsapp || undefined,
-          phoneNumber: formData.phoneNumber,
-          password: formData.password,
-          role: formData.role,
-          otp: formData.otp,
-        });
-
-        if (result.success && result.data) {
-          const { token, role } = result.data;
-          console.log("User Data:", result.data);
-
-          localStorage.setItem("token", token);
-          localStorage.setItem("role", role);
-
-          // Normalize role to lowercase for consistency
-          const normalizedRole = role.toLowerCase();
-
-          // Redirect based on role
-          switch (normalizedRole) {
-            case "student":
-              navigate("/student-dashboard");
-              break;
-            case "teacher":
-              navigate("/teacher-dashboard");
-              break;
-            default:
-              navigate("/dashboard"); // Fallback dashboard
-              break;
-          }
-        } else {
-          toast.error("Invalid credentials");
-        }
-      } catch (error) {
-        console.error("Login failed:", error);
-        toast.error("Something went wrong. Please try again.");
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   return (
     <div className="my-4 max-w-md mx-auto p-6 border-2 border-accent rounded-xl">
-      <Toaster position="top-right" reverseOrder={false} />
-
+      <Toaster position="top-right" />
       <h1
         className={`text-3xl font-bold mb-8 text-center ${
           theme === "light" ? "text-primary" : "text-secondary"
@@ -179,7 +187,7 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
       </h1>
 
       <AnimatePresence mode="wait">
-        {!formData.role ? (
+        {currentStep === "role" ? (
           <motion.div
             key="role-selection"
             initial={{ opacity: 0, y: -20 }}
@@ -199,20 +207,19 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 className={`p-4 rounded-lg cursor-pointer transition-all ${
-                  formData.role === "student"
+                  formik.values.role === "student"
                     ? "border-2 border-primary bg-primary/10"
                     : "border border-gray-200 hover:border-primary"
                 }`}
-                onClick={() =>
-                  setFormData((prev) => ({ ...prev, role: "student" }))
-                }
+                onClick={() => {
+                  formik.setFieldValue("role", "student");
+                  setCurrentStep("email");
+                }}
               >
                 <div className="flex items-center gap-3">
                   <FaUserGraduate className="text-primary text-xl" />
                   <div>
-                    <h3 className="font-semibold text-text dark:text-text-dark">
-                      Student
-                    </h3>
+                    <h3 className="font-semibold">Student</h3>
                     <p className="text-sm text-gray-500">
                       Join courses and learn
                     </p>
@@ -223,20 +230,19 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 className={`p-4 rounded-lg cursor-pointer transition-all ${
-                  formData.role === "teacher"
+                  formik.values.role === "teacher"
                     ? "border-2 border-secondary bg-secondary/10"
                     : "border border-gray-200 hover:border-secondary"
                 }`}
-                onClick={() =>
-                  setFormData((prev) => ({ ...prev, role: "teacher" }))
-                }
+                onClick={() => {
+                  formik.setFieldValue("role", "teacher");
+                  setCurrentStep("email");
+                }}
               >
                 <div className="flex items-center gap-3">
                   <FaChalkboardTeacher className="text-secondary text-xl" />
                   <div>
-                    <h3 className="font-semibold text-text dark:text-text-dark">
-                      Teacher
-                    </h3>
+                    <h3 className="font-semibold">Teacher</h3>
                     <p className="text-sm text-gray-500">
                       Create and manage courses
                     </p>
@@ -245,217 +251,187 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
               </motion.div>
             </div>
           </motion.div>
-        ) : (
-          <motion.form
-            key="signup-form"
+        ) : currentStep === "email" ? (
+          // Email verification step
+          <motion.div
+            key="email-verification"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
-            onSubmit={handleSubmit}
             className="space-y-4"
           >
-            <div className="space-y-4">
-              {/* Name Inputs */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <input
-                  type="text"
-                  placeholder="First Name"
-                  required
-                  value={formData.firstName}
-                  onChange={(e) =>
-                    setFormData({ ...formData, firstName: e.target.value })
-                  }
-                  className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-                <input
-                  type="text"
-                  placeholder="Last Name"
-                  required
-                  value={formData.lastName}
-                  onChange={(e) =>
-                    setFormData({ ...formData, lastName: e.target.value })
-                  }
-                  className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-              </div>
-
-              {/* Email & OTP */}
-              <div className="flex flex-col sm:flex-row gap-2">
-                <div className="relative flex-1">
-                  <input
-                    type="email"
-                    placeholder="Email"
-                    required
-                    value={formData.email}
-                    onChange={(e) =>
-                      setFormData({ ...formData, email: e.target.value })
-                    }
-                    disabled={isOtpVerified}
-                    className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-75"
-                  />
-                  {isOtpVerified && (
-                    <FaCheck className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500" />
-                  )}
-                </div>
-                <button
-                  type="button"
-                  onClick={handleSendOtp}
-                  disabled={countdown > 0}
-                  className={`w-full sm:w-32 px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 ${
-                    countdown > 0 || isSendingOtp
-                      ? "bg-gray-300 cursor-not-allowed"
-                      : "bg-primary hover:bg-primary/90 text-white"
-                  } ${isOtpVerified ? "hidden" : ""}`}
-                >
-                  {isSendingOtp ? (
-                    <>
-                      <FaSpinner className="animate-spin" />
-                      Sending...
-                    </>
-                  ) : countdown > 0 ? (
-                    `${countdown}s`
-                  ) : (
-                    "Send OTP"
-                  )}
-                </button>
-              </div>
-
-              {/* OTP Verification */}
-              {isOtpSent && !isOtpVerified && (
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <div className="relative flex-1">
-                    <input
-                      type="number"
-                      placeholder="Enter 4-digit OTP"
-                      required
-                      value={formData.otp}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          otp: e.target.value.replace(/\D/g, "").slice(0, 4),
-                        })
-                      }
-                      className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleVerifyOtp}
-                    disabled={isLoading || isOtpVerified || isVerifyingOtp}
-                    className={`w-full sm:w-32 px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 ${
-                      isLoading || isOtpVerified || isVerifyingOtp
-                        ? "bg-gray-300 cursor-not-allowed"
-                        : "bg-primary hover:bg-primary/90 text-white"
-                    }`}
-                  >
-                    {isVerifyingOtp ? (
-                      <>
-                        <FaSpinner className="animate-spin" />
-                        Verifying...
-                      </>
-                    ) : (
-                      "Verify"
-                    )}
-                  </button>
-                </div>
-              )}
-
-              {/* Passwords & Phone Number */}
-              {isOtpVerified && (
-                <>
-                  <input
-                    type="password"
-                    placeholder="Password"
-                    required
-                    value={formData.password}
-                    onChange={(e) =>
-                      setFormData({ ...formData, password: e.target.value })
-                    }
-                    className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                  />
-                  <input
-                    type="password"
-                    placeholder="Confirm Password"
-                    required
-                    value={formData.confirmPassword}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        confirmPassword: e.target.value,
-                      })
-                    }
-                    className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Phone Number"
-                    required
-                    value={formData.phoneNumber}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        phoneNumber: e.target.value
-                          .replace(/\D/g, "")
-                          .slice(0, 10),
-                      })
-                    }
-                    className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                  />
-                  <select
-                    value={formData.TelegramOrWhatsapp}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        TelegramOrWhatsapp: e.target.value,
-                      })
-                    }
-                    className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                  >
-                    <option value="">Select an option (Optional)</option>
-                    <option value="telegram">Telegram</option>
-                    <option value="whatsapp">WhatsApp</option>
-                  </select>
-                </>
-              )}
-
-              {/* Submit Button */}
-              {isOtpVerified && (
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className={`w-full py-3 rounded-lg transition-colors flex items-center justify-center gap-2 ${
-                    isSubmitting
-                      ? "bg-gray-300 cursor-not-allowed"
-                      : "bg-primary hover:bg-primary/90 text-white"
-                  }`}
-                >
-                  {isSubmitting ? (
-                    <>
-                      <FaSpinner className="animate-spin" />
-                      Creating...
-                    </>
-                  ) : (
-                    "Create Account"
-                  )}
-                </button>
+            <div className="relative">
+              <input
+                type="email"
+                placeholder="Email"
+                name="email"
+                value={formik.values.email}
+                onChange={formik.handleChange}
+                className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+              {emailVerified && (
+                <FaCheck className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500" />
               )}
             </div>
 
-            <div className="flex gap-2 justify-center ">
-              <p className="text-text dark:text-text-dark">
-                Already have Account?
-              </p>
-              <Link
-                to={"/login"}
-                onClick={() => setIsLogin(false)}
-                className="font-bold text-primary"
+            {emailOtpSent ? (
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Enter OTP"
+                  name="emailOtp"
+                  value={formik.values.emailOtp}
+                  onChange={formik.handleChange}
+                  className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+                <button
+                  onClick={() => verifyOtp("email")}
+                  disabled={isVerifying}
+                  className="w-32 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 flex items-center justify-center"
+                >
+                  {isVerifying ? (
+                    <FaSpinner className="animate-spin" />
+                  ) : (
+                    "Verify"
+                  )}
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={handleSendEmailOtp}
+                disabled={countdown > 0 || isSendingOtp}
+                className={`w-full py-3 rounded-lg flex items-center justify-center gap-2 ${
+                  countdown > 0 || isSendingOtp
+                    ? "bg-gray-300"
+                    : "bg-primary hover:bg-primary/90 text-white"
+                }`}
               >
-                Sign In
-              </Link>
+                {isSendingOtp ? (
+                  <FaSpinner className="animate-spin" />
+                ) : countdown > 0 ? (
+                  `Resend in ${countdown}s`
+                ) : (
+                  "Send OTP"
+                )}
+              </button>
+            )}
+          </motion.div>
+        ) : currentStep === "phone" ? (
+          // Phone verification step
+          <motion.div
+            key="phone-verification"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className="space-y-4"
+          >
+            <div className="relative">
+              <input
+                type="number"
+                placeholder="Phone Number"
+                name="phoneNumber"
+                value={formik.values.phoneNumber.replace(/^\+964/, "")}
+                onChange={handlePhoneNumberChange}
+                className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary pl-16"
+              />
+              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                +964
+              </span>
+              {phoneVerified && (
+                <FaCheck className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500" />
+              )}
             </div>
+
+            <div className="flex gap-2 bg-gray-100 p-1 rounded-lg relative">
+              <button
+                className={`flex-1 p-2 rounded-md transition-colors ${
+                  verificationMethod === "whatsapp"
+                    ? "bg-blue-400 shadow-md"
+                    : "bg-transparent"
+                }`}
+                onClick={() => setVerificationMethod("whatsapp")}
+              >
+                <FaWhatsapp className="inline-block mr-2" /> WhatsApp
+              </button>
+              <button
+                className={`flex-1 p-2 rounded-md transition-colors ${
+                  verificationMethod === "sms"
+                    ? "bg-blue-400 shadow-md"
+                    : "bg-transparent"
+                }`}
+                onClick={() => setVerificationMethod("sms")}
+              >
+                <FaSms className="inline-block mr-2" /> SMS
+              </button>
+            </div>
+
+            {phoneOtpSent ? (
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Enter OTP"
+                  name="phoneOtp"
+                  value={formik.values.phoneOtp}
+                  onChange={formik.handleChange}
+                  className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+                <button
+                  onClick={() => verifyOtp("phone")}
+                  disabled={isVerifying}
+                  className="w-32 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 flex items-center justify-center"
+                >
+                  {isVerifying ? (
+                    <FaSpinner className="animate-spin" />
+                  ) : (
+                    "Verify"
+                  )}
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={handleSendPhoneOtp}
+                disabled={countdown > 0 || isSendingOtp}
+                className={`w-full py-3 rounded-lg flex items-center justify-center gap-2 ${
+                  countdown > 0 || isSendingOtp
+                    ? "bg-gray-300"
+                    : "bg-primary hover:bg-primary/90 text-white"
+                }`}
+              >
+                {isSendingOtp ? (
+                  <FaSpinner className="animate-spin" />
+                ) : countdown > 0 ? (
+                  `Resend in ${countdown}s`
+                ) : (
+                  "Send OTP"
+                )}
+              </button>
+            )}
+          </motion.div>
+        ) : (
+          // Password step (keep same)
+          <motion.form
+            key="password-step"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            onSubmit={formik.handleSubmit}
+            className="space-y-4"
+          >
+            {/* Password fields (keep same) */}
           </motion.form>
         )}
       </AnimatePresence>
+
+      <div className="flex gap-2 justify-center mt-4">
+        <p className="text-text dark:text-text-dark">Already have Account?</p>
+        <Link
+          to="/login"
+          onClick={() => setIsLogin(false)}
+          className="font-bold text-primary"
+        >
+          Sign In
+        </Link>
+      </div>
     </div>
   );
 };
