@@ -11,7 +11,7 @@ import {
 } from "react-icons/fa";
 import { useTheme } from "../../context/ThemeContext";
 import { motion, AnimatePresence } from "framer-motion";
-import { Link, useNavigate } from "react-router-dom";
+import { data, Link, useNavigate } from "react-router-dom";
 import { postFetch } from "../../utils/apiCall";
 import { toast, Toaster } from "react-hot-toast";
 import { useFormik } from "formik";
@@ -111,7 +111,7 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
       );
 
       if (result.success) {
-        if (payload.phoneNumber) setPhoneOtpId(result.otpId);
+        if (payload.phoneNumber) setPhoneOtpId((result as any).data.otpId);
         setCountdown(10);
         if (payload.email) setEmailOtpSent(true);
         if (payload.phoneNumber) setPhoneOtpSent(true);
@@ -144,14 +144,14 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
       const payload =
         type === "email"
           ? {
-              email: formik.values.email,
-              otp: formik.values.emailOtp,
-            }
+            email: formik.values.email,
+            otp: formik.values.emailOtp,
+          }
           : {
-              phoneNumber: formik.values.phoneNumber.replace(/^0/, ""), // Remove leading 0 before sending
-              otp: formik.values.phoneOtp,
-              otpId: phoneOtpId,
-            };
+            phoneNumber: formik.values.phoneNumber.replace(/^0/, ""), // Remove leading 0 before sending
+            otp: formik.values.phoneOtp,
+            otpId: phoneOtpId,
+          };
 
       const result = await postFetch<OtpResponse>(endpoint, payload);
 
@@ -188,9 +188,8 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
     <div className="my-4 max-w-md mx-auto p-6 border-2 border-accent rounded-xl">
       <Toaster position="top-right" />
       <h1
-        className={`text-3xl font-bold mb-8 text-center ${
-          theme === "light" ? "text-primary" : "text-secondary"
-        }`}
+        className={`text-3xl font-bold mb-8 text-center ${theme === "light" ? "text-primary" : "text-secondary"
+          }`}
       >
         Create Account
       </h1>
@@ -205,9 +204,8 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
             className="space-y-6"
           >
             <h2
-              className={`text-lg ${
-                theme === "light" ? "text-gray-600" : "text-gray-300"
-              }`}
+              className={`text-lg ${theme === "light" ? "text-gray-600" : "text-gray-300"
+                }`}
             >
               Select your role
             </h2>
@@ -215,11 +213,10 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
               <motion.div
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className={`p-4 rounded-lg cursor-pointer transition-all ${
-                  formik.values.role === "student"
+                className={`p-4 rounded-lg cursor-pointer transition-all ${formik.values.role === "student"
                     ? "border-2 border-primary bg-primary/10"
                     : "border border-gray-200 hover:border-primary"
-                }`}
+                  }`}
                 onClick={() => {
                   formik.setFieldValue("role", "student");
                   setCurrentStep("email");
@@ -238,11 +235,10 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
               <motion.div
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className={`p-4 rounded-lg cursor-pointer transition-all ${
-                  formik.values.role === "teacher"
+                className={`p-4 rounded-lg cursor-pointer transition-all ${formik.values.role === "teacher"
                     ? "border-2 border-secondary bg-secondary/10"
                     : "border border-gray-200 hover:border-secondary"
-                }`}
+                  }`}
                 onClick={() => {
                   formik.setFieldValue("role", "teacher");
                   setCurrentStep("email");
@@ -307,11 +303,10 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
               <button
                 onClick={handleSendEmailOtp}
                 disabled={countdown > 0 || isSendingOtp}
-                className={`w-full py-3 rounded-lg flex items-center justify-center gap-2 ${
-                  countdown > 0 || isSendingOtp
+                className={`w-full py-3 rounded-lg flex items-center justify-center gap-2 ${countdown > 0 || isSendingOtp
                     ? "bg-gray-300"
                     : "bg-primary hover:bg-primary/90 text-white"
-                }`}
+                  }`}
               >
                 {isSendingOtp ? (
                   <FaSpinner className="animate-spin" />
@@ -350,21 +345,19 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
 
             <div className="flex gap-2 bg-gray-100 p-1 rounded-lg relative">
               <button
-                className={`flex-1 p-2 rounded-md transition-colors ${
-                  verificationMethod === "whatsapp"
+                className={`flex-1 p-2 rounded-md transition-colors ${verificationMethod === "whatsapp"
                     ? "bg-blue-400 shadow-md"
                     : "bg-transparent"
-                }`}
+                  }`}
                 onClick={() => setVerificationMethod("whatsapp")}
               >
                 <FaWhatsapp className="inline-block mr-2" /> WhatsApp
               </button>
               <button
-                className={`flex-1 p-2 rounded-md transition-colors ${
-                  verificationMethod === "sms"
+                className={`flex-1 p-2 rounded-md transition-colors ${verificationMethod === "sms"
                     ? "bg-blue-400 shadow-md"
                     : "bg-transparent"
-                }`}
+                  }`}
                 onClick={() => setVerificationMethod("sms")}
               >
                 <FaSms className="inline-block mr-2" /> SMS
@@ -397,11 +390,10 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
               <button
                 onClick={handleSendPhoneOtp}
                 disabled={countdown > 0 || isSendingOtp}
-                className={`w-full py-3 rounded-lg flex items-center justify-center gap-2 ${
-                  countdown > 0 || isSendingOtp
+                className={`w-full py-3 rounded-lg flex items-center justify-center gap-2 ${countdown > 0 || isSendingOtp
                     ? "bg-gray-300"
                     : "bg-primary hover:bg-primary/90 text-white"
-                }`}
+                  }`}
               >
                 {isSendingOtp ? (
                   <FaSpinner className="animate-spin" />
