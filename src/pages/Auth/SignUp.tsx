@@ -6,6 +6,8 @@ import {
   FaSpinner,
   FaWhatsapp,
   FaSms,
+  FaEye,
+  FaEyeSlash,
 } from "react-icons/fa";
 import { useTheme } from "../../context/ThemeContext";
 import { motion, AnimatePresence } from "framer-motion";
@@ -27,6 +29,7 @@ interface SignupResponse {
 interface OtpResponse {
   success: boolean;
   message?: string;
+  otpId: boolean | string;
 }
 
 const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
@@ -45,6 +48,8 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
   const [verificationMethod, setVerificationMethod] = useState<
     "whatsapp" | "sms"
   >("sms");
+  const [phoneOtpId, setPhoneOtpId] = useState<boolean | string>("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const formik = useFormik({
     initialValues: {
@@ -69,7 +74,7 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
         .oneOf([Yup.ref("password")], "Passwords must match")
         .required("Required"),
       phoneNumber: Yup.string()
-        .matches(/^\+964\d{10}$/, "Must be 10 digits without country code")
+        .matches(/^0?\d{10}$/, "Must be 10 digits after 0")
         .required("Required"),
     }),
     onSubmit: async (values) => {
@@ -90,7 +95,6 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
     },
   });
 
-  // Unified OTP sending function
   const sendOtp = async (payload: {
     email?: string;
     phoneNumber?: string;
@@ -100,11 +104,15 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
     try {
       const result = await postFetch<OtpResponse>(
         "/user/sendOTP?for=createUser",
-        payload
+        {
+          ...payload,
+          phoneNumber: payload.phoneNumber?.replace(/^0/, ""), // Remove leading 0 before sending
+        }
       );
 
       if (result.success) {
-        setCountdown(60);
+        if (payload.phoneNumber) setPhoneOtpId(result.otpId);
+        setCountdown(10);
         if (payload.email) setEmailOtpSent(true);
         if (payload.phoneNumber) setPhoneOtpSent(true);
         toast.success(`OTP sent to ${payload.email ? "email" : "phone"}!`);
@@ -115,32 +123,34 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
       setIsSendingOtp(false);
     }
   };
+
   const handleSendEmailOtp = async () => {
     if (!formik.values.email) return toast.error("Email required");
     await sendOtp({ email: formik.values.email });
   };
 
-  // Updated phone OTP handler
   const handleSendPhoneOtp = async () => {
     if (!formik.values.phoneNumber) return toast.error("Phone number required");
     await sendOtp({
-      phoneNumber: formik.values.phoneNumber,
+      phoneNumber: formik.values.phoneNumber, // No country code here
       method: verificationMethod,
     });
   };
 
-  // Unified verification handler
   const verifyOtp = async (type: "email" | "phone") => {
     setIsVerifying(true);
     try {
-      const endpoint =
-        type === "email" ? "/user/verifyOtp" : "/user/verifyPhoneOtp";
+      const endpoint = "/user/verifyOtp";
       const payload =
         type === "email"
-          ? { email: formik.values.email, otp: formik.values.emailOtp }
+          ? {
+              email: formik.values.email,
+              otp: formik.values.emailOtp,
+            }
           : {
-              phoneNumber: formik.values.phoneNumber,
+              phoneNumber: formik.values.phoneNumber.replace(/^0/, ""), // Remove leading 0 before sending
               otp: formik.values.phoneOtp,
+              otpId: phoneOtpId,
             };
 
       const result = await postFetch<OtpResponse>(endpoint, payload);
@@ -162,19 +172,18 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
     }
   };
 
-  // Fix phone number input handling
   const handlePhoneNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, "").slice(0, 11);
+    const value = e.target.value.replace(/\D/g, "").slice(0, 11); // Allow only digits and limit to 11 characters
     formik.setFieldValue("phoneNumber", value);
   };
 
-  // Fix countdown timer
   useEffect(() => {
     if (countdown > 0) {
-      const timer = setInterval(() => setCountdown((prev) => prev - 1), 100);
+      const timer = setInterval(() => setCountdown((prev) => prev - 1), 1000);
       return () => clearInterval(timer);
     }
   }, [countdown]);
+
   return (
     <div className="my-4 max-w-md mx-auto p-6 border-2 border-accent rounded-xl">
       <Toaster position="top-right" />
@@ -252,7 +261,6 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
             </div>
           </motion.div>
         ) : currentStep === "email" ? (
-          // Email verification step
           <motion.div
             key="email-verification"
             initial={{ opacity: 0, y: -20 }}
@@ -273,7 +281,6 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
                 <FaCheck className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500" />
               )}
             </div>
-
             {emailOtpSent ? (
               <div className="flex gap-2">
                 <input
@@ -317,7 +324,6 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
             )}
           </motion.div>
         ) : currentStep === "phone" ? (
-          // Phone verification step
           <motion.div
             key="phone-verification"
             initial={{ opacity: 0, y: -20 }}
@@ -330,7 +336,7 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
                 type="number"
                 placeholder="Phone Number"
                 name="phoneNumber"
-                value={formik.values.phoneNumber.replace(/^\+964/, "")}
+                value={formik.values.phoneNumber}
                 onChange={handlePhoneNumberChange}
                 className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary pl-16"
               />
@@ -408,7 +414,6 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
             )}
           </motion.div>
         ) : (
-          // Password step (keep same)
           <motion.form
             key="password-step"
             initial={{ opacity: 0, y: -20 }}
@@ -417,7 +422,48 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
             onSubmit={formik.handleSubmit}
             className="space-y-4"
           >
-            {/* Password fields (keep same) */}
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="Password"
+                name="password"
+                value={formik.values.password}
+                onChange={formik.handleChange}
+                className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2"
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
+
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="Confirm Password"
+                name="confirmPassword"
+                value={formik.values.confirmPassword}
+                onChange={formik.handleChange}
+                className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2"
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
+
+            <button
+              type="submit"
+              className="w-full py-3 bg-primary text-white rounded-lg hover:bg-primary/90"
+            >
+              Sign Up
+            </button>
           </motion.form>
         )}
       </AnimatePresence>
