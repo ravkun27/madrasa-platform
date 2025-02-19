@@ -100,7 +100,7 @@ const Header = () => {
                           to="/profile"
                           className="dropdown-item text-text dark:text-text-dark"
                         >
-                          Profile
+                          Accoount
                         </Link>
                         <button
                           onClick={logout}
