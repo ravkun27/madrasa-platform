@@ -1,4 +1,4 @@
-import { createBrowserRouter, Outlet } from "react-router-dom";
+import { createBrowserRouter, Outlet, useNavigate } from "react-router-dom";
 import PrivateRoute from "./PrivateRoute";
 import RoleBasedRoute from "./RoleBasedRoute";
 import Login from "../pages/Auth/Login";
@@ -11,6 +11,23 @@ import PublicLayout from "../layouts/PublicLayout";
 import LandingPage from "../pages/LandingPage";
 import { AuthProvider } from "../context/AuthContext";
 import ProtectedLayout from "../layouts/ProtectedLayout";
+import { CreateCourses } from "../pages/Teacher/CreateCoursePage";
+import { ManageCourses } from "../pages/Teacher/ManageCoursesPage"; // Uncommented and imported
+import { useState } from "react";
+
+interface Post {
+  id: string;
+  type: "video" | "quiz" | "zoom" | "lecture";
+  content: string;
+}
+
+interface Course {
+  id: string;
+  name: string;
+  banner: string;
+  description: string;
+  posts: Post[];
+}
 
 // RootLayout wraps the entire app with AuthProvider
 const RootLayout = () => {
@@ -19,6 +36,30 @@ const RootLayout = () => {
       <Outlet />
     </AuthProvider>
   );
+};
+
+// Wrapper component for CreateCourses to handle props
+const CreateCoursesWrapper = () => {
+  const navigate = useNavigate();
+  const [courses, setCourses] = useState<Course[]>([]);
+
+  const handleSubmit = (newCourse: Course) => {
+    setCourses([...courses, newCourse]);
+    navigate("/edit-courses"); // Navigate to EditCourses after creation
+  };
+
+  const handleCancel = () => {
+    navigate("/teacher-dashboard"); // Navigate back to teacher dashboard
+  };
+
+  return <CreateCourses onSubmit={handleSubmit} onCancel={handleCancel} />;
+};
+
+// Wrapper component for EditCourses to handle props
+const EditCoursesWrapper = () => {
+  const [courses, setCourses] = useState<Course[]>([]); // You can fetch courses from context or API
+
+  return <ManageCourses courses={courses} setCourses={setCourses} />;
 };
 
 // Public routes (no authentication required)
@@ -35,7 +76,7 @@ const publicRoutes = [
         path: "login",
         element: <Login setIsLogin={(isLogin) => console.log(isLogin)} />,
       },
-      { path: "unauthorized", element: <Unauthorized /> }, // Add this line
+      { path: "unauthorized", element: <Unauthorized /> },
     ],
   },
 ];
@@ -58,6 +99,15 @@ const protectedRoutes = [
             element: <RoleBasedRoute role="teacher" />, // Role check
             children: [
               { path: "teacher-dashboard", element: <TeacherDashboard /> },
+              // Add teacher-specific routes here
+              {
+                path: "create-course",
+                element: <CreateCoursesWrapper />, // Wrapper to handle props
+              },
+              {
+                path: "edit-courses",
+                element: <EditCoursesWrapper />, // Wrapper to handle props
+              },
             ],
           },
         ],
