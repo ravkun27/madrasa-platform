@@ -20,7 +20,6 @@ const RoleBasedRoute = ({ role, children }: RoleBasedRouteProps) => {
 
   // Case-insensitive comparison
   const hasAccess = user?.role.toLowerCase() === role.toLowerCase();
-  console.log(hasAccess);
   if (!hasAccess) {
     return <Navigate to="/unauthorized" replace />;
   }
