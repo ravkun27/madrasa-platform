@@ -1,4 +1,4 @@
-import { createBrowserRouter, Outlet, useNavigate } from "react-router-dom";
+import { createBrowserRouter, Outlet } from "react-router-dom";
 import PrivateRoute from "./PrivateRoute";
 import RoleBasedRoute from "./RoleBasedRoute";
 import Login from "../pages/Auth/Login";
@@ -12,28 +12,19 @@ import LandingPage from "../pages/LandingPage";
 import { AuthProvider } from "../context/AuthContext";
 import ProtectedLayout from "../layouts/ProtectedLayout";
 import { CreateCourses } from "../pages/Teacher/CreateCoursePage";
-import { ManageCourses } from "../pages/Teacher/ManageCoursesPage"; // Uncommented and imported
-import { useState } from "react";
+import { ManageCourses } from "../pages/Teacher/ManageCoursesPage";
+import { CourseProvider } from "../context/CourseContext"; // Import CourseProvider
+import { useCourseContext } from "../context/CourseContext"; // Import useCourseContext
+import { useNavigate } from "react-router-dom";
+import { NewCourse } from "../types";
 
-interface Post {
-  id: string;
-  type: "video" | "quiz" | "zoom" | "lecture";
-  content: string;
-}
-
-interface Course {
-  id: string;
-  name: string;
-  banner: string;
-  description: string;
-  posts: Post[];
-}
-
-// RootLayout wraps the entire app with AuthProvider
+// RootLayout wraps the entire app with AuthProvider and CourseProvider
 const RootLayout = () => {
   return (
     <AuthProvider>
-      <Outlet />
+      <CourseProvider>
+        <Outlet />
+      </CourseProvider>
     </AuthProvider>
   );
 };
@@ -41,10 +32,10 @@ const RootLayout = () => {
 // Wrapper component for CreateCourses to handle props
 const CreateCoursesWrapper = () => {
   const navigate = useNavigate();
-  const [courses, setCourses] = useState<Course[]>([]);
+  const { addCourse } = useCourseContext(); // Use CourseContext
 
-  const handleSubmit = (newCourse: Course) => {
-    setCourses([...courses, newCourse]);
+  const handleSubmit = (newCourse: NewCourse) => {
+    addCourse(newCourse); // Add the new course to the global state
     navigate("/edit-courses"); // Navigate to EditCourses after creation
   };
 
@@ -57,9 +48,7 @@ const CreateCoursesWrapper = () => {
 
 // Wrapper component for EditCourses to handle props
 const EditCoursesWrapper = () => {
-  const [courses, setCourses] = useState<Course[]>([]); // You can fetch courses from context or API
-
-  return <ManageCourses courses={courses} setCourses={setCourses} />;
+  return <ManageCourses />;
 };
 
 // Public routes (no authentication required)

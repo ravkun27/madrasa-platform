@@ -8,44 +8,11 @@ import {
   FiUsers,
   FiX,
 } from "react-icons/fi";
+import { Post, Course, CourseFile } from "../../types";
+import { useCourseContext } from "../../context/CourseContext"; // Import useCourseContext
 
-interface Student {
-  id: string;
-  name: string;
-  email: string;
-}
-
-interface CourseFile {
-  id: string;
-  name: string;
-  type: "video" | "quiz" | "lecture" | "file";
-  url: string;
-}
-
-interface Post {
-  id: string;
-  type: "video" | "quiz" | "zoom" | "lecture";
-  content: string;
-  files: CourseFile[];
-}
-
-interface Course {
-  id: string;
-  name: string;
-  banner: string;
-  description: string;
-  isLocked: boolean;
-  posts: Post[];
-  enrolledStudents: Student[];
-}
-
-export function ManageCourses({
-  courses,
-  setCourses,
-}: {
-  courses: Course[];
-  setCourses: (courses: Course[]) => void;
-}) {
+export function ManageCourses() {
+  const { courses, setCourses } = useCourseContext(); // Use CourseContext
   const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
   const [selectedPost, setSelectedPost] = useState<string | null>(null);
   const [newPost, setNewPost] = useState<{
