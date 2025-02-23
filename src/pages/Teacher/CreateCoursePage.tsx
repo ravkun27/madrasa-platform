@@ -1,31 +1,18 @@
-// CreateCoursePage.tsx
 import { useState } from "react";
+import { NewCourse } from "../../types"; // ✅ Import correct type
 
 interface CreateCoursesProps {
-  onSubmit: (newCourse: Course) => void;
+  onSubmit: (newCourse: NewCourse) => void;
   onCancel: () => void;
 }
 
-interface Course {
-  id: string;
-  name: string;
-  banner: string; // Added banner field
-  description: string;
-  posts: Post[]; // Changed content to posts
-}
-
-interface Post {
-  id: string;
-  type: "video" | "quiz" | "zoom" | "lecture";
-  content: string;
-}
-
 export function CreateCourses({ onSubmit, onCancel }: CreateCoursesProps) {
-  const [newCourse, setNewCourse] = useState({
+  const [newCourse, setNewCourse] = useState<NewCourse>({
+    id: "",
     name: "",
-    banner: "", // Added banner state
+    banner: "",
     description: "",
-    posts: [], // Initialize empty posts array
+    posts: [],
   });
 
   const handleBannerUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -41,7 +28,7 @@ export function CreateCourses({ onSubmit, onCancel }: CreateCoursesProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({ ...newCourse, id: Math.random().toString() }); // Generate a random ID for the course
+    onSubmit({ ...newCourse, id: Math.random().toString() }); // ✅ Generate unique ID
   };
 
   return (

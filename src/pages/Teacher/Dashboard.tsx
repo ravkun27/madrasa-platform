@@ -1,34 +1,27 @@
 import { useState } from "react";
 import { CreateCourses } from "./CreateCoursePage";
 import { ManageCourses } from "./ManageCoursesPage";
-
-interface Post {
-  id: string;
-  type: "video" | "quiz" | "zoom" | "lecture";
-  content: string;
-}
-
-interface Course {
-  id: string;
-  name: string;
-  banner: string;
-  description: string;
-  posts: Post[];
-}
+import { Course, NewCourse } from "../../types"; // ✅ Import both types
 
 export default function TeacherDashboard() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [showCreateCoursePage, setShowCreateCoursePage] = useState(false);
 
-  const handleCreateCourse = (newCourse: Course) => {
-    setCourses([...courses, newCourse]);
-    setShowCreateCoursePage(false); // Navigate to EditCourses
+  const handleCreateCourse = (newCourse: NewCourse) => {
+    const fullCourse: Course = {
+      ...newCourse,
+      isLocked: false, // ✅ Set default values
+      enrolledStudents: [], // ✅ Initialize empty array
+    };
+
+    setCourses([...courses, fullCourse]);
+    setShowCreateCoursePage(false);
   };
 
   if (showCreateCoursePage) {
     return (
       <CreateCourses
-        onSubmit={handleCreateCourse}
+        onSubmit={handleCreateCourse} // ✅ Now correctly typed
         onCancel={() => setShowCreateCoursePage(false)}
       />
     );
