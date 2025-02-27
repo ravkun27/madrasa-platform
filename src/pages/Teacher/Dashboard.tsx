@@ -1,47 +1,45 @@
-import { useState } from "react";
-import { CreateCourses } from "./CreateCoursePage";
-import { ManageCourses } from "./ManageCoursesPage";
-import { useCourseContext } from "../../context/CourseContext"; // Import the context
-import { Course, NewCourse } from "../../types";
+import { useCourses } from "../../context/CourseContext";
+import ManageCourses from "./ManageCourses";
 
-export default function TeacherDashboard() {
-  const [showCreateCoursePage, setShowCreateCoursePage] = useState(false);
-  const { addCourse } = useCourseContext(); // Get addCourse from context
+const Dashboard = () => {
+  const { courses } = useCourses();
 
-  const handleCreateCourse = (newCourse: NewCourse) => {
-    // Create a complete course object with default values
-    const fullCourse: Course = {
-      ...newCourse,
-      isLocked: false,
-      enrolledStudents: [],
-    };
-    addCourse(fullCourse);
-    setShowCreateCoursePage(false);
-  };
+  const publishedCourses = courses.filter((course) => course.isPublished);
 
   return (
-    <div className="min-h-screen dark:bg-gray-900 dark:text-gray-100 p-4 md:p-8">
-      <div className="max-w-7xl mx-auto">
-        {showCreateCoursePage ? (
-          <CreateCourses
-            onSubmit={handleCreateCourse} // Pass the submit handler
-            onCancel={() => setShowCreateCoursePage(false)}
-          />
-        ) : (
-          <>
-            <div className="mb-8 flex justify-between items-center">
-              <h1 className="text-2xl md:text-3xl font-bold">My Courses</h1>
-              <button
-                onClick={() => setShowCreateCoursePage(true)}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 md:px-6 md:py-3 rounded-lg text-sm md:text-base"
-              >
-                Create New Course
-              </button>
+    <div className="p-4 max-w-4xl mx-auto">
+      <h1 className="text-2xl font-bold mb-8">Published Courses</h1>
+      <div className="space-y-6">
+        {publishedCourses.map((course) => (
+          <div
+            key={course.id}
+            className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow"
+          >
+            <h2 className="text-xl font-semibold">{course.title}</h2>
+            <p className="text-gray-600 mt-2">{course.description}</p>
+            {course.banner && (
+              <img
+                src={course.banner}
+                alt="Course banner"
+                className="mt-4 w-full h-48 object-cover rounded-lg"
+              />
+            )}
+            <div className="mt-4">
+              <h3 className="font-medium">Sections:</h3>
+              <ul className="list-disc list-inside">
+                {course.sections.map((section) => (
+                  <li key={section.id} className="mt-2">
+                    {section.name} ({section.contents.length} items)
+                  </li>
+                ))}
+              </ul>
             </div>
-            <ManageCourses />
-          </>
-        )}
+          </div>
+        ))}
       </div>
+      <ManageCourses />
     </div>
   );
-}
+};
+
+export default Dashboard;

@@ -1,122 +1,139 @@
-// src/context/CourseContext.tsx
-import { createContext, useContext, useState, ReactNode } from "react";
-import { Course, Post, Student, CourseFile, NewCourse } from "../types";
+// CourseContext.tsx
+import React, { createContext, useContext, useReducer } from "react";
+import { Course, CourseAction } from "../types";
 
-interface CourseContextType {
+type CourseContextType = {
   courses: Course[];
-  setCourses: (courses: Course[]) => void;
-  addCourse: (course: NewCourse) => void;
-  updateCourse: (courseId: string, updatedCourse: Partial<Course>) => void;
-  deleteCourse: (courseId: string) => void;
-  toggleCourseLock: (courseId: string) => void;
-  addPostToCourse: (courseId: string, post: Post) => void;
-  addFileToPost: (courseId: string, postId: string, file: CourseFile) => void;
-  enrollStudent: (courseId: string, student: Student) => void;
-}
+  dispatch: React.Dispatch<CourseAction>;
+};
 
-const CourseContext = createContext<CourseContextType | undefined>(undefined);
+const CourseContext = createContext<CourseContextType>({
+  courses: [],
+  dispatch: () => null,
+});
 
-export function CourseProvider({ children }: { children: ReactNode }) {
-  const [courses, setCourses] = useState<Course[]>([]);
+const courseReducer = (state: Course[], action: CourseAction): Course[] => {
+  switch (action.type) {
+    case "CREATE_COURSE":
+      return [...state, action.payload];
 
-  const addCourse = (newCourse: NewCourse) => {
-    const course: Course = {
-      ...newCourse,
-      isLocked: false,
-      enrolledStudents: [],
-    };
-    setCourses([...courses, course]);
-  };
-
-  const updateCourse = (courseId: string, updatedCourse: Partial<Course>) => {
-    setCourses(
-      courses.map((course) =>
-        course.id === courseId ? { ...course, ...updatedCourse } : course
-      )
-    );
-  };
-
-  const deleteCourse = (courseId: string) => {
-    setCourses(courses.filter((course) => course.id !== courseId));
-  };
-
-  const toggleCourseLock = (courseId: string) => {
-    setCourses(
-      courses.map((course) =>
-        course.id === courseId
-          ? { ...course, isLocked: !course.isLocked }
-          : course
-      )
-    );
-  };
-
-  const addPostToCourse = (courseId: string, post: Post) => {
-    setCourses(
-      courses.map((course) =>
-        course.id === courseId
-          ? { ...course, posts: [...course.posts, post] }
-          : course
-      )
-    );
-  };
-
-  const addFileToPost = (
-    courseId: string,
-    postId: string,
-    file: CourseFile
-  ) => {
-    setCourses(
-      courses.map((course) =>
-        course.id === courseId
+    case "ADD_SECTION":
+      return state.map((course) =>
+        course.id === action.payload.courseId
           ? {
               ...course,
-              posts: course.posts.map((post) =>
-                post.id === postId
-                  ? { ...post, files: [...post.files, file] }
-                  : post
+              sections: [...course.sections, action.payload.section],
+            }
+          : course
+      );
+
+    case "DELETE_SECTION":
+      return state.map((course) =>
+        course.id === action.payload.courseId
+          ? {
+              ...course,
+              sections: course.sections.filter(
+                (s) => s.id !== action.payload.sectionId
               ),
             }
           : course
-      )
-    );
-  };
+      );
 
-  const enrollStudent = (courseId: string, student: Student) => {
-    setCourses(
-      courses.map((course) =>
-        course.id === courseId && !course.isLocked
-          ? {
-              ...course,
-              enrolledStudents: [...course.enrolledStudents, student],
-            }
-          : course
-      )
-    );
-  };
+    case "ADD_CONTENT":
+      return state.map((course) => {
+        if (course.id === action.payload.courseId) {
+          return {
+            ...course,
+            sections: course.sections.map((section) =>
+              section.id === action.payload.sectionId
+                ? {
+                    ...section,
+                    contents: [...section.contents, action.payload.content],
+                  }
+                : section
+            ),
+          };
+        }
+        return course;
+      });
+
+    case "DELETE_CONTENT":
+      return state.map((course) => {
+        if (course.id === action.payload.courseId) {
+          return {
+            ...course,
+            sections: course.sections.map((section) =>
+              section.id === action.payload.sectionId
+                ? {
+                    ...section,
+                    contents: section.contents.filter(
+                      (c) => c.id !== action.payload.contentId
+                    ),
+                  }
+                : section
+            ),
+          };
+        }
+        return course;
+      });
+
+    case "EDIT_SECTION_NAME":
+      return state.map((course) => {
+        if (course.id === action.payload.courseId) {
+          return {
+            ...course,
+            sections: course.sections.map((section) =>
+              section.id === action.payload.sectionId
+                ? { ...section, name: action.payload.newName }
+                : section
+            ),
+          };
+        }
+        return course;
+      });
+
+    case "EDIT_CONTENT_NAME":
+      return state.map((course) => {
+        if (course.id === action.payload.courseId) {
+          return {
+            ...course,
+            sections: course.sections.map((section) =>
+              section.id === action.payload.sectionId
+                ? {
+                    ...section,
+                    contents: section.contents.map((content) =>
+                      content.id === action.payload.contentId
+                        ? { ...content, name: action.payload.newName }
+                        : content
+                    ),
+                  }
+                : section
+            ),
+          };
+        }
+        return course;
+      });
+
+    case "PUBLISH_COURSE":
+      return state.map((course) =>
+        course.id === action.payload ? { ...course, isPublished: true } : course
+      );
+
+    default:
+      return state;
+  }
+};
+
+export const CourseProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const [courses, dispatch] = useReducer(courseReducer, []);
 
   return (
-    <CourseContext.Provider
-      value={{
-        courses,
-        setCourses,
-        addCourse,
-        updateCourse,
-        deleteCourse,
-        toggleCourseLock,
-        addPostToCourse,
-        addFileToPost,
-        enrollStudent,
-      }}
-    >
+    <CourseContext.Provider value={{ courses, dispatch }}>
       {children}
     </CourseContext.Provider>
   );
-}
+};
 
-export function useCourseContext() {
-  const context = useContext(CourseContext);
-  if (!context) {
-    throw new Error("useCourseContext must be used within a CourseProvider");
-  }
-  return context;
-}
+export const useCourses = () => useContext(CourseContext);

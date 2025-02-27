@@ -4,17 +4,29 @@ import { Link } from "react-router-dom";
 import logoEng from "../assets/logoEng.png";
 import { useTheme } from "../context/ThemeContext"; // Import useTheme hook
 import { useAuth } from "../context/AuthContext"; // Import Auth Context
-import { FiSun, FiMoon, FiUser, FiLogOut } from "react-icons/fi"; // Icons for light/dark mode
+import { FiSun, FiMoon, FiUser } from "react-icons/fi"; // Icons for light/dark mode
+import UserSettingsPage from "../pages/shared/UserSettingsPage";
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const { theme, toggleTheme } = useTheme(); // Get theme and toggle function
-  const { user, logout } = useAuth(); // Get user & logout function
+  const { user } = useAuth(); // Get user & logout function
+  const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => {
     document.documentElement.className = theme;
   }, [theme]);
+  useEffect(() => {
+    if (showSettings) {
+      document.body.style.overflow = "hidden"; // Disable scrolling
+    } else {
+      document.body.style.overflow = ""; // Restore scrolling
+    }
+
+    return () => {
+      document.body.style.overflow = ""; // Cleanup when unmounting
+    };
+  }, [showSettings]);
 
   return (
     <motion.header
@@ -80,37 +92,12 @@ const Header = () => {
                 <div className="relative">
                   <button
                     className="flex items-center space-x-2 text-gray-600 dark:text-text-dark hover:text-primary transition"
-                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    onClick={() => setShowSettings(true)}
                   >
                     <FiUser className="w-6 h-6" />
-                    <span>{user?.role || "User"}</span>{" "}
+                    <span>{user?.role || "User"}</span>
                     {/* Handle missing role */}
                   </button>
-
-                  {/* Dropdown Menu */}
-                  <AnimatePresence>
-                    {isDropdownOpen && (
-                      <motion.div
-                        className="absolute -right-2 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg p-4"
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                      >
-                        <Link
-                          to="/profile"
-                          className="dropdown-item text-text dark:text-text-dark"
-                        >
-                          Account
-                        </Link>
-                        <button
-                          onClick={logout}
-                          className="dropdown-item flex items-center text-red-500 mt-2"
-                        >
-                          <FiLogOut className="mr-2 text-red-500" /> Logout
-                        </button>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
                 </div>
               ) : (
                 // User is NOT logged in, show login/signup buttons
@@ -223,14 +210,14 @@ const Header = () => {
                       <div className="relative w-full flex flex-col items-center">
                         <button
                           className="flex items-center space-x-2 text-lg sm:text-xl text-secondary dark:text-secondary-dark hover:text-secondary-dark dark:hover:text-secondary transition font-medium"
-                          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                          onClick={() => setShowSettings(true)}
                         >
                           <FiUser className="w-6 h-6" />
                           <span>{user?.role || "User"}</span>
                           {/* Arrow Icon (Changes Direction Based on State) */}
                           <svg
                             className={`w-5 h-5 transition-transform ${
-                              isDropdownOpen ? "rotate-180" : "rotate-0"
+                              showSettings ? "rotate-180" : "rotate-0"
                             }`}
                             fill="none"
                             stroke="currentColor"
@@ -245,39 +232,6 @@ const Header = () => {
                             />
                           </svg>
                         </button>
-
-                        {/* Dropdown for Profile and Logout */}
-                        <AnimatePresence>
-                          {isDropdownOpen && (
-                            <motion.div
-                              className="mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg p-3 text-center transition-all duration-300"
-                              initial={{ opacity: 0, y: -10 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              exit={{ opacity: 0, y: -10 }}
-                            >
-                              <Link
-                                to="/profile"
-                                className="block text-lg text-gray-700 dark:text-white hover:text-gray-900 dark:hover:text-primary transition duration-300 font-medium py-2"
-                                onClick={() => {
-                                  setIsMobileMenuOpen(false);
-                                  setIsDropdownOpen(false);
-                                }}
-                              >
-                                Profile
-                              </Link>
-                              <button
-                                onClick={() => {
-                                  logout();
-                                  setIsMobileMenuOpen(false);
-                                }}
-                                className="w-full text-lg text-red-500 flex items-center justify-center mt-2"
-                              >
-                                <FiLogOut className="mr-2 text-red-500" />
-                                Logout
-                              </button>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
                       </div>
                     ) : (
                       // If no user, show Sign In / Sign Up buttons
@@ -310,6 +264,10 @@ const Header = () => {
           </AnimatePresence>
         </div>
       </nav>
+      <UserSettingsPage
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
+      />
     </motion.header>
   );
 };
