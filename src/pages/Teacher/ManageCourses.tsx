@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, m } from "framer-motion";
 import { v4 as uuidv4 } from "uuid";
 import { useCourses } from "../../context/CourseContext";
 import { Content, Section, Course, ContentType } from "../../types";
 import { FaEdit, FaTrash, FaChevronDown } from "react-icons/fa";
+import { getFetch, patchFetch, postFetch, putFetch } from "../../utils/apiCall";
 
 const ManageCourses = () => {
   const { courses, dispatch } = useCourses();
@@ -53,19 +54,42 @@ const ManageCourses = () => {
     });
   };
 
-  const createCourse = () => {
-    if (!newCourse.title || !newCourse.description || !newCourse.banner) return;
+  const createCourse = async () => {
+    if (!newCourse.title || !newCourse.description || !newCourse.banner)
+      return console.log("Please fill all fields");
 
-    const course: Course = {
-      id: uuidv4(),
-      title: newCourse.title,
-      description: newCourse.description,
-      banner: newCourse.banner,
-      sections: [],
-      isPublished: false,
-      createdAt: new Date(),
-    };
-    dispatch({ type: "CREATE_COURSE", payload: course });
+
+    try {
+      const result: any = await postFetch("/user/teacher/course", { title: newCourse.title, description: newCourse.description, category: newCourse.category });
+
+      console.log(result);
+
+
+      if (result.success) {
+        const uploadUrlResult: any = await getFetch(`/user/teacher/course/getUpdateLink?filename=banner&contentType=image/jpeg&courseId=${result?.data?.course?._id}`)
+
+        if (uploadUrlResult?.success) {
+          const uploadResult = await fetch(uploadUrlResult.data.signedUrl, { method: "PUT", body: newCourse?.banner })
+
+          if (uploadResult.ok) {
+
+            const finalResult = await patchFetch(`/user/teacher/course?courseId=${result?.data?.course?._id}`, { banner: uploadUrlResult.data.fileKey })
+
+            console.log(finalResult);
+
+          }
+        }
+      }
+
+
+      const courseResult = await getFetch("/user/teacher/course/all")
+
+      dispatch({ type: "CREATE_COURSE", payload: courseResult?.data?.courseList });
+
+    } catch (error) {
+
+    }
+
     setShowCourseForm(false);
     setNewCourse({});
   };
@@ -74,7 +98,7 @@ const ManageCourses = () => {
     if (!newSection.trim()) return;
 
     const section: Section = {
-      id: uuidv4(),
+
       name: newSection,
       contents: [],
     };
@@ -193,11 +217,11 @@ const ManageCourses = () => {
                 }
               />
               <input
-                type="text"
+                type="file"
                 placeholder="Banner Image URL"
                 className="w-full mb-4 p-2 border rounded-lg"
                 onChange={(e) =>
-                  setNewCourse({ ...newCourse, banner: e.target.value })
+                  setNewCourse({ ...newCourse, banner: e?.target?.files?.[0] })
                 }
               />
               <div className="flex justify-end gap-2">
@@ -464,13 +488,12 @@ const ManageCourses = () => {
                                       <div className="flex items-center gap-2">
                                         <span
                                           className={`inline-block w-2 h-2 rounded-full 
-                                          ${
-                                            content.type === "video"
+                                          ${content.type === "video"
                                               ? "bg-red-500"
                                               : content.type === "quiz"
-                                              ? "bg-blue-500"
-                                              : "bg-green-500"
-                                          }`}
+                                                ? "bg-blue-500"
+                                                : "bg-green-500"
+                                            }`}
                                         />
                                         <div>
                                           {editingContentId === content.id ? (
@@ -542,15 +565,14 @@ const ManageCourses = () => {
                                     payload: course.id,
                                   })
                                 }
-                                className={`px-6 py-2 text-xl rounded-lg transition-colors ${
-                                  course.isPublished ||
+                                className={`px-6 py-2 text-xl rounded-lg transition-colors ${course.isPublished ||
                                   !course.sections.length ||
                                   course.sections.some(
                                     (s) => !s.contents.length
                                   )
-                                    ? "bg-gray-200 cursor-not-allowed"
-                                    : "bg-purple-500 hover:bg-purple-600 text-white"
-                                }`}
+                                  ? "bg-gray-200 cursor-not-allowed"
+                                  : "bg-purple-500 hover:bg-purple-600 text-white"
+                                  }`}
                                 disabled={
                                   course.isPublished ||
                                   !course.sections.length ||

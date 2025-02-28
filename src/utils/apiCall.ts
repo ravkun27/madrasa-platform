@@ -27,6 +27,14 @@ async function apiCall<T = any>(
     }
   }
 
+  const token = localStorage.getItem("token");
+  if (token) {
+    options.headers = {
+      ...options.headers,
+      Authorization: `Bearer ${token}`,
+    };
+  }
+
   try {
     const res = await fetch(url, options);
 
