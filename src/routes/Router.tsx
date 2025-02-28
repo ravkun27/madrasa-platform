@@ -11,14 +11,30 @@ import PublicLayout from "../layouts/PublicLayout";
 import LandingPage from "../pages/LandingPage";
 import { AuthProvider } from "../context/AuthContext";
 import ProtectedLayout from "../layouts/ProtectedLayout";
-
-// RootLayout wraps the entire app with AuthProvider
+import ManageCourses from "../pages/Teacher/ManageCourses";
+import { CourseProvider } from "../context/CourseContext"; // Import CourseProvider
+import UserSettingsPage from "../pages/shared/UserSettingsPage";
+import { useState } from "react";
+// RootLayout wraps the entire app with AuthProvider and CourseProvider
 const RootLayout = () => {
   return (
     <AuthProvider>
-      <Outlet />
+      <CourseProvider>
+        <Outlet />
+      </CourseProvider>
     </AuthProvider>
   );
+};
+
+// Wrapper component for EditCourses to handle props
+const EditCoursesWrapper = () => {
+  return <ManageCourses />;
+};
+
+const UserSettingsWrapper = () => {
+  const [isOpen, setIsOpen] = useState(true);
+
+  return <UserSettingsPage isOpen={isOpen} onClose={() => setIsOpen(false)} />;
 };
 
 // Public routes (no authentication required)
@@ -35,7 +51,7 @@ const publicRoutes = [
         path: "login",
         element: <Login setIsLogin={(isLogin) => console.log(isLogin)} />,
       },
-      { path: "unauthorized", element: <Unauthorized /> }, // Add this line
+      { path: "unauthorized", element: <Unauthorized /> },
     ],
   },
 ];
@@ -48,6 +64,7 @@ const protectedRoutes = [
       {
         element: <ProtectedLayout />, // Public layout wrapper
         children: [
+          { path: "user-settings", element: <UserSettingsWrapper /> },
           {
             element: <RoleBasedRoute role="student" />, // Role check
             children: [
@@ -58,6 +75,10 @@ const protectedRoutes = [
             element: <RoleBasedRoute role="teacher" />, // Role check
             children: [
               { path: "teacher-dashboard", element: <TeacherDashboard /> },
+              {
+                path: "edit-courses",
+                element: <EditCoursesWrapper />, // Wrapper to handle props
+              },
             ],
           },
         ],

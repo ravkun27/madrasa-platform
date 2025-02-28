@@ -16,7 +16,7 @@ type LoginResponse = {
 const Login = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
   const { theme } = useTheme();
   const { login } = useAuth(); // Use login function from AuthContext
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState(""); // Email or Phone Number
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -25,15 +25,29 @@ const Login = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
     event.preventDefault();
     setLoading(true);
 
+    // Determine if input is an email or phone number
+    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier);
+    const isPhone = /^\d{10}$/.test(identifier.replace(/^0/, "")); // Remove leading zero and check 10 digits
+
+    if (!isEmail && !isPhone) {
+      alert("Please enter a valid email or phone number.");
+      setLoading(false);
+      return;
+    }
+
+    const payload = isEmail
+      ? { email: identifier, password }
+      : { phoneNumber: identifier.replace(/^0/, ""), password };
+
     try {
       const result: LoginResponse = await postFetch<LoginResponse>(
         "/user/login",
-        { email, password }
+        payload
       );
 
       if (result.success && result.data) {
         const { token, role } = result.data;
-        login(token, role); // 🔹 Update authentication state
+        login(token, role);
         navigate(`/${role.toLowerCase()}-dashboard`);
       } else {
         alert(result.message || "Invalid credentials");
@@ -60,16 +74,16 @@ const Login = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
         <form onSubmit={handleLogin} className="space-y-6">
           <div>
             <input
-              type="email"
-              placeholder="Email"
+              type="text"
+              placeholder="Email or Phone"
               required
               className={`w-full mt-1 p-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-primary ${
                 theme === "light"
                   ? "border-primary bg-white text-primary"
                   : "border-primary-dark bg-background-dark text-primary-dark"
               }`}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
             />
           </div>
 

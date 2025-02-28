@@ -32,7 +32,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const role = localStorage.getItem("role");
 
     if (token && role) {
-      console.log("Token and role found in localStorage:", { token, role });
       setUser({ role });
       setIsAuthenticated(true);
       switch (role.toLowerCase()) {

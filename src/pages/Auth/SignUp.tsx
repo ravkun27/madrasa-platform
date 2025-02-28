@@ -29,7 +29,9 @@ interface SignupResponse {
 interface OtpResponse {
   success: boolean;
   message?: string;
-  otpId: boolean | string;
+  data?: {
+    optId?: string;
+  };
 }
 
 const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
@@ -47,8 +49,8 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
   const [isVerifying, setIsVerifying] = useState(false);
   const [verificationMethod, setVerificationMethod] = useState<
     "whatsapp" | "sms"
-  >("sms");
-  const [phoneOtpId, setPhoneOtpId] = useState<boolean | string>("");
+  >("whatsapp");
+  const [phoneOtpId, setPhoneOtpId] = useState<string>("");
   const [showPassword, setShowPassword] = useState(false);
 
   const formik = useFormik({
@@ -95,6 +97,7 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
     },
   });
 
+  // Updated sendOtp function - specifically handling the phoneOtpId properly
   const sendOtp = async (payload: {
     email?: string;
     phoneNumber?: string;
@@ -106,16 +109,24 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
         "/user/sendOTP?for=createUser",
         {
           ...payload,
-          phoneNumber: payload.phoneNumber?.replace(/^0/, ""), // Remove leading 0 before sending
+          phoneNumber: payload.phoneNumber?.replace(/^0/, ""),
         }
       );
 
       if (result.success) {
-        if (payload.phoneNumber) setPhoneOtpId((result as any).data.otpId);
+        // Extract OTP ID from the response (handle both 'optId' and 'otpId')
+        const receivedOtpId = result.data?.optId || "";
+
+        if (payload.phoneNumber && receivedOtpId) {
+          setPhoneOtpId(receivedOtpId); // Set the OTP ID for phone verification
+        }
+
         setCountdown(10);
         if (payload.email) setEmailOtpSent(true);
         if (payload.phoneNumber) setPhoneOtpSent(true);
         toast.success(`OTP sent to ${payload.email ? "email" : "phone"}!`);
+      } else {
+        toast.error(result.message || "Failed to send OTP");
       }
     } catch (error) {
       toast.error("Failed to send OTP");
@@ -123,7 +134,6 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
       setIsSendingOtp(false);
     }
   };
-
   const handleSendEmailOtp = async () => {
     if (!formik.values.email) return toast.error("Email required");
     await sendOtp({ email: formik.values.email });
@@ -132,15 +142,22 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
   const handleSendPhoneOtp = async () => {
     if (!formik.values.phoneNumber) return toast.error("Phone number required");
     await sendOtp({
-      phoneNumber: formik.values.phoneNumber, // No country code here
+      phoneNumber: formik.values.phoneNumber,
       method: verificationMethod,
     });
   };
 
+  // Updated verifyOtp function - specifically for phone verification
   const verifyOtp = async (type: "email" | "phone") => {
     setIsVerifying(true);
     try {
-      const endpoint = "/user/verifyOtp";
+      // Validate OTP ID for phone verification
+      if (type === "phone" && !phoneOtpId) {
+        toast.error("Verification session expired. Please request a new OTP.");
+        setPhoneOtpSent(false); // Reset OTP sent state
+        return;
+      }
+
       const payload =
         type === "email"
           ? {
@@ -148,12 +165,12 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
             otp: formik.values.emailOtp,
           }
           : {
-            phoneNumber: formik.values.phoneNumber.replace(/^0/, ""), // Remove leading 0 before sending
-            otp: formik.values.phoneOtp,
-            otpId: phoneOtpId,
-          };
+              phoneNumber: formik.values.phoneNumber.replace(/^0/, ""),
+              otp: formik.values.phoneOtp,
+              optId: phoneOtpId, // Include OTP ID for phone verification
+            };
 
-      const result = await postFetch<OtpResponse>(endpoint, payload);
+      const result = await postFetch<OtpResponse>("/user/verifyOtp", payload);
 
       if (result.success) {
         if (type === "email") {
@@ -164,11 +181,22 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
           setCurrentStep("password");
         }
         toast.success(`${type} verified!`);
+      } else {
+        toast.error(result.message || "Verification failed");
       }
     } catch (error) {
-      toast.error("Invalid OTP");
+      console.error("Verification Error:", error);
+      toast.error("Verification failed");
     } finally {
       setIsVerifying(false);
+    }
+  };
+
+  const handleResendOtp = async (type: "email" | "phone") => {
+    if (type === "email") {
+      await handleSendEmailOtp();
+    } else {
+      await handleSendPhoneOtp();
     }
   };
 
@@ -301,7 +329,11 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
               </div>
             ) : (
               <button
-                onClick={handleSendEmailOtp}
+                onClick={
+                  currentStep === "email"
+                    ? handleSendEmailOtp
+                    : handleSendPhoneOtp
+                }
                 disabled={countdown > 0 || isSendingOtp}
                 className={`w-full py-3 rounded-lg flex items-center justify-center gap-2 ${countdown > 0 || isSendingOtp
                     ? "bg-gray-300"
@@ -315,6 +347,15 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
                 ) : (
                   "Send OTP"
                 )}
+              </button>
+            )}
+            {emailOtpSent && (
+              <button
+                onClick={() => handleResendOtp("email")}
+                disabled={countdown > 0 || isSendingOtp}
+                className="text-sm text-primary hover:underline"
+              >
+                Resend OTP
               </button>
             )}
           </motion.div>
@@ -403,6 +444,17 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
                   "Send OTP"
                 )}
               </button>
+            )}
+            {phoneOtpSent && (
+              <div className="flex flex-col space-y-2">
+                <button
+                  onClick={() => handleResendOtp("phone")}
+                  disabled={countdown > 0 || isSendingOtp}
+                  className="text-sm text-primary hover:underline"
+                >
+                  Resend OTP
+                </button>
+              </div>
             )}
           </motion.div>
         ) : (
