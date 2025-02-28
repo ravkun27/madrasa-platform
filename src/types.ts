@@ -16,15 +16,15 @@ export interface Section {
   contents: Content[];
 }
 
-export interface Course {
-  title: string;
-  description: string;
-  banner: File | null;
-  category: string;
-}
+// export interface Course {
+//   title: string;
+//   description: string;
+//   banner: File | null;
+//   category: string;
+// }
 
 export type CourseAction =
-  | { type: "CREATE_COURSE"; payload: Course }
+  | { type: "SET_COURSE"; payload: any }
   | { type: "ADD_SECTION"; payload: { courseId: string; section: Section } }
   | { type: "DELETE_SECTION"; payload: { courseId: string; sectionId: string } }
   | {

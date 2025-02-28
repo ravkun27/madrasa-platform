@@ -84,7 +84,7 @@ const ManageCourses = () => {
 
       const courseResult = await getFetch("/user/teacher/course/all")
 
-      dispatch({ type: "CREATE_COURSE", payload: courseResult?.data?.courseList });
+      dispatch({ type: "SET_COURSE", payload: courseResult?.data?.courseList });
 
     } catch (error) {
 
@@ -102,7 +102,7 @@ const ManageCourses = () => {
       name: newSection,
       contents: [],
     };
-    dispatch({ type: "ADD_SECTION", payload: { courseId, section } });
+    // dispatch({ type: "ADD_SECTION", payload: { courseId, section } });
     setNewSection("");
   };
 
@@ -120,23 +120,23 @@ const ManageCourses = () => {
       createdAt: new Date(),
     };
 
-    dispatch({
-      type: "ADD_CONTENT",
-      payload: {
-        courseId: addingContent.courseId,
-        sectionId: addingContent.sectionId,
-        content,
-      },
-    });
+    // dispatch({
+    //   type: "ADD_CONTENT",
+    //   payload: {
+    //     courseId: addingContent.courseId,
+    //     sectionId: addingContent.sectionId,
+    //     content,
+    //   },
+    // });
     setAddingContent(null);
     setContentDetails({ name: "", description: "", file: null });
   };
 
   const deleteSection = (courseId: string, sectionId: string) => {
-    dispatch({
-      type: "DELETE_SECTION",
-      payload: { courseId, sectionId },
-    });
+    // dispatch({
+    //   type: "DELETE_SECTION",
+    //   payload: { courseId, sectionId },
+    // });
   };
 
   const deleteContent = (
@@ -144,10 +144,10 @@ const ManageCourses = () => {
     sectionId: string,
     contentId: string
   ) => {
-    dispatch({
-      type: "DELETE_CONTENT",
-      payload: { courseId, sectionId, contentId },
-    });
+    // dispatch({
+    //   type: "DELETE_CONTENT",
+    //   payload: { courseId, sectionId, contentId },
+    // });
   };
 
   const editSectionName = (
@@ -155,10 +155,10 @@ const ManageCourses = () => {
     sectionId: string,
     newName: string
   ) => {
-    dispatch({
-      type: "EDIT_SECTION_NAME",
-      payload: { courseId, sectionId, newName },
-    });
+    // dispatch({
+    //   type: "EDIT_SECTION_NAME",
+    //   payload: { courseId, sectionId, newName },
+    // });
     setEditingSectionId(null);
   };
 
@@ -168,10 +168,10 @@ const ManageCourses = () => {
     contentId: string,
     newName: string
   ) => {
-    dispatch({
-      type: "EDIT_CONTENT_NAME",
-      payload: { courseId, sectionId, contentId, newName },
-    });
+    // dispatch({
+    //   type: "EDIT_CONTENT_NAME",
+    //   payload: { courseId, sectionId, contentId, newName },
+    // });
     setEditingContentId(null);
   };
 
@@ -310,9 +310,9 @@ const ManageCourses = () => {
 
       <div className="space-y-6">
         <AnimatePresence>
-          {courses.map((course: Course) => (
+          {Array.isArray(courses) && courses.map((course: any) => (
             <motion.div
-              key={course.id}
+              key={course._id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95 }}
@@ -321,7 +321,7 @@ const ManageCourses = () => {
             >
               <div
                 className="flex justify-between items-center cursor-pointer"
-                onClick={() => toggleCourse(course.id)}
+                onClick={() => toggleCourse(course._id)}
               >
                 <div className="flex gap-4 w-full justify-between">
                   <div className="flex gap-4">
@@ -337,7 +337,7 @@ const ManageCourses = () => {
                       <p>{course.description}</p>
                     </div>
                   </div>
-                  {!expandedCourses.has(course.id) && (
+                  {!expandedCourses.has(course._id) && (
                     <div className="group opacity-0 hover:opacity-100 flex gap-4 items-center justify-center pr-5 transition-opacity duration-300">
                       <p>Add Video</p>
                       <p>Add Quiz</p>
@@ -347,7 +347,7 @@ const ManageCourses = () => {
                 </div>
                 <motion.div
                   animate={{
-                    rotate: expandedCourses.has(course.id) ? 180 : 0,
+                    rotate: expandedCourses.has(course._id) ? 180 : 0,
                   }}
                 >
                   <FaChevronDown />
@@ -355,7 +355,7 @@ const ManageCourses = () => {
               </div>
 
               <AnimatePresence>
-                {expandedCourses.has(course.id) && (
+                {expandedCourses.has(course._id) && (
                   <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
@@ -372,7 +372,7 @@ const ManageCourses = () => {
                         onChange={(e) => setNewSection(e.target.value)}
                       />
                       <button
-                        onClick={() => addSection(course.id)}
+                        onClick={() => addSection(course._id)}
                         className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
                       >
                         Add Section
@@ -380,36 +380,36 @@ const ManageCourses = () => {
                     </div>
 
                     <div className="space-y-4">
-                      {course.sections.map((section) => (
+                      {course?.sectionIds?.map((section: any) => (
                         <div
-                          key={section.id}
+                          key={section._id}
                           className="bg-gray-50 p-4 rounded-lg"
                         >
                           <div
                             className="flex justify-between items-center cursor-pointer"
-                            onClick={() => toggleSection(section.id)}
+                            onClick={() => toggleSection(section._id)}
                           >
                             <div className="flex items-center gap-2">
-                              {editingSectionId === section.id ? (
+                              {editingSectionId === section._id ? (
                                 <input
                                   type="text"
-                                  defaultValue={section.name}
+                                  defaultValue={section.title}
                                   onBlur={(e) =>
                                     editSectionName(
-                                      course.id,
-                                      section.id,
+                                      course._id,
+                                      section._id,
                                       e.target.value
                                     )
                                   }
                                   className="p-1 border rounded"
                                 />
                               ) : (
-                                <h3 className="font-medium">{section.name}</h3>
+                                <h3 className="font-medium">{section.title}</h3>
                               )}
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  setEditingSectionId(section.id);
+                                  setEditingSectionId(section._id);
                                 }}
                                 className="text-gray-500 hover:text-gray-700"
                               >
@@ -420,7 +420,7 @@ const ManageCourses = () => {
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  deleteSection(course.id, section.id);
+                                  deleteSection(course._id, section._id);
                                 }}
                                 className="text-red-500 hover:text-red-700"
                               >
@@ -428,7 +428,7 @@ const ManageCourses = () => {
                               </button>
                               <motion.div
                                 animate={{
-                                  rotate: expandedSections.has(section.id)
+                                  rotate: expandedSections.has(section._id)
                                     ? 180
                                     : 0,
                                 }}
@@ -438,7 +438,7 @@ const ManageCourses = () => {
                             </div>
                           </div>
                           <AnimatePresence>
-                            {expandedSections.has(section.id) && (
+                            {expandedSections.has(section._id) && (
                               <motion.div
                                 initial={{ opacity: 0, height: 0 }}
                                 animate={{ opacity: 1, height: "auto" }}
@@ -461,8 +461,8 @@ const ManageCourses = () => {
                                       key={type}
                                       onClick={() =>
                                         setAddingContent({
-                                          courseId: course.id,
-                                          sectionId: section.id,
+                                          courseId: course._id,
+                                          sectionId: section._id,
                                           type,
                                         })
                                       }
@@ -472,7 +472,7 @@ const ManageCourses = () => {
                                     </button>
                                   ))}
                                 </div>
-                                <div className="space-y-2">
+                                {/* <div className="space-y-2">
                                   {section.contents.map((content) => (
                                     <motion.div
                                       key={content.id}
@@ -502,8 +502,8 @@ const ManageCourses = () => {
                                               defaultValue={content.name}
                                               onBlur={(e) =>
                                                 editContentName(
-                                                  course.id,
-                                                  section.id,
+                                                  course._id,
+                                                  section._id,
                                                   content.id,
                                                   e.target.value
                                                 )
@@ -542,8 +542,8 @@ const ManageCourses = () => {
                                           onClick={(e) => {
                                             e.stopPropagation();
                                             deleteContent(
-                                              course.id,
-                                              section.id,
+                                              course._id,
+                                              section._id,
                                               content.id
                                             );
                                           }}
@@ -554,34 +554,30 @@ const ManageCourses = () => {
                                       </div>
                                     </motion.div>
                                   ))}
-                                </div>
+                                </div> */}
                               </motion.div>
                             )}
                             <div className="pt-6">
                               <button
                                 onClick={() =>
-                                  dispatch({
-                                    type: "PUBLISH_COURSE",
-                                    payload: course.id,
-                                  })
+                                  // dispatch({
+                                  //   type: "PUBLISH_COURSE",
+                                  //   payload: course._id,
+                                  // })
+                                  console.log("Publish Course")
+
                                 }
-                                className={`px-6 py-2 text-xl rounded-lg transition-colors ${course.isPublished ||
-                                  !course.sections.length ||
-                                  course.sections.some(
-                                    (s) => !s.contents.length
-                                  )
+                                className={`px-6 py-2 text-xl rounded-lg transition-colors ${course.published ||
+                                  !course.sectionIds.length
                                   ? "bg-gray-200 cursor-not-allowed"
                                   : "bg-purple-500 hover:bg-purple-600 text-white"
                                   }`}
                                 disabled={
-                                  course.isPublished ||
-                                  !course.sections.length ||
-                                  course.sections.some(
-                                    (s) => !s.contents.length
-                                  )
+                                  course.published ||
+                                  !course.sectionIds.length
                                 }
                               >
-                                {course.isPublished ? "Published" : "Publish"}
+                                {course.published ? "Published" : "Publish"}
                               </button>
                             </div>
                           </AnimatePresence>
