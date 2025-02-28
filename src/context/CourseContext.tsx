@@ -15,7 +15,7 @@ const CourseContext = createContext<CourseContextType>({
 const courseReducer = (state: any, action: CourseAction): any => {
   switch (action.type) {
     case "SET_COURSE":
-      return [...state, action.payload];
+      return action.payload;
     default:
       return state;
   }

@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence, m } from "framer-motion";
 import { v4 as uuidv4 } from "uuid";
 import { useCourses } from "../../context/CourseContext";
 import { Content, Section, Course, ContentType } from "../../types";
 import { FaEdit, FaTrash, FaChevronDown } from "react-icons/fa";
-import { getFetch, patchFetch, postFetch, putFetch } from "../../utils/apiCall";
+import { getFetch, patchFetch, postFetch,  } from "../../utils/apiCall";
+
 
 const ManageCourses = () => {
   const { courses, dispatch } = useCourses();
@@ -29,6 +30,15 @@ const ManageCourses = () => {
   );
   const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
   const [editingContentId, setEditingContentId] = useState<string | null>(null);
+
+
+
+  function getCourseList() {
+    getFetch("/user/teacher/course/all").then((courseResult) => {
+      dispatch({ type: "SET_COURSE", payload: courseResult?.data?.courseList })
+    })
+  }
+  useEffect(() => { getCourseList() }, [])
 
   const toggleCourse = (courseId: string) => {
     setExpandedCourses((prev) => {
@@ -81,10 +91,7 @@ const ManageCourses = () => {
         }
       }
 
-
-      const courseResult = await getFetch("/user/teacher/course/all")
-
-      dispatch({ type: "SET_COURSE", payload: courseResult?.data?.courseList });
+      getCourseList();
 
     } catch (error) {
 
@@ -94,16 +101,20 @@ const ManageCourses = () => {
     setNewCourse({});
   };
 
-  const addSection = (courseId: string) => {
+  const addSection = async (courseId: string) => {
+    console.log(courseId);
+    
     if (!newSection.trim()) return;
 
-    const section: Section = {
+    const result: any = await postFetch(`/user/teacher/course/section?courseId=${courseId}`, {
+      title: newSection, description: "ok ok"
+    })
 
-      name: newSection,
-      contents: [],
-    };
-    // dispatch({ type: "ADD_SECTION", payload: { courseId, section } });
-    setNewSection("");
+    if (result.success) {
+      setNewSection("");
+      getCourseList();
+    }
+
   };
 
   const handleAddContent = () => {
