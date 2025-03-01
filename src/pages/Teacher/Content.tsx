@@ -5,11 +5,18 @@ import { useEffect, useState } from "react";
 import { useCourseActions } from '../../hooks/useCourseActions';
 import { removeNullAndUndefinedFields } from '../../utils/utilsMethod/removeNullFiled';
 import { useCourses } from '../../context/CourseContext';
+import { MediaModal } from '../../components/MediaModal';
 
 export const Content = ({ sectionId, courseId, contentId }: { sectionId: any, courseId: any, contentId: any }) => {
     const { setCourseList } = useCourseActions();
-const {courses}=useCourses()
+    const { courses } = useCourses()
     const [editingContentId, setEditingContentId] = useState<string | null>(null);
+
+
+    const [isOpen, setIsOpen] = useState(false);
+
+
+
 
     const deleteContent = async () => {
         try {
@@ -28,11 +35,11 @@ const {courses}=useCourses()
     const editContentName = async (
         newName: string | null = null,
         newDes: string | null = null,
-        ) => {
+    ) => {
         try {
             const result: any = await putFetch(
                 `/user/teacher/course/lesson?lessonId=${contentId}&courseId=${courseId}`,
-                { ...(removeNullAndUndefinedFields({title:newName,description:newDes})) }
+                { ...(removeNullAndUndefinedFields({ title: newName, description: newDes })) }
             );
             if (result.success) setCourseList();
         } catch (error) {
@@ -42,14 +49,20 @@ const {courses}=useCourses()
     };
 
     const getContent = async () => {
-        const content:any = await getFetch(`/user/teacher/course/lesson?lessonId=${contentId}&courseId=${courseId}`) ?? null
+        const content: any = await getFetch(`/user/teacher/course/lesson?lessonId=${contentId}&courseId=${courseId}`) ?? null
         setContent(content?.lesson)
     }
+
     useEffect(() => {
         getContent()
     }, [courses])
 
     return (<>
+        <MediaModal
+            url={content?.filePath}
+            isOpen={isOpen}
+            onClose={() => setIsOpen(false)}
+        />
 
         {
             !content ? <div>loading...</div> : <AnimatePresence>
@@ -75,52 +88,51 @@ const {courses}=useCourses()
                                     }`}
                             />
                             <div>
-                                 {editingContentId === content._id ? (
+                                {editingContentId === content._id ? (
                                     <input
                                         type="text"
                                         defaultValue={content.title}
                                         onBlur={(e) =>
-                                            editContentName(                                               
+                                            editContentName(
                                                 e.target.value
                                             )
                                         }
                                         className="p-1 border rounded"
                                     />
-                                ) : ( 
-                                <p className="font-medium">
-                                    {content.title}
-                                </p>
-                                 )} 
-                                 {editingContentId === content._id ? (
+                                ) : (
+                                    <p className="font-medium">
+                                        {content.title}
+                                    </p>
+                                )}
+                                {editingContentId === content._id ? (
                                     <input
                                         type="text"
                                         defaultValue={content.description}
                                         onBlur={(e) =>
-                                            editContentName(      null,                                         
+                                            editContentName(null,
                                                 e.target.value
                                             )
                                         }
                                         className="p-1 border rounded"
                                     />
-                                ) : ( 
-                                <p className="font-medium">
-                                    {content.description}
-                                </p>
-                                 )} 
+                                ) : (
+                                    <p className="font-medium">
+                                        {content.description}
+                                    </p>
+                                )}
                                 {content.filePath && (
                                     <a
-
                                         rel="noopener noreferrer"
                                         className="text-blue-500 hover:underline"
                                         onClick={() => {
                                             getContent()
-
-                                            window.location.href =
-                                                content.filePathF
+                                            setIsOpen(true)
                                         }}
                                     >
                                         View File
                                     </a>
+
+
                                 )}
                             </div>
                             <button
