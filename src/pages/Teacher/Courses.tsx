@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { FaEdit, FaTrash, FaChevronDown } from "react-icons/fa";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   deleteFetch,
   getFetch,
@@ -9,189 +9,196 @@ import {
 } from "../../utils/apiCall";
 import { ContentType } from "../../types";
 import { useCourseActions } from "../../hooks/useCourseActions";
+import { useCourses } from "../../context/CourseContext";
 
-const { getCourseList } = useCourseActions();
 
-const [newSection, setNewSection] = useState<{
-  title: string;
-  description: string;
-} | null>({ title: "", description: "" });
-const [expandedCourses, setExpandedCourses] = useState<Set<string>>(new Set());
-const [expandedSections, setExpandedSections] = useState<Set<string>>(
-  new Set()
-);
-const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
-const [editingContentId, setEditingContentId] = useState<string | null>(null);
-const [addingContent, setAddingContent] = useState<{
-  courseId: string;
-  sectionId: string;
-  type: ContentType | null;
-} | null>(null);
-const [contentDetails, setContentDetails] = useState({
-  name: "",
-  description: "",
-  file: null as File | null,
-});
-const addSection = async (courseId: string) => {
-  try {
-    const result: any = await postFetch(
-      `/user/teacher/course/section?courseId=${courseId}`,
-      { ...newSection }
-    );
+export const Courses = () => {
+  const { setCourseList } = useCourseActions();
+  const { courses } = useCourses();
+  useEffect(() => { setCourseList() }, [])
 
-    if (result.success) {
-      setNewSection({ title: "", description: "" });
-      getCourseList();
-    }
-  } catch (error) {
-    console.error("Error adding section:", error);
-  }
-};
-const toggleCourse = (courseId: string) => {
-  setExpandedCourses((prev) => {
-    const newSet = new Set(prev);
-    if (newSet.has(courseId)) {
-      newSet.delete(courseId);
-    } else {
-      newSet.add(courseId);
-    }
-    return newSet;
+  const [newSection, setNewSection] = useState<{
+    title: string;
+    description: string;
+  } | null>({ title: "", description: "" });
+  const [expandedCourses, setExpandedCourses] = useState<Set<string>>(new Set());
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(
+    new Set()
+  );
+  const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
+  const [editingContentId, setEditingContentId] = useState<string | null>(null);
+  const [addingContent, setAddingContent] = useState<{
+    courseId: string;
+    sectionId: string;
+    type: ContentType | null;
+  } | null>(null);
+  const [contentDetails, setContentDetails] = useState({
+    name: "",
+    description: "",
+    file: null as File | null,
   });
-};
 
-const toggleSection = (sectionId: string) => {
-  setExpandedSections((prev) => {
-    const newSet = new Set(prev);
-    if (newSet.has(sectionId)) {
-      newSet.delete(sectionId);
-    } else {
-      newSet.add(sectionId);
-    }
-    return newSet;
-  });
-};
-const deleteSection = async (courseId: string, sectionId: string) => {
-  try {
-    const result: any = await deleteFetch(
-      `/user/teacher/course/section?courseId=${courseId}&sectionId=${sectionId}`
-    );
-    if (result.success) getCourseList();
-  } catch (error) {
-    console.error("Error deleting section:", error);
-  }
-};
 
-const deleteContent = async (
-  courseId: string,
-  sectionId: string,
-  contentId: string
-) => {
-  try {
-    const result: any = await deleteFetch(
-      `/user/teacher/course/content?courseId=${courseId}&sectionId=${sectionId}&contentId=${contentId}`
-    );
-    if (result.success) getCourseList();
-  } catch (error) {
-    console.error("Error deleting content:", error);
-  }
-};
 
-const handleAddContent = async () => {
-  if (!addingContent || !contentDetails.name.trim()) return;
-
-  try {
-    let filePath = null;
-
-    // Step 1: Upload the file if it exists
-    if (contentDetails.file) {
-      const uploadUrlResult: any = await getFetch(
-        `/user/teacher/course/getUpdateLink?filename=hello&contentType=image/jpeg&courseId=${addingContent.courseId}`
+  const addSection = async (courseId: string) => {
+    try {
+      const result: any = await postFetch(
+        `/user/teacher/course/section?courseId=${courseId}`,
+        { ...newSection }
       );
 
-      if (uploadUrlResult?.success) {
-        const uploadResponse = await fetch(uploadUrlResult.data.signedUrl, {
-          method: "PUT",
-          body: contentDetails.file,
-        });
+      if (result.success) {
+        setNewSection({ title: "", description: "" });
+        setCourseList();
+      }
+    } catch (error) {
+      console.error("Error adding section:", error);
+    }
+  };
+  const toggleCourse = (courseId: string) => {
+    setExpandedCourses((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(courseId)) {
+        newSet.delete(courseId);
+      } else {
+        newSet.add(courseId);
+      }
+      return newSet;
+    });
+  };
 
-        if (uploadResponse.ok) {
-          filePath = uploadUrlResult.data.fileKey;
-        } else {
-          throw new Error("File upload failed");
+  const toggleSection = (sectionId: string) => {
+    setExpandedSections((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(sectionId)) {
+        newSet.delete(sectionId);
+      } else {
+        newSet.add(sectionId);
+      }
+      return newSet;
+    });
+  };
+  const deleteSection = async (courseId: string, sectionId: string) => {
+    try {
+      const result: any = await deleteFetch(
+        `/user/teacher/course/section?courseId=${courseId}&sectionId=${sectionId}`
+      );
+      if (result.success) setCourseList();
+    } catch (error) {
+      console.error("Error deleting section:", error);
+    }
+  };
+
+  const deleteContent = async (
+    courseId: string,
+    sectionId: string,
+    contentId: string
+  ) => {
+    try {
+      const result: any = await deleteFetch(
+        `/user/teacher/course/content?courseId=${courseId}&sectionId=${sectionId}&contentId=${contentId}`
+      );
+      if (result.success) setCourseList();
+    } catch (error) {
+      console.error("Error deleting content:", error);
+    }
+  };
+
+  const handleAddContent = async () => {
+    if (!addingContent || !contentDetails.name.trim()) return;
+
+    try {
+      let filePath = null;
+
+      // Step 1: Upload the file if it exists
+      if (contentDetails.file) {
+        const uploadUrlResult: any = await getFetch(
+          `/user/teacher/course/getUpdateLink?filename=hello&contentType=image/jpeg&courseId=${addingContent.courseId}`
+        );
+
+        if (uploadUrlResult?.success) {
+          const uploadResponse = await fetch(uploadUrlResult.data.signedUrl, {
+            method: "PUT",
+            body: contentDetails.file,
+          });
+
+          if (uploadResponse.ok) {
+            filePath = uploadUrlResult.data.fileKey;
+          } else {
+            throw new Error("File upload failed");
+          }
         }
       }
-    }
 
-    // Step 2: Create the lesson
-    const result: any = await postFetch(
-      `/user/teacher/course/lesson?sectionId=${addingContent.sectionId}&courseId=${addingContent.courseId}`,
-      {
-        title: contentDetails.name,
-        description: contentDetails.description,
-        filePath: filePath,
+      // Step 2: Create the lesson
+      const result: any = await postFetch(
+        `/user/teacher/course/lesson?sectionId=${addingContent.sectionId}&courseId=${addingContent.courseId}`,
+        {
+          title: contentDetails.name,
+          description: contentDetails.description,
+          filePath: filePath,
+        }
+      );
+
+      if (result.success) {
+        setCourseList();
+        setAddingContent(null);
+        setContentDetails({ name: "", description: "", file: null });
+      } else {
+        console.error("Failed to add lesson:", result.message);
       }
-    );
-
-    if (result.success) {
-      getCourseList();
-      setAddingContent(null);
-      setContentDetails({ name: "", description: "", file: null });
-    } else {
-      console.error("Failed to add lesson:", result.message);
+    } catch (error) {
+      console.error("Error adding content:", error);
     }
-  } catch (error) {
-    console.error("Error adding content:", error);
-  }
-};
+  };
 
-const editSectionName = async (
-  courseId: string,
-  sectionId: string,
-  newName: string
-) => {
-  try {
-    const result: any = await patchFetch(
-      `/user/teacher/course/section?courseId=${courseId}&sectionId=${sectionId}`,
-      { title: newName }
-    );
-    if (result.success) getCourseList();
-  } catch (error) {
-    console.error("Error updating section:", error);
-  }
-  setEditingSectionId(null);
-};
+  const editSectionName = async (
+    courseId: string,
+    sectionId: string,
+    newName: string
+  ) => {
+    try {
+      const result: any = await patchFetch(
+        `/user/teacher/course/section?courseId=${courseId}&sectionId=${sectionId}`,
+        { title: newName }
+      );
+      if (result.success) setCourseList();
+    } catch (error) {
+      console.error("Error updating section:", error);
+    }
+    setEditingSectionId(null);
+  };
 
-const editContentName = async (
-  courseId: string,
-  sectionId: string,
-  contentId: string,
-  newName: string
-) => {
-  try {
-    const result: any = await patchFetch(
-      `/user/teacher/course/content?courseId=${courseId}&sectionId=${sectionId}&contentId=${contentId}`,
-      { name: newName }
-    );
-    if (result.success) getCourseList();
-  } catch (error) {
-    console.error("Error updating content:", error);
-  }
-  setEditingContentId(null);
-};
+  const editContentName = async (
+    courseId: string,
+    sectionId: string,
+    contentId: string,
+    newName: string
+  ) => {
+    try {
+      const result: any = await patchFetch(
+        `/user/teacher/course/content?courseId=${courseId}&sectionId=${sectionId}&contentId=${contentId}`,
+        { name: newName }
+      );
+      if (result.success) setCourseList();
+    } catch (error) {
+      console.error("Error updating content:", error);
+    }
+    setEditingContentId(null);
+  };
 
-const publishCourse = async (courseId: string) => {
-  try {
-    const result: any = await patchFetch(
-      `/user/teacher/course/publish?courseId=${courseId}`,
-      { published: true }
-    );
-    if (result.success) getCourseList();
-  } catch (error) {
-    console.error("Error publishing course:", error);
-  }
-};
+  const publishCourse = async (courseId: string) => {
+    try {
+      const result: any = await patchFetch(
+        `/user/teacher/course/publish?courseId=${courseId}`,
+        { published: true }
+      );
+      if (result.success) setCourseList();
+    } catch (error) {
+      console.error("Error publishing course:", error);
+    }
+  };
 
-export const Courses = ({ courses }) => {
   return (
     <>
       <AnimatePresence>
@@ -458,13 +465,12 @@ export const Courses = ({ courses }) => {
                                       >
                                         <div className="flex items-center gap-2">
                                           <span
-                                            className={`inline-block w-2 h-2 rounded-full ${
-                                              content.type === "video"
-                                                ? "bg-red-500"
-                                                : content.type === "quiz"
+                                            className={`inline-block w-2 h-2 rounded-full ${content.type === "video"
+                                              ? "bg-red-500"
+                                              : content.type === "quiz"
                                                 ? "bg-blue-500"
                                                 : "bg-green-500"
-                                            }`}
+                                              }`}
                                           />
                                           <div>
                                             {editingContentId === content.id ? (
@@ -533,11 +539,10 @@ export const Courses = ({ courses }) => {
                         ))}
                         <button
                           onClick={() => publishCourse(course._id)}
-                          className={`px-6 py-2 text-xl rounded-lg transition-colors ${
-                            course.published || !course.sections?.length
-                              ? "bg-gray-200 cursor-not-allowed"
-                              : "bg-purple-500 hover:bg-purple-600 text-white"
-                          }`}
+                          className={`px-6 py-2 text-xl rounded-lg transition-colors ${course.published || !course.sections?.length
+                            ? "bg-gray-200 cursor-not-allowed"
+                            : "bg-purple-500 hover:bg-purple-600 text-white"
+                            }`}
                           disabled={
                             course.published || !course.sections?.length
                           }

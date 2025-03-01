@@ -2,9 +2,8 @@ import { useCourses } from "../context/CourseContext";
 import { getFetch } from "../utils/apiCall";
 
 export const useCourseActions = () => {
-  const { dispatch } = useCourses(); // ✅ Now inside a hook
-
-  const getCourseList = async () => {
+  const { dispatch } = useCourses();
+  const setCourseList = async () => {
     try {
       const courseResult: any = await getFetch("/user/teacher/course/all");
       dispatch({
@@ -15,6 +14,5 @@ export const useCourseActions = () => {
       console.error("Error fetching courses:", error);
     }
   };
-
-  return { getCourseList };
+  return { setCourseList };
 };

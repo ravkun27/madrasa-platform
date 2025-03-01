@@ -1,17 +1,15 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useCourses } from "../../context/CourseContext";
-import { getFetch, patchFetch, postFetch } from "../../utils/apiCall";
+import { getFetch, patchFetch, postFetch, putFetch } from "../../utils/apiCall";
 import { Courses } from "./Courses";
 import { Course } from "../../types";
 import { useCourseActions } from "../../hooks/useCourseActions";
 
-const { getCourseList } = useCourseActions();
-
 const ManageCourses = () => {
-  const { courses } = useCourses();
   const [newCourse, setNewCourse] = useState<Partial<Course>>({});
   const [showCourseForm, setShowCourseForm] = useState(false);
+  const { setCourseList } = useCourseActions();
+
 
   const createCourse = async () => {
     if (!newCourse.title || !newCourse.description || !newCourse.banner)
@@ -35,13 +33,14 @@ const ManageCourses = () => {
             body: newCourse.banner,
           });
 
-          await patchFetch(
+          await putFetch(
             `/user/teacher/course?courseId=${result.data.course._id}`,
             { banner: uploadUrlResult.data.fileKey }
           );
+
+          setCourseList();
         }
       }
-      getCourseList();
     } catch (error) {
       console.error("Error creating course:", error);
     }
@@ -117,7 +116,7 @@ const ManageCourses = () => {
         )}
       </AnimatePresence>
 
-      <Courses courses={courses} />
+      <Courses />
     </div>
   );
 };
