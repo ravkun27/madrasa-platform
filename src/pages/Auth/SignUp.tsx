@@ -11,7 +11,7 @@ import {
 } from "react-icons/fa";
 import { useTheme } from "../../context/ThemeContext";
 import { motion, AnimatePresence } from "framer-motion";
-import { data, Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { postFetch } from "../../utils/apiCall";
 import { toast, Toaster } from "react-hot-toast";
 import { useFormik } from "formik";
@@ -165,10 +165,10 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
             otp: formik.values.emailOtp,
           }
           : {
-              phoneNumber: formik.values.phoneNumber.replace(/^0/, ""),
-              otp: formik.values.phoneOtp,
-              optId: phoneOtpId, // Include OTP ID for phone verification
-            };
+            phoneNumber: formik.values.phoneNumber.replace(/^0/, ""),
+            otp: formik.values.phoneOtp,
+            optId: phoneOtpId, // Include OTP ID for phone verification
+          };
 
       const result = await postFetch<OtpResponse>("/user/verifyOtp", payload);
 
@@ -242,8 +242,8 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 className={`p-4 rounded-lg cursor-pointer transition-all ${formik.values.role === "student"
-                    ? "border-2 border-primary bg-primary/10"
-                    : "border border-gray-200 hover:border-primary"
+                  ? "border-2 border-primary bg-primary/10"
+                  : "border border-gray-200 hover:border-primary"
                   }`}
                 onClick={() => {
                   formik.setFieldValue("role", "student");
@@ -264,8 +264,8 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 className={`p-4 rounded-lg cursor-pointer transition-all ${formik.values.role === "teacher"
-                    ? "border-2 border-secondary bg-secondary/10"
-                    : "border border-gray-200 hover:border-secondary"
+                  ? "border-2 border-secondary bg-secondary/10"
+                  : "border border-gray-200 hover:border-secondary"
                   }`}
                 onClick={() => {
                   formik.setFieldValue("role", "teacher");
@@ -336,8 +336,8 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
                 }
                 disabled={countdown > 0 || isSendingOtp}
                 className={`w-full py-3 rounded-lg flex items-center justify-center gap-2 ${countdown > 0 || isSendingOtp
-                    ? "bg-gray-300"
-                    : "bg-primary hover:bg-primary/90 text-white"
+                  ? "bg-gray-300"
+                  : "bg-primary hover:bg-primary/90 text-white"
                   }`}
               >
                 {isSendingOtp ? (
@@ -387,8 +387,8 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
             <div className="flex gap-2 bg-gray-100 p-1 rounded-lg relative">
               <button
                 className={`flex-1 p-2 rounded-md transition-colors ${verificationMethod === "whatsapp"
-                    ? "bg-blue-400 shadow-md"
-                    : "bg-transparent"
+                  ? "bg-blue-400 shadow-md"
+                  : "bg-transparent"
                   }`}
                 onClick={() => setVerificationMethod("whatsapp")}
               >
@@ -396,8 +396,8 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
               </button>
               <button
                 className={`flex-1 p-2 rounded-md transition-colors ${verificationMethod === "sms"
-                    ? "bg-blue-400 shadow-md"
-                    : "bg-transparent"
+                  ? "bg-blue-400 shadow-md"
+                  : "bg-transparent"
                   }`}
                 onClick={() => setVerificationMethod("sms")}
               >
@@ -432,8 +432,8 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
                 onClick={handleSendPhoneOtp}
                 disabled={countdown > 0 || isSendingOtp}
                 className={`w-full py-3 rounded-lg flex items-center justify-center gap-2 ${countdown > 0 || isSendingOtp
-                    ? "bg-gray-300"
-                    : "bg-primary hover:bg-primary/90 text-white"
+                  ? "bg-gray-300"
+                  : "bg-primary hover:bg-primary/90 text-white"
                   }`}
               >
                 {isSendingOtp ? (

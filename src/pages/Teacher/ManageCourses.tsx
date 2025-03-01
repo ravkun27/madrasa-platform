@@ -1,15 +1,18 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { getFetch, patchFetch, postFetch, putFetch } from "../../utils/apiCall";
+import { getFetch, postFetch, putFetch } from "../../utils/apiCall";
 import { Courses } from "./Courses";
 import { Course } from "../../types";
 import { useCourseActions } from "../../hooks/useCourseActions";
+import { useCourses } from "../../context/CourseContext";
 
 const ManageCourses = () => {
   const [newCourse, setNewCourse] = useState<Partial<Course>>({});
   const [showCourseForm, setShowCourseForm] = useState(false);
   const { setCourseList } = useCourseActions();
+  const { courses } = useCourses();
 
+  useEffect(() => { setCourseList() }, [])
 
   const createCourse = async () => {
     if (!newCourse.title || !newCourse.description || !newCourse.banner)
@@ -66,12 +69,12 @@ const ManageCourses = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black flex items-center justify-center p-4"
           >
             <motion.div
               initial={{ scale: 0.95 }}
               animate={{ scale: 1 }}
-              className="bg-background-dark rounded-xl p-6 w-full max-w-md"
+              className="bg-gray-50 rounded-xl p-6 w-full max-w-md"
             >
               <h2 className="text-xl font-bold mb-4">Create Course</h2>
               <input
@@ -91,6 +94,7 @@ const ManageCourses = () => {
               />
               <input
                 type="file"
+                accept="image/*"
                 placeholder="Banner Image URL"
                 className="w-full mb-4 p-2 border rounded-lg"
                 onChange={(e) =>
@@ -116,7 +120,16 @@ const ManageCourses = () => {
         )}
       </AnimatePresence>
 
-      <Courses />
+
+      <div className="space-y-6">
+        <AnimatePresence>
+          {Array.isArray(courses) &&
+            courses.map((course: any) => (
+
+              <Courses course={course} />
+            ))}
+        </AnimatePresence>
+      </div>
     </div>
   );
 };
