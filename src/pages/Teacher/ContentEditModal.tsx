@@ -43,6 +43,7 @@ const ContentEditModal = ({ addingContent, setAddingContent, setIsAddingContent 
                                 title: contentDetails.name,
                                 description: contentDetails.description,
                                 filePath: filePath,
+                                fileType:contentDetails.file.type
                             }
                         );
 

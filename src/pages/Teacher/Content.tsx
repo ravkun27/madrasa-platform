@@ -112,6 +112,7 @@ export const Content = ({
         url={content?.filePath}
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
+        contentType={content?.fileType}
       />
       <AnimatePresence>
         {!content ? (

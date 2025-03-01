@@ -320,7 +320,6 @@ export const Courses = ({ course }: { course: any }) => {
                       }
                     />
                   </div>
-
                   <button
                     onClick={() => addSection(course._id)}
                     className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
