@@ -32,6 +32,10 @@
 
   --color-muted: #64748b; /* Muted Gray */
 }
+/* styles.css */
+button, input, textarea, a {
+  transition: all 0.2s ease-in-out;
+}
 
 body {
   background-color: var(--background);

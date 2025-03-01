@@ -17,10 +17,12 @@ export interface Section {
 }
 
 export interface Course {
+  _id:string;
   title: string;
   description: string;
   banner: File | null;
   category: string;
+  published: boolean;
 }
 
 export type CourseAction =
