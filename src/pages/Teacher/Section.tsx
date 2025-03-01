@@ -1,4 +1,4 @@
-import { deleteFetch, patchFetch } from '../../utils/apiCall';
+import { deleteFetch, putFetch } from '../../utils/apiCall';
 import { motion, AnimatePresence } from "framer-motion";
 import { FaEdit, FaTrash, FaChevronDown } from "react-icons/fa";
 import { useState } from "react";
@@ -6,11 +6,11 @@ import { useCourseActions } from '../../hooks/useCourseActions';
 import { ContentType } from "../../types";
 import ContentEditModal from './ContentEditModal';
 import { Content } from './Content';
+import  {removeNullAndUndefinedFields}  from '../../utils/utilsMethod/removeNullFiled';
 
-export const Section = ({ section, courseId }: { section: any, courseId: any }) => {
+export const Section = ({ section, courseId ,sectionNum}: { section: any, courseId: any,sectionNum:Number }) => {
     const { setCourseList } = useCourseActions();
     const [isAddingContent, setIsAddingContent] = useState(false);
-    const [editingContentId, setEditingContentId] = useState<string | null>(null);
     const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
     const [expandedSections, setExpandedSections] = useState<Set<string>>(
         new Set()
@@ -32,20 +32,7 @@ export const Section = ({ section, courseId }: { section: any, courseId: any }) 
             return newSet;
         });
     };
-    const deleteContent = async (
-        courseId: string,
-        sectionId: string,
-        contentId: string
-    ) => {
-        try {
-            const result: any = await deleteFetch(
-                `/user/teacher/course/content?courseId=${courseId}&sectionId=${sectionId}&contentId=${contentId}`
-            );
-            if (result.success) setCourseList();
-        } catch (error) {
-            console.error("Error deleting content:", error);
-        }
-    };
+   
 
     const deleteSection = async (courseId: string, sectionId: string) => {
         try {
@@ -58,14 +45,13 @@ export const Section = ({ section, courseId }: { section: any, courseId: any }) 
         }
     };
     const editSectionName = async (
-        courseId: string,
-        sectionId: string,
-        newName: string
+        newName: string | null = null,
+        newDes: string | null = null,
     ) => {
         try {
-            const result: any = await patchFetch(
-                `/user/teacher/course/section?courseId=${courseId}&sectionId=${sectionId}`,
-                { title: newName }
+            const result: any = await putFetch(
+                `/user/teacher/course/section?courseId=${courseId}&sectionId=${section._id}`,
+                { ...(removeNullAndUndefinedFields({title:newName,description:newDes})) }
             );
             if (result.success) setCourseList();
         } catch (error) {
@@ -82,32 +68,53 @@ export const Section = ({ section, courseId }: { section: any, courseId: any }) 
         }
         <div
             key={section._id}
-            className="bg-gray-50 p-4 rounded-lg"
+            className="bg-gray-100 border-2 hover:border-black/30 p-4 rounded-lg"
         >
+            <span className='p-1 text-2xl font-bold'>
+               {`Post-${sectionNum}`}
+            </span> 
             <div
-                className="flex justify-between items-center cursor-pointer"
-                onClick={() => toggleSection(section._id)}
+                className="flex justify-between items-center cursor-pointer w-full"
             >
-                <div className="flex items-center gap-2">
+                <div className="flex flex-col gap-2">
                     {editingSectionId === section._id ? (
                         <input
                             type="text"
                             defaultValue={section.title}
                             onBlur={(e) =>
                                 editSectionName(
-                                    courseId,
-                                    section._id,
                                     e.target.value
                                 )
                             }
                             className="p-1 border rounded"
                         />
                     ) : (
-                        <h3 className="font-medium">
+                        <h3 className="font-medium text-xl">
                             {section.title}
                         </h3>
                     )}
-                    <button
+                    {editingSectionId === section._id ? (
+                        <input
+                            type="text"
+                            defaultValue={section.description}
+                            onBlur={(e) =>
+                                editSectionName(null,
+                                    e.target.value
+                                )
+                            }
+                            className="p-1 border rounded"
+                        />
+                    ) : (
+                        <div className=' bg-gray-100 rounded-md'>
+                        <p className="font-normal text-sm text-gray-800">
+                            {section.description}
+                        </p>
+                        </div>
+                    )}
+                    
+                </div>
+                <div className="flex items-center gap-2">
+                <button
                         onClick={(e) => {
                             e.stopPropagation();
                             setEditingSectionId(section._id);
@@ -116,8 +123,6 @@ export const Section = ({ section, courseId }: { section: any, courseId: any }) 
                     >
                         <FaEdit />
                     </button>
-                </div>
-                <div className="flex items-center gap-2">
                     <button
                         onClick={(e) => {
                             e.stopPropagation();
@@ -133,6 +138,8 @@ export const Section = ({ section, courseId }: { section: any, courseId: any }) 
                                 ? 180
                                 : 0,
                         }}
+                        onClick={() => toggleSection(section._id)}
+
                     >
                         <FaChevronDown />
                     </motion.div>
@@ -150,7 +157,7 @@ export const Section = ({ section, courseId }: { section: any, courseId: any }) 
                         }} // Adjust transition timing
                         className="mt-4 space-y-2"
                     >
-                        <div className="flex gap-2 mb-4">
+                        <div className="flex gap-2">
                             {["video", "quiz", "lecture"].map(
                                 (type) => (
                                     <button

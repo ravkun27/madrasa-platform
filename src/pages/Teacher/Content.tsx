@@ -1,19 +1,20 @@
-import { deleteFetch, getFetch } from '../../utils/apiCall';
+import { deleteFetch, getFetch, putFetch } from '../../utils/apiCall';
 import { motion, AnimatePresence } from "framer-motion";
 import { FaEdit, FaTrash } from "react-icons/fa";
 import { useEffect, useState } from "react";
 import { useCourseActions } from '../../hooks/useCourseActions';
-import { useNavigate } from 'react-router-dom';
+import { removeNullAndUndefinedFields } from '../../utils/utilsMethod/removeNullFiled';
+import { useCourses } from '../../context/CourseContext';
 
 export const Content = ({ sectionId, courseId, contentId }: { sectionId: any, courseId: any, contentId: any }) => {
     const { setCourseList } = useCourseActions();
-
-    // const [editingContentId, setEditingContentId] = useState<string | null>(null);
+const {courses}=useCourses()
+    const [editingContentId, setEditingContentId] = useState<string | null>(null);
 
     const deleteContent = async () => {
         try {
             const result: any = await deleteFetch(
-                `/user/teacher/course/content?courseId=${courseId}&sectionId=${sectionId}&contentId=${contentId}`
+                `/user/teacher/course/lesson?lessonId=${contentId}&courseId=${courseId}&sectionId=${sectionId}`
             );
             if (result.success) setCourseList();
         } catch (error) {
@@ -22,32 +23,31 @@ export const Content = ({ sectionId, courseId, contentId }: { sectionId: any, co
     };
 
     const [content, setContent] = useState<any>(null)
-    const navigate = useNavigate()
 
 
-    // const editContentName = async (
-    //     newName: string
-    // ) => {
-    //     try {
-    //         const result: any = await patchFetch(
-    //             `/user/teacher/course/content?courseId=${courseId}&sectionId=${sectionId}&contentId=${contentId}`,
-    //             { name: newName }
-    //         );
-    //         if (result.success) setCourseList();
-    //     } catch (error) {
-    //         console.error("Error updating content:", error);
-    //     }
-    //     setEditingContentId(null);
-    // };
+    const editContentName = async (
+        newName: string | null = null,
+        newDes: string | null = null,
+        ) => {
+        try {
+            const result: any = await putFetch(
+                `/user/teacher/course/lesson?lessonId=${contentId}&courseId=${courseId}`,
+                { ...(removeNullAndUndefinedFields({title:newName,description:newDes})) }
+            );
+            if (result.success) setCourseList();
+        } catch (error) {
+            console.error("Error updating content:", error);
+        }
+        setEditingContentId(null);
+    };
 
-    // return(<div>hello world   lorem1000</div>)
     const getContent = async () => {
-        const content = await getFetch(`/user/teacher/course/lesson?lessonId=${contentId}&courseId=${courseId}`) ?? null
+        const content:any = await getFetch(`/user/teacher/course/lesson?lessonId=${contentId}&courseId=${courseId}`) ?? null
         setContent(content?.lesson)
     }
     useEffect(() => {
         getContent()
-    }, [])
+    }, [courses])
 
     return (<>
 
@@ -75,28 +75,38 @@ export const Content = ({ sectionId, courseId, contentId }: { sectionId: any, co
                                     }`}
                             />
                             <div>
-                                {/* {editingContentId === content._id ? (
+                                 {editingContentId === content._id ? (
                                     <input
                                         type="text"
                                         defaultValue={content.title}
                                         onBlur={(e) =>
-                                            editContentName(
-                                                courseId,
-                                                sectionId,
-                                                content._id,
+                                            editContentName(                                               
                                                 e.target.value
                                             )
                                         }
                                         className="p-1 border rounded"
                                     />
-                                ) : ( */}
+                                ) : ( 
                                 <p className="font-medium">
                                     {content.title}
                                 </p>
-                                {/* // )} */}
-                                <p className="text-sm text-gray-600">
+                                 )} 
+                                 {editingContentId === content._id ? (
+                                    <input
+                                        type="text"
+                                        defaultValue={content.description}
+                                        onBlur={(e) =>
+                                            editContentName(      null,                                         
+                                                e.target.value
+                                            )
+                                        }
+                                        className="p-1 border rounded"
+                                    />
+                                ) : ( 
+                                <p className="font-medium">
                                     {content.description}
                                 </p>
+                                 )} 
                                 {content.filePath && (
                                     <a
 

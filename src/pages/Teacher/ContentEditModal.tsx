@@ -98,6 +98,7 @@ const ContentEditModal = ({ addingContent, setAddingContent, setIsAddingContent 
                     />
                     <input
                         type="file"
+                         accept={addingContent.type == "video"? "video/*":"image/*,, application/pdf"}
                         className="w-full mb-4 p-2 border rounded-lg"
                         onChange={(e) =>
                             setContentDetails({

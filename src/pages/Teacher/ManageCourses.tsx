@@ -125,7 +125,6 @@ const ManageCourses = () => {
         <AnimatePresence>
           {Array.isArray(courses) &&
             courses.map((course: any) => (
-
               <Courses course={course} />
             ))}
         </AnimatePresence>

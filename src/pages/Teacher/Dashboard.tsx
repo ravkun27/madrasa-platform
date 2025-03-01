@@ -1,16 +1,16 @@
-// import { useCourses } from "../../context/CourseContext";
+import { useCourses } from "../../context/CourseContext";
 import ManageCourses from "./ManageCourses";
 
 const Dashboard = () => {
-  // const { courses } = useCourses();
+  const { courses } = useCourses();
 
-  // const publishedCourses = courses.filter((course) => course.isPublished);
+  const publishedCourses = courses.filter((course) => course.isPublished);
 
   return (
     <div className="p-4 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold mb-8">Published Courses</h1>
+      <h1 className="text-2xl font-bold mb-8 text-text">Published Courses</h1>
       <div className="space-y-6">
-        {/* {publishedCourses.map((course) => (
+         {publishedCourses.map((course) => (
           <div
             key={course.id}
             className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow"
@@ -35,7 +35,7 @@ const Dashboard = () => {
               </ul>
             </div>
           </div>
-        ))} */}
+        ))} 
       </div>
       <ManageCourses />
     </div>
