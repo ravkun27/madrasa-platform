@@ -5,7 +5,7 @@ interface MediaViewerProps {
     url: string;
     isOpen: boolean;
     onClose: () => void;
-    contentType?: string; // Optional prop to explicitly specify content type
+    contentType?: string; 
 }
 
 export const MediaModal: React.FC<MediaViewerProps> = ({ 

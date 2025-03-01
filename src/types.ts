@@ -1,5 +1,6 @@
 // types.ts
-export type ContentType = "video" | "quiz" | "lecture";
+export type ContentTypeOption = "video" | "quiz" | "lecture";
+export type ContentType = "VIDEO" | "PDF" | "IMAGE";
 
 export interface Content {
   id: string;
@@ -17,7 +18,7 @@ export interface Section {
 }
 
 export interface Course {
-  _id:string;
+  _id: string;
   title: string;
   description: string;
   banner: File | null;

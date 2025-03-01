@@ -27,6 +27,7 @@ const Header = () => {
       document.body.style.overflow = ""; // Cleanup when unmounting
     };
   }, [showSettings]);
+  const dashboardPath = user ? `/${user.role}-dashboard` : "/";
 
   return (
     <motion.header
@@ -91,13 +92,15 @@ const Header = () => {
                 // User is logged in, show role
                 <div className="relative">
                   <button
-                    className="flex items-center space-x-2 text-gray-600 dark:text-text-dark hover:text-primary transition"
                     onClick={() => setShowSettings(true)}
+                    className="flex items-center space-x-2 text-gray-600 dark:text-text-dark hover:text-primary transition"
                   >
                     <FiUser className="w-6 h-6" />
                     <span>{user?.role || "User"}</span>
-                    {/* Handle missing role */}
                   </button>
+                  {showSettings && (
+                    <Link to={dashboardPath} className="absolute inset-0" />
+                  )}
                 </div>
               ) : (
                 // User is NOT logged in, show login/signup buttons

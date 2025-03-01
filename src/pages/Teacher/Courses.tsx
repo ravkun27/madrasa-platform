@@ -1,5 +1,13 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { FiChevronDown, FiEdit, FiTrash2, FiPlus, FiCheck, FiX, FiUsers } from "react-icons/fi";
+import {
+  FiChevronDown,
+  FiEdit,
+  FiTrash2,
+  FiPlus,
+  FiCheck,
+  FiX,
+  FiUsers,
+} from "react-icons/fi";
 import { useState } from "react";
 import { deleteFetch, postFetch, putFetch } from "../../utils/apiCall";
 import { useCourseActions } from "../../hooks/useCourseActions";
@@ -14,9 +22,14 @@ export const Courses = ({ course }: { course: any }) => {
     title: string;
     description: string;
   } | null>({ title: "", description: "" });
-  const [expandedCourses, setExpandedCourses] = useState<Set<string>>(new Set());
+  const [expandedCourses, setExpandedCourses] = useState<Set<string>>(
+    new Set()
+  );
   const [editingCourseId, setEditingCourseId] = useState<string | null>(null);
-  const [tempCourseData, setTempCourseData] = useState<{ title: string; description: string }>({
+  const [tempCourseData, setTempCourseData] = useState<{
+    title: string;
+    description: string;
+  }>({
     title: course.title,
     description: course.description,
   });
@@ -63,7 +76,8 @@ export const Courses = ({ course }: { course: any }) => {
     toast.custom((t) => (
       <div className="bg-white p-6 rounded-xl shadow-lg flex flex-col gap-4">
         <p className="text-lg font-medium text-gray-800">
-          Are you sure you want to {isPublished ? "unpublish" : "publish"} this course?
+          Are you sure you want to {isPublished ? "unpublish" : "publish"} this
+          course?
         </p>
         <div className="flex justify-end gap-3">
           <button
@@ -95,7 +109,9 @@ export const Courses = ({ course }: { course: any }) => {
       );
       if (result.success) {
         setCourseList();
-        toast.success(`Course ${!isPublished ? "published" : "unpublished"} successfully`);
+        toast.success(
+          `Course ${!isPublished ? "published" : "unpublished"} successfully`
+        );
       }
     } catch (error) {
       toast.error("Failed to publish course");
@@ -107,7 +123,7 @@ export const Courses = ({ course }: { course: any }) => {
     try {
       const result: any = await putFetch(
         `/user/teacher/course?courseId=${course._id}`,
-        { ...(removeNullAndUndefinedFields(tempCourseData)) }
+        { ...removeNullAndUndefinedFields(tempCourseData) }
       );
       if (result.success) {
         setCourseList();
@@ -123,7 +139,9 @@ export const Courses = ({ course }: { course: any }) => {
   const deleteCourse = async () => {
     if (!confirm("Are you sure you want to delete this course?")) return;
     try {
-      const result: any = await deleteFetch(`/user/teacher/course?courseId=${course._id}`);
+      const result: any = await deleteFetch(
+        `/user/teacher/course?courseId=${course._id}`
+      );
       if (result.success) {
         setCourseList();
         toast.success("Course deleted successfully");
@@ -143,33 +161,39 @@ export const Courses = ({ course }: { course: any }) => {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95 }}
         transition={{ duration: 0.2, ease: "easeInOut" }}
-        className="bg-white dark:bg-white/70 rounded-xl shadow-sm hover:shadow-md transition-shadow p-6"
-        >
-        <div className="flex items-start gap-4 p-4">
+        className="bg-gray-100 dark:bg-white/70 rounded-xl shadow-sm hover:shadow-md transition-shadow p-6"
+      >
+        <div className="flex items-start gap-4 p-2">
           <div className="flex-1">
             <div className="flex items-start justify-between gap-2">
-            {course.banner && (
-            <img
-              src={course.banner}
-              alt="Course banner"
-              className="h-16 w-16 rounded-lg object-cover flex-shrink-0"
-            />
-          )}
-              <div className="flex-1">
+              {course.banner && (
+                <img
+                  src={course.banner}
+                  alt="Course banner"
+                  className="h-16 w-16 rounded-lg object-cover flex-shrink-0"
+                />
+              )}
+              <div className="flex-1 ml-2">
                 {editingCourseId === course._id ? (
                   <div className="space-y-2">
                     <input
                       type="text"
                       value={tempCourseData.title}
                       onChange={(e) =>
-                        setTempCourseData({ ...tempCourseData, title: e.target.value })
+                        setTempCourseData({
+                          ...tempCourseData,
+                          title: e.target.value,
+                        })
                       }
                       className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
                     />
                     <textarea
                       value={tempCourseData.description}
                       onChange={(e) =>
-                        setTempCourseData({ ...tempCourseData, description: e.target.value })
+                        setTempCourseData({
+                          ...tempCourseData,
+                          description: e.target.value,
+                        })
                       }
                       className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
                     />
@@ -191,9 +215,13 @@ export const Courses = ({ course }: { course: any }) => {
                     </div>
                   </div>
                 ) : (
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-800">{course.title}</h3>
-                    <p className="text-gray-600 mt-1">{course.description}</p>
+                  <div className="space-y-1">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 truncate">
+                      {course.title}
+                    </h3>
+                    <p className="text-gray-700 dark:text-gray-400 text-sm line-clamp-2">
+                      {course.description}
+                    </p>
                   </div>
                 )}
               </div>
@@ -222,7 +250,9 @@ export const Courses = ({ course }: { course: any }) => {
                   <FiTrash2 size={18} />
                 </button>
                 <motion.div
-                  animate={{ rotate: expandedCourses.has(course._id) ? 180 : 0 }}
+                  animate={{
+                    rotate: expandedCourses.has(course._id) ? 180 : 0,
+                  }}
                   className="p-2 hover:bg-gray-100 rounded-lg cursor-pointer"
                   onClick={() => toggleCourse(course._id)}
                 >
@@ -240,13 +270,15 @@ export const Courses = ({ course }: { course: any }) => {
                   className="mt-6 space-y-6 p-2"
                 >
                   {/* Student List */}
-                  <div className="bg-gray-100 p-4 rounded-lg cursor-pointer"
-                    onClick={() => setShowStudents(!showStudents)}>
-                    <button
-                      className="flex items-center gap-2 text-gray-700 hover:text-gray-900"
-                    >
+                  <div
+                    className="bg-gray-100 p-4 rounded-lg cursor-pointer"
+                    onClick={() => setShowStudents(!showStudents)}
+                  >
+                    <button className="flex items-center gap-2 text-gray-700 hover:text-gray-900">
                       <FiUsers size={18} />
-                      <span>{showStudents ? "Hide Students" : "Show Students"}</span>
+                      <span>
+                        {showStudents ? "Hide Students" : "Show Students"}
+                      </span>
                     </button>
                     {showStudents && (
                       <div className="mt-2 space-y-2">
@@ -288,7 +320,6 @@ export const Courses = ({ course }: { course: any }) => {
                       }
                     />
                   </div>
-
                   <button
                     onClick={() => addSection(course._id)}
                     className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
@@ -300,7 +331,12 @@ export const Courses = ({ course }: { course: any }) => {
                   {/* Sections List */}
                   <div className="space-y-4">
                     {course?.sectionIds?.map((section: any, index: number) => (
-                      <Section key={section._id} section={section} courseId={course._id} sectionNum={index + 1} />
+                      <Section
+                        key={section._id}
+                        section={section}
+                        courseId={course._id}
+                        sectionNum={index + 1}
+                      />
                     ))}
                   </div>
 
