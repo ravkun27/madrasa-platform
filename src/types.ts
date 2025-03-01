@@ -16,12 +16,12 @@ export interface Section {
   contents: Content[];
 }
 
-// export interface Course {
-//   title: string;
-//   description: string;
-//   banner: File | null;
-//   category: string;
-// }
+export interface Course {
+  title: string;
+  description: string;
+  banner: File | null;
+  category: string;
+}
 
 export type CourseAction =
   | { type: "SET_COURSE"; payload: any }
