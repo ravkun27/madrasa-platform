@@ -8,6 +8,8 @@ import {
   FiVideo,
   FiBook,
   FiCheckSquare,
+  FiCheck,
+  FiX,
 } from "react-icons/fi";
 import { useEffect, useState } from "react";
 import { useCourseActions } from "../../hooks/useCourseActions";
@@ -31,6 +33,22 @@ export const Content = ({
   const [editingContentId, setEditingContentId] = useState<string | null>(null);
   const [content, setContent] = useState<any>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [tempContentData, setTempContentData] = useState<{
+    title: string;
+    description: string;
+  }>({
+    title: "",
+    description: "",
+  });
+
+  useEffect(() => {
+    if (content) {
+      setTempContentData({
+        title: content.title || "",
+        description: content.description || "",
+      });
+    }
+  }, [content]); // ✅ Update tempContentData only when content is fetched
 
   const [isOpen, setIsOpen] = useState(false);
 
@@ -53,23 +71,16 @@ export const Content = ({
     }
   };
 
-  const editContentName = async (
-    newName: string | null = null,
-    newDes: string | null = null
-  ) => {
+  const editContentName = async () => {
     try {
       const result: any = await putFetch(
         `/user/teacher/course/lesson?lessonId=${contentId}&courseId=${courseId}`,
-        {
-          ...removeNullAndUndefinedFields({
-            title: newName,
-            description: newDes,
-          }),
-        }
+        { ...removeNullAndUndefinedFields(tempContentData) }
       );
       if (result.success) {
         setCourseList();
         toast.success("Content updated successfully");
+        setEditingContentId(null);
       }
     } catch (error) {
       toast.error("Failed to update content");
@@ -141,15 +152,41 @@ export const Content = ({
                     <div className="space-y-2">
                       <input
                         type="text"
-                        defaultValue={content.title}
-                        onBlur={(e) => editContentName(e.target.value)}
+                        value={tempContentData.title}
+                        onChange={(e) =>
+                          setTempContentData({
+                            ...tempContentData,
+                            title: e.target.value,
+                          })
+                        }
                         className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
                       />
                       <textarea
-                        defaultValue={content.description}
-                        onBlur={(e) => editContentName(null, e.target.value)}
+                        value={tempContentData.description}
+                        onChange={(e) =>
+                          setTempContentData({
+                            ...tempContentData,
+                            description: e.target.value,
+                          })
+                        }
                         className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
                       />
+                      <div className="flex gap-2">
+                        <button
+                          onClick={editContentName}
+                          className="flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600"
+                        >
+                          <FiCheck size={18} />
+                          Save
+                        </button>
+                        <button
+                          onClick={() => setEditingContentId(null)}
+                          className="flex items-center gap-2 bg-gray-200 px-4 py-2 rounded-lg hover:bg-gray-300"
+                        >
+                          <FiX size={18} />
+                          Cancel
+                        </button>
+                      </div>
                     </div>
                   ) : (
                     <div>
