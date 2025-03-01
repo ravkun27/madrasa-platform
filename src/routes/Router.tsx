@@ -11,7 +11,7 @@ import PublicLayout from "../layouts/PublicLayout";
 import LandingPage from "../pages/LandingPage";
 import { AuthProvider } from "../context/AuthContext";
 import ProtectedLayout from "../layouts/ProtectedLayout";
-import ManageCourses from "../pages/Teacher/ManageCoursesPage";
+import ManageCoursesPage from "../pages/Teacher/ManageCoursesPage";
 import { CourseProvider } from "../context/CourseContext"; // Import CourseProvider
 import UserSettingsPage from "../pages/shared/UserSettingsPage";
 import { useState } from "react";
@@ -28,7 +28,7 @@ const RootLayout = () => {
 
 // Wrapper component for EditCourses to handle props
 const EditCoursesWrapper = () => {
-  return <ManageCourses />;
+  return <ManageCoursesPage />;
 };
 
 const UserSettingsWrapper = () => {
