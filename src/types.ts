@@ -17,17 +17,16 @@ export interface Section {
 }
 
 export interface Course {
-  id: string;
+  _id:string;
   title: string;
   description: string;
-  banner: string;
-  sections: Section[];
-  isPublished: boolean;
-  createdAt: Date;
+  banner: File | null;
+  category: string;
+  published: boolean;
 }
 
 export type CourseAction =
-  | { type: "CREATE_COURSE"; payload: Course }
+  | { type: "SET_COURSE"; payload: any }
   | { type: "ADD_SECTION"; payload: { courseId: string; section: Section } }
   | { type: "DELETE_SECTION"; payload: { courseId: string; sectionId: string } }
   | {

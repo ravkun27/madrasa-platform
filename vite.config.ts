@@ -11,4 +11,7 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    minify: "terser", // Ensures unused code is removed
+  },
 });

@@ -161,14 +161,14 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
       const payload =
         type === "email"
           ? {
-              email: formik.values.email,
-              otp: formik.values.emailOtp,
-            }
+            email: formik.values.email,
+            otp: formik.values.emailOtp,
+          }
           : {
-              phoneNumber: formik.values.phoneNumber.replace(/^0/, ""),
-              otp: formik.values.phoneOtp,
-              optId: phoneOtpId, // Include OTP ID for phone verification
-            };
+            phoneNumber: formik.values.phoneNumber.replace(/^0/, ""),
+            otp: formik.values.phoneOtp,
+            optId: phoneOtpId, // Include OTP ID for phone verification
+          };
 
       const result = await postFetch<OtpResponse>("/user/verifyOtp", payload);
 
@@ -216,9 +216,8 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
     <div className="my-4 max-w-md mx-auto p-6 border-2 border-accent rounded-xl">
       <Toaster position="top-right" />
       <h1
-        className={`text-3xl font-bold mb-8 text-center ${
-          theme === "light" ? "text-primary" : "text-secondary"
-        }`}
+        className={`text-3xl font-bold mb-8 text-center ${theme === "light" ? "text-primary" : "text-secondary"
+          }`}
       >
         Create Account
       </h1>
@@ -233,9 +232,8 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
             className="space-y-6"
           >
             <h2
-              className={`text-lg ${
-                theme === "light" ? "text-gray-600" : "text-gray-300"
-              }`}
+              className={`text-lg ${theme === "light" ? "text-gray-600" : "text-gray-300"
+                }`}
             >
               Select your role
             </h2>
@@ -243,11 +241,10 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
               <motion.div
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className={`p-4 rounded-lg cursor-pointer transition-all ${
-                  formik.values.role === "student"
-                    ? "border-2 border-primary bg-primary/10"
-                    : "border border-gray-200 hover:border-primary"
-                }`}
+                className={`p-4 rounded-lg cursor-pointer transition-all ${formik.values.role === "student"
+                  ? "border-2 border-primary bg-primary/10"
+                  : "border border-gray-200 hover:border-primary"
+                  }`}
                 onClick={() => {
                   formik.setFieldValue("role", "student");
                   setCurrentStep("email");
@@ -266,11 +263,10 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
               <motion.div
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className={`p-4 rounded-lg cursor-pointer transition-all ${
-                  formik.values.role === "teacher"
-                    ? "border-2 border-secondary bg-secondary/10"
-                    : "border border-gray-200 hover:border-secondary"
-                }`}
+                className={`p-4 rounded-lg cursor-pointer transition-all ${formik.values.role === "teacher"
+                  ? "border-2 border-secondary bg-secondary/10"
+                  : "border border-gray-200 hover:border-secondary"
+                  }`}
                 onClick={() => {
                   formik.setFieldValue("role", "teacher");
                   setCurrentStep("email");
@@ -339,11 +335,10 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
                     : handleSendPhoneOtp
                 }
                 disabled={countdown > 0 || isSendingOtp}
-                className={`w-full py-3 rounded-lg flex items-center justify-center gap-2 ${
-                  countdown > 0 || isSendingOtp
-                    ? "bg-gray-300"
-                    : "bg-primary hover:bg-primary/90 text-white"
-                }`}
+                className={`w-full py-3 rounded-lg flex items-center justify-center gap-2 ${countdown > 0 || isSendingOtp
+                  ? "bg-gray-300"
+                  : "bg-primary hover:bg-primary/90 text-white"
+                  }`}
               >
                 {isSendingOtp ? (
                   <FaSpinner className="animate-spin" />
@@ -391,21 +386,19 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
 
             <div className="flex gap-2 bg-gray-100 p-1 rounded-lg relative">
               <button
-                className={`flex-1 p-2 rounded-md transition-colors ${
-                  verificationMethod === "whatsapp"
-                    ? "bg-blue-400 shadow-md"
-                    : "bg-transparent"
-                }`}
+                className={`flex-1 p-2 rounded-md transition-colors ${verificationMethod === "whatsapp"
+                  ? "bg-blue-400 shadow-md"
+                  : "bg-transparent"
+                  }`}
                 onClick={() => setVerificationMethod("whatsapp")}
               >
                 <FaWhatsapp className="inline-block mr-2" /> WhatsApp
               </button>
               <button
-                className={`flex-1 p-2 rounded-md transition-colors ${
-                  verificationMethod === "sms"
-                    ? "bg-blue-400 shadow-md"
-                    : "bg-transparent"
-                }`}
+                className={`flex-1 p-2 rounded-md transition-colors ${verificationMethod === "sms"
+                  ? "bg-blue-400 shadow-md"
+                  : "bg-transparent"
+                  }`}
                 onClick={() => setVerificationMethod("sms")}
               >
                 <FaSms className="inline-block mr-2" /> SMS
@@ -438,11 +431,10 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
               <button
                 onClick={handleSendPhoneOtp}
                 disabled={countdown > 0 || isSendingOtp}
-                className={`w-full py-3 rounded-lg flex items-center justify-center gap-2 ${
-                  countdown > 0 || isSendingOtp
-                    ? "bg-gray-300"
-                    : "bg-primary hover:bg-primary/90 text-white"
-                }`}
+                className={`w-full py-3 rounded-lg flex items-center justify-center gap-2 ${countdown > 0 || isSendingOtp
+                  ? "bg-gray-300"
+                  : "bg-primary hover:bg-primary/90 text-white"
+                  }`}
               >
                 {isSendingOtp ? (
                   <FaSpinner className="animate-spin" />

@@ -1,13 +1,40 @@
 /* CSS Variables */
 :root {
-  --color-primary: #2b7a78;
-  --color-secondary: #ffa62b;
-  --color-accent: #234e5a;
-  --color-light-teal: #e4f3f5;
-  --color-cream: #f5f1e6;
-  --color-slate: #4a4a4a;
-  --color-amber-dark: #ff8e00;
-  --color-white: #ffffff;
+  --color-primary: #1d4ed8; /* Blue */
+  --color-secondary: #f97316; /* Orange */
+  --color-accent: #234e5a; /* Dark Teal */
+
+  --color-background: #ffffff; /* Light Background */
+  --color-text: #1d1b1a; /* Dark Grayish Blue */
+
+  --color-card: #f8fafc; /* Light Gray */
+  --color-card-border: #e2e8f0; /* Soft Border */
+
+  --color-button: #2563eb; /* Blue */
+  --color-button-text: #ffffff; /* White */
+
+  --color-muted: #94a3b8; /* Muted Gray */
+}
+
+.dark {
+  --color-primary: #1e40af; /* Darker Blue */
+  --color-secondary: #c2410c; /* Darker Orange */
+  --color-accent: #1f3a4b; /* Darker Teal */
+
+  --color-background: #0f172a; /* Dark Background */
+  --color-text: #f8fafc; /* Light Grayish Blue */
+
+  --color-card: #1e293b; /* Dark Gray-Blue */
+  --color-card-border: #334155; /* Darker Border */
+
+  --color-button: #1e40af; /* Darker Blue */
+  --color-button-text: #e2e8f0; /* Soft White */
+
+  --color-muted: #64748b; /* Muted Gray */
+}
+/* styles.css */
+button, input, textarea, a {
+  transition: all 0.2s ease-in-out;
 }
 
 body {
