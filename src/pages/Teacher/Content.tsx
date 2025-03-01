@@ -113,6 +113,7 @@ export const Content = ({
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         contentType={content?.fileType}
+        title={content?.title}
       />
       <AnimatePresence>
         {!content ? (
@@ -133,13 +134,12 @@ export const Content = ({
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 flex-1">
                 <div
-                  className={`p-2 rounded-lg ${
-                    {
+                  className={`p-2 rounded-lg ${{
                       video: "bg-red-100 text-red-600",
                       quiz: "bg-blue-100 text-blue-600",
                       lecture: "bg-green-100 text-green-600",
                     }[content.type as ContentType] || null
-                  }`}
+                    }`}
                 >
                   {{
                     video: <FiVideo size={18} />,
