@@ -83,21 +83,21 @@ export const Courses = ({ course }: { course: any }) => {
     // }
   };
 
-  const kickStudent = async (studentId: string) => {
-    setShowKickConfirm(true);
+  // const kickStudent = async () => {
+    // setShowKickConfirm(true);
     // try {
     //   const result: any = await deleteFetch(
     //     `/user/teacher/course/student?courseId=${course._id}&studentId=${studentId}`
     //   );
     //   if (result.success) {
-    setCourseList();
-    toast.success("Student removed successfully");
+    // setCourseList();
+    // toast.success("Student removed successfully");
     //   }
     // } catch (error) {
     //   toast.error("Failed to remove student");
     //   console.error("Error removing student:", error);
     // }
-  };
+  // };
 
   const handleBannerChange = async () => {
     if (!newBanner) return;
@@ -314,7 +314,7 @@ export const Courses = ({ course }: { course: any }) => {
         <ConfirmationModal
           message="Are you sure you want to remove this student?"
           onConfirm={() => {
-            kickStudent(studentToKick);
+            // kickStudent(studentToKick);
             setShowKickConfirm(false);
           }}
           onCancel={() => setShowKickConfirm(false)}

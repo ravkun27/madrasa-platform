@@ -1,9 +1,9 @@
 import { deleteFetch, getFetch, putFetch } from "../../utils/apiCall";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  LuVideo,
-  LuBook,
-  LuClipboardList,
+  // LuVideo,
+  // LuBook,
+  // LuClipboardList,
   LuFile,
   LuPencil,
   LuCheck,
@@ -17,7 +17,7 @@ import { removeNullAndUndefinedFields } from "../../utils/utilsMethod/removeNull
 import { useCourses } from "../../context/CourseContext";
 import { MediaModal } from "../../components/Modal/MediaModal";
 import toast from "react-hot-toast";
-import { ContentTypeOption } from "../../types";
+// import { ContentTypeOption } from "../../types";
 import { ConfirmationModal } from "../../components/Modal/ConfiramtionModal";
 
 export const Content = ({
