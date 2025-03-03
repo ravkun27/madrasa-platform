@@ -31,9 +31,7 @@ export const Section = ({
   const { setCourseList } = useCourseActions();
   const [isAddingContent, setIsAddingContent] = useState(false);
   const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(
-    new Set()
-  );
+  const [expandedSections, setExpandedSections] = useState(false);
   const [tempSectionData, setTempSectionData] = useState({
     title: section.title,
     description: section.description,
@@ -44,14 +42,6 @@ export const Section = ({
     type: ContentType | null;
   } | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-
-  const toggleSection = (sectionId: string) => {
-    setExpandedSections((prev) => {
-      const newSet = new Set(prev);
-      newSet.has(sectionId) ? newSet.delete(sectionId) : newSet.add(sectionId);
-      return newSet;
-    });
-  };
 
   const editSectionName = async () => {
     try {
@@ -106,73 +96,15 @@ export const Section = ({
         />
       )}
 
-      <motion.div
-        className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow"
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
-        <div className="p-6">
-          <div className="flex items-start justify-between gap-5">
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-2">
-                <span className="px-3 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-300 rounded-full text-sm font-medium">
-                  Section {sectionNum}
-                </span>
-              </div>
-
-              {editingSectionId === section._id ? (
-                <div className="space-y-2 mt-2">
-                  <input
-                    type="text"
-                    value={tempSectionData.title}
-                    onChange={(e) =>
-                      setTempSectionData({
-                        ...tempSectionData,
-                        title: e.target.value,
-                      })
-                    }
-                    className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-lg"
-                  />
-                  <textarea
-                    value={tempSectionData.description}
-                    onChange={(e) =>
-                      setTempSectionData({
-                        ...tempSectionData,
-                        description: e.target.value,
-                      })
-                    }
-                    className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 h-32"
-                  />
-                  <div className="flex gap-2">
-                    <button
-                      onClick={editSectionName}
-                      className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-xl hover:bg-indigo-700 text-sm"
-                    >
-                      <LuCheck size={20} />
-                      Save Changes
-                    </button>
-                    <button
-                      onClick={() => setEditingSectionId(null)}
-                      className="flex items-center gap-2 bg-gray-200 dark:bg-gray-700 px-5 py-2.5 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-600 text-sm"
-                    >
-                      <LuX size={20} />
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
-                    {section.title}
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-400 text-base">
-                    {section.description}
-                  </p>
-                </div>
-              )}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+        <div className="p-4 md:p-6">
+          <div className="flex justify-between gap-5 mb-2">
+            <div className="flex items-center gap-3">
+              <span className="px-3 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-300 rounded-full text-md font-medium">
+                Post {sectionNum}
+              </span>
             </div>
-
-            <div className="flex items-center gap-2">
+            <div className="flex justify-center gap-2">
               <button
                 onClick={() => setEditingSectionId(section._id)}
                 className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl text-gray-600 dark:text-gray-400"
@@ -187,25 +119,77 @@ export const Section = ({
               </button>
               <motion.div
                 animate={{
-                  rotate: expandedSections.has(section._id) ? 180 : 0,
+                  rotate: expandedSections ? 180 : 0,
                 }}
                 className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl cursor-pointer"
-                onClick={() => toggleSection(section._id)}
+                onClick={() => setExpandedSections(!expandedSections)}
               >
                 <LuChevronDown size={24} />
               </motion.div>
             </div>
           </div>
+          <div>
+            {editingSectionId === section._id ? (
+              <div className="space-y-2">
+                <input
+                  type="text"
+                  value={tempSectionData.title}
+                  onChange={(e) =>
+                    setTempSectionData({
+                      ...tempSectionData,
+                      title: e.target.value,
+                    })
+                  }
+                  className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-lg"
+                />
+                <textarea
+                  value={tempSectionData.description}
+                  onChange={(e) =>
+                    setTempSectionData({
+                      ...tempSectionData,
+                      description: e.target.value,
+                    })
+                  }
+                  className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 md:h-32"
+                />
+                <div className="flex justify-center gap-2">
+                  <button
+                    onClick={editSectionName}
+                    className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-xl hover:bg-indigo-700 text-sm"
+                  >
+                    <LuCheck size={20} />
+                    Save
+                  </button>
+                  <button
+                    onClick={() => setEditingSectionId(null)}
+                    className="flex items-center md:gap-2 bg-gray-200 dark:bg-gray-700 px-5 py-2.5 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-600 text-sm"
+                  >
+                    <LuX size={20} />
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
+                  {section.title}
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-3">
+                  {section.description}
+                </p>
+              </div>
+            )}
+          </div>
 
           <AnimatePresence>
-            {expandedSections.has(section._id) && (
+            {expandedSections && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
-                className="mt-6 space-y-6"
+                className="md:space-y-6"
               >
-                <div className="flex flex-wrap gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:flex gap-3 py-2">
                   {[
                     { type: "video", icon: <LuVideo size={20} /> },
                     { type: "lecture", icon: <LuText size={20} /> },
@@ -221,7 +205,10 @@ export const Section = ({
                         });
                         setIsAddingContent(true);
                       }}
-                      className="flex items-center gap-3 px-5 py-3 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:border-indigo-500 rounded-xl text-gray-700 dark:text-gray-300 hover:text-indigo-600"
+                      className="flex items-center gap-3 px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 
+                 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:border-indigo-500 
+                 rounded-lg text-gray-700 dark:text-gray-300 hover:text-indigo-600 
+                 transition-all"
                     >
                       {icon}
                       <span className="capitalize font-medium">{type}</span>
@@ -229,7 +216,7 @@ export const Section = ({
                   ))}
                 </div>
 
-                <div className="space-y-4">
+                <div>
                   {section?.lessonIds?.map((contentId: any) => (
                     <Content
                       key={contentId}
@@ -243,7 +230,7 @@ export const Section = ({
             )}
           </AnimatePresence>
         </div>
-      </motion.div>
+      </div>
     </>
   );
 };

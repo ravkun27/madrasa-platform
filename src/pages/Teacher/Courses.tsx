@@ -11,7 +11,8 @@ import {
   FiUnlock,
   FiImage,
 } from "react-icons/fi";
-import { useState, useRef } from "react";
+import "react-image-crop/dist/ReactCrop.css";
+import { useState, useRef, useEffect } from "react";
 import {
   deleteFetch,
   postFetch,
@@ -23,15 +24,16 @@ import { Section } from "./Section";
 import { removeNullAndUndefinedFields } from "../../utils/utilsMethod/removeNullFiled";
 import toast from "react-hot-toast";
 import { ConfirmationModal } from "../../components/Modal/ConfiramtionModal";
+import ReactCrop from "react-image-crop";
+import "react-image-crop/dist/ReactCrop.css";
+import { Crop } from "react-image-crop";
 
 export const Courses = ({ course }: { course: any }) => {
   const { setCourseList } = useCourseActions();
   const [isPublished, setIsPublished] = useState(course?.published);
   const [isLocked, setIsLocked] = useState(course?.locked || false);
   const [newSection, setNewSection] = useState({ title: "", description: "" });
-  const [expandedCourses, setExpandedCourses] = useState<Set<string>>(
-    new Set()
-  );
+  const [expandedCourses, setExpandedCourses] = useState(false);
   const [editingCourseId, setEditingCourseId] = useState<string | null>(null);
   const [tempCourseData, setTempCourseData] = useState({
     title: course.title,
@@ -43,6 +45,12 @@ export const Courses = ({ course }: { course: any }) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showKickConfirm, setShowKickConfirm] = useState(false);
   const [studentToKick, setStudentToKick] = useState<string | null>(null);
+  const [addSectionToggle, setAddSectionToggle] = useState(false);
+  const [crop, setCrop] = useState<Crop>();
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [cropping, setCropping] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const dummyStudents = [
@@ -53,6 +61,12 @@ export const Courses = ({ course }: { course: any }) => {
     "Charlie Davis",
   ];
 
+  useEffect(() => {
+    if (addSectionToggle && !newSection.title && !newSection.description) {
+      const timer = setTimeout(() => setAddSectionToggle(false), 5000); // Hide after 5 sec
+      return () => clearTimeout(timer); // Cleanup on component unmount
+    }
+  }, [addSectionToggle, newSection]);
   const toggleLock = async () => {
     // try {
     //   const result: any = await putFetch(
@@ -118,32 +132,6 @@ export const Courses = ({ course }: { course: any }) => {
     }
   };
 
-  const BannerEditButton = () => (
-    <div
-      className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg transition-opacity"
-      onMouseEnter={() => setIsHoveringBanner(true)}
-      onMouseLeave={() => setIsHoveringBanner(false)}
-    >
-      <button
-        className="p-2 text-white bg-gray-800/50 rounded-full hover:bg-gray-800/80 transition-colors"
-        onClick={() => fileInputRef.current?.click()}
-      >
-        <FiImage size={20} />
-      </button>
-      <input
-        type="file"
-        ref={fileInputRef}
-        accept="image/*"
-        className="hidden"
-        onChange={(e) => {
-          if (e.target.files?.[0]) {
-            setNewBanner(e.target.files[0]);
-          }
-        }}
-      />
-    </div>
-  );
-
   const addSection = async (courseId: string) => {
     try {
       const result: any = await postFetch(
@@ -160,18 +148,6 @@ export const Courses = ({ course }: { course: any }) => {
       toast.error("Failed to add section");
       console.error("Error adding section:", error);
     }
-  };
-
-  const toggleCourse = (courseId: string) => {
-    setExpandedCourses((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(courseId)) {
-        newSet.delete(courseId);
-      } else {
-        newSet.add(courseId);
-      }
-      return newSet;
-    });
   };
 
   const publishCourse = async (courseId: string, isPublished: boolean) => {
@@ -254,6 +230,73 @@ export const Courses = ({ course }: { course: any }) => {
     }
   };
 
+  const BannerEditButton = () => (
+    <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg transition-opacity">
+      <button
+        className="p-2.5 text-white bg-gray-800/50 rounded-xl hover:bg-gray-800/80 transition-colors flex items-center gap-2"
+        onClick={() => fileInputRef.current?.click()}
+      >
+        <FiImage size={20} />
+        <span className="text-sm font-medium">Change Banner</span>
+      </button>
+    </div>
+  );
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files?.[0]) {
+      const reader = new FileReader();
+      reader.addEventListener("load", () => {
+        setSelectedImage(reader.result as string);
+        setCropping(true);
+      });
+      reader.readAsDataURL(e.target.files[0]);
+    }
+  };
+
+  const handleCropComplete = async () => {
+    if (!imgRef.current || !crop) return;
+
+    const croppedImage = await getCroppedImg(imgRef.current, crop);
+    setNewBanner(croppedImage);
+    setCropping(false);
+    setSelectedImage(null);
+  };
+
+  const getCroppedImg = (
+    image: HTMLImageElement,
+    crop: Crop
+  ): Promise<File> => {
+    const canvas = document.createElement("canvas");
+    const scaleX = image.naturalWidth / image.width;
+    const scaleY = image.naturalHeight / image.height;
+
+    canvas.width = crop.width;
+    canvas.height = crop.height;
+    const ctx = canvas.getContext("2d");
+
+    if (ctx) {
+      ctx.drawImage(
+        image,
+        crop.x * scaleX,
+        crop.y * scaleY,
+        crop.width * scaleX,
+        crop.height * scaleY,
+        0,
+        0,
+        crop.width,
+        crop.height
+      );
+    }
+
+    return new Promise((resolve) => {
+      canvas.toBlob((blob) => {
+        if (blob) {
+          resolve(new File([blob], "banner.jpg", { type: "image/jpeg" }));
+        }
+      }, "image/jpeg");
+    });
+  };
+
   return (
     <>
       {showDeleteConfirm && (
@@ -297,135 +340,196 @@ export const Courses = ({ course }: { course: any }) => {
         />
       )}
 
+      {/* Crop Modal */}
+      <AnimatePresence>
+        {cropping && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95 }}
+              animate={{ scale: 1 }}
+              className="bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-3xl w-full"
+            >
+              <div className="mb-4">
+                <h3 className="text-xl font-semibold">Crop Banner</h3>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Select area for your course banner
+                </p>
+              </div>
+
+              {selectedImage && (
+                <ReactCrop
+                  crop={crop}
+                  onChange={(c) => setCrop(c)}
+                  aspect={6 / 1}
+                  className="max-h-[70vh] w-full"
+                >
+                  <img
+                    ref={imgRef}
+                    src={selectedImage}
+                    alt="Crop preview"
+                    className="w-full h-auto"
+                  />
+                </ReactCrop>
+              )}
+
+              <div className="flex justify-end gap-3 mt-6">
+                <button
+                  onClick={() => setCropping(false)}
+                  className="px-5 py-2.5 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCropComplete}
+                  className="px-5 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700"
+                >
+                  Save Crop
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <motion.div
         key={course._id}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95 }}
+        exit={{ opacity: 0, scale: 0 }}
         transition={{ duration: 0.2, ease: "easeInOut" }}
         className="bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden"
       >
-        <div className="flex items-center justify-center gap-4 p-6">
-          {/* Image Section */}
-          <div className="flex-shrink-0">
-            {course.banner && (
-              <div
-                className="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 p-2"
-                onMouseEnter={() => setIsHoveringBanner(true)}
-                onMouseLeave={() => setIsHoveringBanner(false)}
-              >
-                <img
-                  src={course.banner}
-                  alt="Course banner"
-                  className="w-full h-full object-contain"
+        {/* Banner Section */}
+        <div className="relative aspect-[6/1] bg-gray-100 dark:bg-gray-900">
+          {course.banner && (
+            <div
+              className="relative h-full w-full"
+              onMouseEnter={() => setIsHoveringBanner(true)}
+              onMouseLeave={() => setIsHoveringBanner(false)}
+            >
+              <img
+                src={course.banner}
+                alt="Course banner"
+                className="w-full h-full object-cover"
+              />
+              {isHoveringBanner && <BannerEditButton />}
+            </div>
+          )}
+          <input
+            type="file"
+            ref={fileInputRef}
+            accept="image/*"
+            className="hidden"
+            onChange={handleImageSelect}
+          />
+        </div>
+
+        {/* Content Section */}
+        <div className="p-6">
+          {/* Header Row */}
+          <div className="flex-1 space-y-2">
+            {editingCourseId === course._id ? (
+              // Edit Mode Content
+              <div className="space-y-4">
+                <input
+                  type="text"
+                  value={tempCourseData.title}
+                  onChange={(e) =>
+                    setTempCourseData({
+                      ...tempCourseData,
+                      title: e.target.value,
+                    })
+                  }
+                  className="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-lg font-semibold"
                 />
-                {isHoveringBanner && <BannerEditButton />}
+                <textarea
+                  value={tempCourseData.description}
+                  onChange={(e) =>
+                    setTempCourseData({
+                      ...tempCourseData,
+                      description: e.target.value,
+                    })
+                  }
+                  className="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-sm h-32"
+                />
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    onClick={editCourseName}
+                    className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-lg hover:bg-indigo-700 text-sm"
+                  >
+                    <FiCheck size={18} />
+                    Save Changes
+                  </button>
+                  <button
+                    onClick={() => setEditingCourseId(null)}
+                    className="flex items-center gap-2 bg-gray-200 px-5 py-2.5 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 text-sm"
+                  >
+                    <FiX size={18} />
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              // Display Mode Content
+              <div className="flex-1 space-y-2">
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  {course.title}
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 mt-2">
+                  {course.description}
+                </p>
               </div>
             )}
-          </div>
 
-          {/* Content Section */}
-          <div className="flex-1 min-w-0 space-y-4">
-            {/* Header Row */}
-            <div className="flex items-start justify-between gap-4">
-              {editingCourseId === course._id ? (
-                // Edit Mode Content
-                <div className="flex-1 space-y-4">
-                  <input
-                    type="text"
-                    value={tempCourseData.title}
-                    onChange={(e) =>
-                      setTempCourseData({
-                        ...tempCourseData,
-                        title: e.target.value,
-                      })
-                    }
-                    className="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-lg font-semibold"
-                  />
-                  <textarea
-                    value={tempCourseData.description}
-                    onChange={(e) =>
-                      setTempCourseData({
-                        ...tempCourseData,
-                        description: e.target.value,
-                      })
-                    }
-                    className="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-sm h-32"
-                  />
-                  <div className="flex flex-wrap gap-3">
-                    <button
-                      onClick={editCourseName}
-                      className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-lg hover:bg-indigo-700 text-sm"
-                    >
-                      <FiCheck size={18} />
-                      Save Changes
-                    </button>
-                    <button
-                      onClick={() => setEditingCourseId(null)}
-                      className="flex items-center gap-2 bg-gray-200 px-5 py-2.5 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 text-sm"
-                    >
-                      <FiX size={18} />
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                // Display Mode Content
-                <div className="flex-1 space-y-2">
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 truncate">
-                    {course.title}
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-400 text-base line-clamp-3">
-                    {course.description}
-                  </p>
-                </div>
-              )}
-
-              {/* Action Buttons */}
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setEditingCourseId(editingCourseId ? null : course._id);
-                  }}
-                  className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-400"
-                >
-                  <FiEdit size={20} />
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowDeleteConfirm(true);
-                  }}
-                  className="p-2.5 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-lg text-red-500"
-                >
-                  <FiTrash2 size={20} />
-                </button>
-                <motion.div
-                  animate={{
-                    rotate: expandedCourses.has(course._id) ? 180 : 0,
-                  }}
-                  className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg cursor-pointer"
-                  onClick={() => toggleCourse(course._id)}
-                >
-                  <FiChevronDown size={24} />
-                </motion.div>
-              </div>
+            {/* Action Buttons */}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setEditingCourseId(editingCourseId ? null : course._id);
+                }}
+                className=" p-2.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-400"
+              >
+                <FiEdit size={20} />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowDeleteConfirm(true);
+                }}
+                className="p-2.5 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-lg text-red-500"
+              >
+                <FiTrash2 size={20} />
+              </button>
+              <motion.div
+                animate={{
+                  rotate: expandedCourses ? 180 : 0,
+                }}
+                className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg cursor-pointer"
+                onClick={() => setExpandedCourses(!expandedCourses)}
+              >
+                <FiChevronDown size={24} />
+              </motion.div>
             </div>
           </div>
         </div>
         {/* Expandable Content */}
         <AnimatePresence>
-          {expandedCourses.has(course._id) && (
+          {expandedCourses && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              className="mt-6 space-y-6 p-6"
+              className="p-2 md:p-6"
             >
               {/* Students Section */}
-              <div className="bg-gray-50 dark:bg-gray-700/30 p-4 rounded-xl">
-                <div className="flex items-center justify-between mb-3">
+              <div className="bg-gray-50 dark:bg-gray-700/30 p-1 md:p-4 rounded-xl">
+                <div className="flex items-center justify-between mb-1 md:mb-3">
                   <button
                     onClick={() => setShowStudents(!showStudents)}
                     className="flex items-center gap-3 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
@@ -445,18 +549,18 @@ export const Courses = ({ course }: { course: any }) => {
                     ) : (
                       <FiUnlock size={24} className="text-green-600" />
                     )}
-                    <span className="absolute top-full mt-2 px-3 py-1 text-sm bg-gray-800 text-white rounded opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                    <span className="absolute top-full mt-2 px-3 py-1 text-sm bg-gray-800 text-white rounded opacity-0 transition-opacity duration-100 group-hover:opacity-100">
                       {isLocked ? "Unlock Course" : "Lock Course"}
                     </span>
                   </button>
                 </div>
 
                 {showStudents && (
-                  <div className="mt-4 space-y-3">
+                  <div className="py-3">
                     {dummyStudents.map((student) => (
                       <div
                         key={student}
-                        className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg"
+                        className="flex items-center justify-between p-3"
                       >
                         <span className="text-gray-600 dark:text-gray-300">
                           {student}
@@ -478,35 +582,46 @@ export const Courses = ({ course }: { course: any }) => {
               </div>
 
               {/* Add Section Form */}
-              <div className="space-y-5">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <input
-                    type="text"
-                    placeholder="Section Title"
-                    className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600"
-                    value={newSection.title}
-                    onChange={(e) =>
-                      setNewSection({
-                        ...newSection,
-                        title: e.target.value,
-                      })
-                    }
-                  />
-                  <input
-                    type="text"
-                    placeholder="Section Description"
-                    className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600"
-                    value={newSection.description}
-                    onChange={(e) =>
-                      setNewSection({
-                        ...newSection,
-                        description: e.target.value,
-                      })
-                    }
-                  />
-                </div>
+              <div className="py-4">
+                {addSectionToggle && (
+                  <div className="grid gap-4 md:grid-cols-2 duration-100">
+                    <input
+                      type="text"
+                      placeholder="Section Title"
+                      className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600"
+                      value={newSection.title}
+                      onChange={(e) =>
+                        setNewSection({
+                          ...newSection,
+                          title: e.target.value,
+                        })
+                      }
+                    />
+                    <input
+                      type="text"
+                      placeholder="Section Description"
+                      className="w-full p-3 border rounded-lg focus:ring-2 mb-4 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600"
+                      value={newSection.description}
+                      onChange={(e) =>
+                        setNewSection({
+                          ...newSection,
+                          description: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                )}
                 <button
-                  onClick={() => addSection(course._id)}
+                  onClick={() => {
+                    if (
+                      newSection.title.trim() &&
+                      newSection.description.trim()
+                    ) {
+                      addSection(course._id);
+                    } else {
+                      setAddSectionToggle(true); // Show inputs if they're not filled
+                    }
+                  }}
                   className="w-full flex items-center justify-center gap-3 bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 text-base"
                 >
                   <FiPlus size={20} />
@@ -527,16 +642,18 @@ export const Courses = ({ course }: { course: any }) => {
               </div>
 
               {/* Publish Button */}
-              <button
-                onClick={() => publishCourse(course._id, isPublished)}
-                className={`w-full py-3.5 rounded-xl transition-colors text-base font-medium ${
-                  isPublished || !course.sectionIds?.length
-                    ? "bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed"
-                    : "bg-green-500 hover:bg-green-600 text-white"
-                }`}
-              >
-                {isPublished ? "Published ✓" : "Publish Course"}
-              </button>
+              <div className="py-4">
+                <button
+                  onClick={() => publishCourse(course._id, isPublished)}
+                  className={`w-full py-3.5 rounded-xl transition-colors text-base font-medium ${
+                    isPublished || !course.sectionIds?.length
+                      ? "bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed"
+                      : "bg-green-500 hover:bg-green-600 text-white"
+                  }`}
+                >
+                  {isPublished ? "Published ✓" : "Publish Course"}
+                </button>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>

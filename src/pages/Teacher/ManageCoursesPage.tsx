@@ -73,13 +73,13 @@ const ManageCoursesPage = () => {
   };
 
   return (
-    <div className="min-h-screen p-4 max-w-4xl mx-auto">
+    <div className="min-h-screen p-4  md:max-w-2xl mx-auto">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-800">Manage Courses</h1>
+        <h1 className="md:text-3xl font-bold text-gray-500">Manage Courses</h1>
         <button
           onClick={() => setShowCourseForm(true)}
           className="bg-indigo-600 text-white px-6 py-3 rounded-xl hover:bg-indigo-700 transition-all
-                   active:scale-95 font-medium shadow-md hover:shadow-lg"
+                   active:scale-95 font-medium shadow-md hover:shadow-lg text-md md:text-3xl"
         >
           Create New Course
         </button>
@@ -96,7 +96,7 @@ const ManageCoursesPage = () => {
             <motion.div
               initial={{ scale: 0.95, y: 20 }}
               animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.95, y: 20 }}
+              exit={{ scale: 0, y: 20 }}
               transition={{ type: "spring", stiffness: 300, damping: 20 }}
               className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl"
             >
@@ -140,7 +140,7 @@ const ManageCoursesPage = () => {
                   />
                 </div>
               </div>
-              <div className="flex justify-end gap-3 mt-8">
+              <div className="flex justify-center gap-3 p-6">
                 <button
                   onClick={createCourse}
                   disabled={isCreating}
@@ -165,7 +165,7 @@ const ManageCoursesPage = () => {
       </AnimatePresence>
 
       <LayoutGroup>
-        <motion.div className="space-y-6" layout>
+        <div>
           {isLoading ? (
             Array(3)
               .fill(0)
@@ -184,13 +184,14 @@ const ManageCoursesPage = () => {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.2 }}
+                  className="mt-4"
                 >
                   <Courses course={course} />
                 </motion.div>
               ))}
             </AnimatePresence>
           )}
-        </motion.div>
+        </div>
       </LayoutGroup>
     </div>
   );

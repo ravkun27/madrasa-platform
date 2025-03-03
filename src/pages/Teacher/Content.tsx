@@ -135,11 +135,14 @@ export const Content = ({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.2 }}
-            className="group bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow"
+            className="group bg-white dark:bg-gray-800 p-2 md:p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm transition-all"
           >
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex items-start gap-4 flex-1">
-                <div
+            {/* Top Section: Icon, Title & Actions */}
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              {/* Left: Icon + Title */}
+              <div className="flex items-start gap-4 flex-1 min-w-0">
+                {/* Content Type Icon */}
+                {/* <div
                   className={`p-3 rounded-xl ${
                     {
                       video:
@@ -157,11 +160,12 @@ export const Content = ({
                       lecture: <LuBook size={24} />,
                     }[content.type as ContentTypeOption]
                   }
-                </div>
+                </div> */}
 
-                <div className="flex-1 min-w-0">
+                {/* Editable Mode */}
+                <div className="flex-1">
                   {editingContentId === content._id ? (
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       <input
                         type="text"
                         value={tempContentData.title}
@@ -171,7 +175,7 @@ export const Content = ({
                             title: e.target.value,
                           })
                         }
-                        className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600"
+                        className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600"
                       />
                       <textarea
                         value={tempContentData.description}
@@ -181,19 +185,19 @@ export const Content = ({
                             description: e.target.value,
                           })
                         }
-                        className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 h-32"
+                        className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600"
                       />
-                      <div className="flex flex-wrap gap-3">
+                      <div className="flex gap-3">
                         <button
                           onClick={editContentName}
-                          className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-xl hover:bg-indigo-700 text-sm"
+                          className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-lg hover:bg-indigo-700 text-sm"
                         >
                           <LuCheck size={20} />
-                          Save Changes
+                          Save
                         </button>
                         <button
                           onClick={() => setEditingContentId(null)}
-                          className="flex items-center gap-2 bg-gray-200 dark:bg-gray-700 px-5 py-2.5 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-600 text-sm"
+                          className="flex items-center gap-2 bg-gray-200 dark:bg-gray-700 px-5 py-2.5 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 text-sm"
                         >
                           <LuX size={20} />
                           Cancel
@@ -201,41 +205,48 @@ export const Content = ({
                       </div>
                     </div>
                   ) : (
-                    <div className="space-y-2">
-                      <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+                    /* View Mode */
+                    <div className="space-2">
+                      <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-100 line-clamp-1 md:line-clamp-2">
                         {content.title}
                       </h4>
-                      <p className="text-gray-600 dark:text-gray-400">
+                      <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed line-clamp-3">
                         {content.description}
                       </p>
                       {content.filePath && (
                         <button
                           onClick={() => setIsOpen(true)}
-                          className="mt-3 flex items-center gap-2 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300"
+                          className="flex items-center gap-1 md:gap-2 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 text-sm w-44"
                         >
                           <LuFile size={18} />
-                          <span className="font-medium">View Attachment</span>
+                          <span className="md:font-medium">
+                            View Attachment
+                          </span>
                         </button>
                       )}
                     </div>
                   )}
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setEditingContentId(content._id)}
-                  className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl text-gray-600 dark:text-gray-400"
-                >
-                  <LuPencil size={22} />
-                </button>
-                <button
-                  onClick={() => setShowDeleteConfirm(true)}
-                  disabled={isDeleting}
-                  className="p-2.5 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-xl text-red-500"
-                >
-                  <LuTrash2 size={22} />
-                </button>
-              </div>
+
+              {/* Right: Action Buttons */}
+              {editingContentId !== content._id && (
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setEditingContentId(content._id)}
+                    className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-400"
+                  >
+                    <LuPencil size={20} />
+                  </button>
+                  <button
+                    onClick={() => setShowDeleteConfirm(true)}
+                    disabled={isDeleting}
+                    className="p-2.5 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg text-red-500"
+                  >
+                    <LuTrash2 size={20} />
+                  </button>
+                </div>
+              )}
             </div>
           </motion.div>
         )}

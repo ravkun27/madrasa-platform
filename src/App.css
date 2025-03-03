@@ -32,31 +32,15 @@
 
   --color-muted: #64748b; /* Muted Gray */
 }
-/* styles.css */
-button, input, textarea, a {
-  transition: all 0.2s ease-in-out;
-}
 
 body {
   background-color: var(--background);
   color: var(--text);
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
-.badge-video {
-  @apply bg-blue-100 text-blue-800;
-}
-.badge-lecture {
-  @apply bg-purple-100 text-purple-800;
-}
-.badge-quiz {
-  @apply bg-green-100 text-green-800;
-}
-.badge-zoom {
-  @apply bg-red-100 text-red-800;
-}
-.badge-post-type {
-  @apply px-3 py-1 rounded-full text-sm flex items-center gap-1;
-}
+
 /* Custom Classes */
 .bg-gradient-landing {
   background: linear-gradient(

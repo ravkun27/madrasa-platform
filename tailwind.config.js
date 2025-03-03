@@ -14,9 +14,6 @@ export default {
       transitionProperty: {
         'scrollbar': 'background, transform',
       },
-      transitionDuration: {
-        '300': '300ms',
-      },
       colors: {
         primary: "var(--color-primary)",
         secondary: "var(--color-secondary)",
