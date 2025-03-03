@@ -29,6 +29,7 @@ import "react-image-crop/dist/ReactCrop.css";
 import { Crop } from "react-image-crop";
 
 export const Courses = ({ course }: { course: any }) => {
+
   const { setCourseList } = useCourseActions();
   const [isPublished, setIsPublished] = useState(course?.published);
   const [isLocked, setIsLocked] = useState(course?.locked || false);
@@ -98,6 +99,65 @@ export const Courses = ({ course }: { course: any }) => {
     //   console.error("Error removing student:", error);
     // }
   // };
+
+
+  
+  const API_BASE_URL = "http://localhost:8080"; // Replace with your backend URL
+
+
+  const [userId, setUserId] = useState(null);
+  const [displayName, setDisplayName] = useState(null);
+  const [meetLink, setMeetLink] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  // Step 1: Redirect teacher to Google OAuth
+  const handleGoogleAuth = () => {
+    window.location.href = `${API_BASE_URL}/auth/google`;
+  };
+
+  // Step 2: Check authentication status
+  const checkAuthStatus = async () => {
+    try {
+
+      const response = await fetch(`${API_BASE_URL}/auth/google/status`, {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      const data = await response.json();
+      setUserId(data.userId);
+      setDisplayName(data.displayName);
+      alert("Authentication successful! You can now create meetings.");
+    } catch (error) {
+      console.error("Auth Status Error:", error.data || error.message);
+    }
+  };
+
+  // Step 3: Create Google Meet
+  const createMeeting = async () => {
+    if (!userId) {
+      alert("Please authenticate with Google first.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+
+      const response = await fetch(`${API_BASE_URL}/create-google-meeting`, {
+        method: 'GET',
+        credentials: 'include',
+      });
+      const data = await response.json();
+
+      setMeetLink(data.meetLink);
+    } catch (error) {
+      console.error("Meeting Creation Error:", error?.data || error?.message);
+      alert("Failed to create Google Meet.");
+    }
+    setLoading(false);
+  };
+
+
 
   const handleBannerChange = async () => {
     if (!newBanner) return;
@@ -395,7 +455,35 @@ export const Courses = ({ course }: { course: any }) => {
           </motion.div>
         )}
       </AnimatePresence>
+      <div style={{ textAlign: "center", padding: "20px" }}>
+          <h1>Google Meet Creator</h1>
 
+          {!userId ? (
+            <div>
+              <button onClick={handleGoogleAuth}>Authenticate with Google</button>
+              <button onClick={checkAuthStatus} style={{ marginLeft: "10px" }}>Check Auth Status</button>
+            </div>
+          ) : (
+            <>
+              <h2>Authenticated as: {displayName}</h2>
+              <button onClick={createMeeting} disabled={loading}>
+                {loading ? "Creating..." : "Create Google Meet"}
+              </button>
+
+              {meetLink && (
+                <div>
+                  <h3>Meeting Link</h3>
+                  <p>
+                    <strong>Google Meet Link:</strong> <a href={meetLink} target="_blank" rel="noopener noreferrer">{meetLink}</a>
+                  </p>
+                  <button onClick={() => { navigator.clipboard.writeText(meetLink) }}>
+                    Copy Link
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
       <motion.div
         key={course._id}
         initial={{ opacity: 0, y: 20 }}
