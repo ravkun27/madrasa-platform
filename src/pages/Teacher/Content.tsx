@@ -1,23 +1,24 @@
-// Content.tsx
 import { deleteFetch, getFetch, putFetch } from "../../utils/apiCall";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  FiEdit,
-  FiTrash2,
-  FiFile,
-  FiVideo,
-  FiBook,
-  FiCheckSquare,
-  FiCheck,
-  FiX,
-} from "react-icons/fi";
+  LuVideo,
+  LuBook,
+  LuClipboardList,
+  LuFile,
+  LuPencil,
+  LuCheck,
+  LuTrash2,
+  LuX,
+} from "react-icons/lu";
+
 import { useEffect, useState } from "react";
 import { useCourseActions } from "../../hooks/useCourseActions";
 import { removeNullAndUndefinedFields } from "../../utils/utilsMethod/removeNullFiled";
 import { useCourses } from "../../context/CourseContext";
-import { MediaModal } from "../../components/MediaModal";
+import { MediaModal } from "../../components/Modal/MediaModal";
 import toast from "react-hot-toast";
-import { ContentType } from "../../types";
+import { ContentTypeOption } from "../../types";
+import { ConfirmationModal } from "../../components/Modal/ConfiramtionModal";
 
 export const Content = ({
   sectionId,
@@ -33,13 +34,12 @@ export const Content = ({
   const [editingContentId, setEditingContentId] = useState<string | null>(null);
   const [content, setContent] = useState<any>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [tempContentData, setTempContentData] = useState<{
-    title: string;
-    description: string;
-  }>({
+  const [tempContentData, setTempContentData] = useState({
     title: "",
     description: "",
   });
+  const [isOpen, setIsOpen] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
     if (content) {
@@ -48,13 +48,9 @@ export const Content = ({
         description: content.description || "",
       });
     }
-  }, [content]); // ✅ Update tempContentData only when content is fetched
-
-  const [isOpen, setIsOpen] = useState(false);
+  }, [content]);
 
   const deleteContent = async () => {
-    if (!confirm("Are you sure you want to delete this content?")) return;
-    setIsDeleting(true);
     try {
       const result: any = await deleteFetch(
         `/user/teacher/course/lesson?lessonId=${contentId}&courseId=${courseId}&sectionId=${sectionId}`
@@ -86,15 +82,13 @@ export const Content = ({
       toast.error("Failed to update content");
       console.error("Error updating content:", error);
     }
-    setEditingContentId(null);
   };
 
   const getContent = async () => {
     try {
-      const content: any =
-        (await getFetch(
-          `/user/teacher/course/lesson?lessonId=${contentId}&courseId=${courseId}`
-        )) ?? null;
+      const content: any = await getFetch(
+        `/user/teacher/course/lesson?lessonId=${contentId}&courseId=${courseId}`
+      );
       setContent(content?.lesson);
     } catch (error) {
       toast.error("Failed to load content");
@@ -108,6 +102,17 @@ export const Content = ({
 
   return (
     <>
+      {showDeleteConfirm && (
+        <ConfirmationModal
+          message="Are you sure you want to delete this content?"
+          onConfirm={() => {
+            deleteContent();
+            setShowDeleteConfirm(false);
+          }}
+          onCancel={() => setShowDeleteConfirm(false)}
+        />
+      )}
+
       <MediaModal
         url={content?.filePath}
         isOpen={isOpen}
@@ -115,6 +120,7 @@ export const Content = ({
         contentType={content?.fileType}
         title={content?.title}
       />
+
       <AnimatePresence>
         {!content ? (
           <motion.div
@@ -129,23 +135,28 @@ export const Content = ({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.2 }}
-            className="group bg-white p-4 rounded-lg border border-gray-200 hover:border-indigo-200 transition-colors"
+            className="group bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow"
           >
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3 flex-1">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-start gap-4 flex-1">
                 <div
-                  className={`p-2 rounded-lg ${{
-                      video: "bg-red-100 text-red-600",
-                      quiz: "bg-blue-100 text-blue-600",
-                      lecture: "bg-green-100 text-green-600",
-                    }[content.type as ContentType] || null
-                    }`}
+                  className={`p-3 rounded-xl ${
+                    {
+                      video:
+                        "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-300",
+                      quiz: "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300",
+                      lecture:
+                        "bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-300",
+                    }[content.type as ContentTypeOption]
+                  }`}
                 >
-                  {{
-                    video: <FiVideo size={18} />,
-                    quiz: <FiCheckSquare size={18} />,
-                    lecture: <FiBook size={18} />,
-                  }[content.type as ContentType] || null}
+                  {
+                    {
+                      video: <LuVideo size={24} />,
+                      quiz: <LuClipboardList size={24} />,
+                      lecture: <LuBook size={24} />,
+                    }[content.type as ContentTypeOption]
+                  }
                 </div>
 
                 <div className="flex-1 min-w-0">
@@ -160,7 +171,7 @@ export const Content = ({
                             title: e.target.value,
                           })
                         }
-                        className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
+                        className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600"
                       />
                       <textarea
                         value={tempContentData.description}
@@ -170,66 +181,59 @@ export const Content = ({
                             description: e.target.value,
                           })
                         }
-                        className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
+                        className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 h-32"
                       />
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap gap-3">
                         <button
                           onClick={editContentName}
-                          className="flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600"
+                          className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-xl hover:bg-indigo-700 text-sm"
                         >
-                          <FiCheck size={18} />
-                          Save
+                          <LuCheck size={20} />
+                          Save Changes
                         </button>
                         <button
                           onClick={() => setEditingContentId(null)}
-                          className="flex items-center gap-2 bg-gray-200 px-4 py-2 rounded-lg hover:bg-gray-300"
+                          className="flex items-center gap-2 bg-gray-200 dark:bg-gray-700 px-5 py-2.5 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-600 text-sm"
                         >
-                          <FiX size={18} />
+                          <LuX size={20} />
                           Cancel
                         </button>
                       </div>
                     </div>
                   ) : (
-                    <div>
-                      <h4 className="font-medium text-gray-800 truncate">
+                    <div className="space-y-2">
+                      <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
                         {content.title}
                       </h4>
-                      <p className="text-sm text-gray-600 mt-1">
+                      <p className="text-gray-600 dark:text-gray-400">
                         {content.description}
                       </p>
                       {content.filePath && (
                         <button
                           onClick={() => setIsOpen(true)}
-                          className="mt-2 flex items-center gap-2 text-indigo-600 hover:text-indigo-700 text-sm"
+                          className="mt-3 flex items-center gap-2 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300"
                         >
-                          <FiFile size={14} />
-                          <span>View File</span>
+                          <LuFile size={18} />
+                          <span className="font-medium">View Attachment</span>
                         </button>
                       )}
                     </div>
                   )}
                 </div>
               </div>
-
-              <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="flex items-center gap-2">
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setEditingContentId(content._id);
-                  }}
-                  className="p-2 hover:bg-gray-100 rounded-lg text-gray-600"
+                  onClick={() => setEditingContentId(content._id)}
+                  className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl text-gray-600 dark:text-gray-400"
                 >
-                  <FiEdit size={18} />
+                  <LuPencil size={22} />
                 </button>
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    deleteContent();
-                  }}
+                  onClick={() => setShowDeleteConfirm(true)}
                   disabled={isDeleting}
-                  className="p-2 hover:bg-red-50 rounded-lg text-red-500 disabled:opacity-50"
+                  className="p-2.5 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-xl text-red-500"
                 >
-                  <FiTrash2 size={18} />
+                  <LuTrash2 size={22} />
                 </button>
               </div>
             </div>

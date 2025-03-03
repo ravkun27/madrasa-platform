@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   FiChevronDown,
   FiEdit,
@@ -7,33 +7,44 @@ import {
   FiCheck,
   FiX,
   FiUsers,
+  FiLock,
+  FiUnlock,
+  FiImage,
 } from "react-icons/fi";
-import { useState } from "react";
-import { deleteFetch, postFetch, putFetch } from "../../utils/apiCall";
+import { useState, useRef } from "react";
+import {
+  deleteFetch,
+  postFetch,
+  putFetch,
+  getFetch,
+} from "../../utils/apiCall";
 import { useCourseActions } from "../../hooks/useCourseActions";
 import { Section } from "./Section";
 import { removeNullAndUndefinedFields } from "../../utils/utilsMethod/removeNullFiled";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
+import { ConfirmationModal } from "../../components/Modal/ConfiramtionModal";
 
 export const Courses = ({ course }: { course: any }) => {
   const { setCourseList } = useCourseActions();
   const [isPublished, setIsPublished] = useState(course?.published);
-  const [newSection, setNewSection] = useState<{
-    title: string;
-    description: string;
-  } | null>({ title: "", description: "" });
+  const [isLocked, setIsLocked] = useState(course?.locked || false);
+  const [newSection, setNewSection] = useState({ title: "", description: "" });
   const [expandedCourses, setExpandedCourses] = useState<Set<string>>(
     new Set()
   );
   const [editingCourseId, setEditingCourseId] = useState<string | null>(null);
-  const [tempCourseData, setTempCourseData] = useState<{
-    title: string;
-    description: string;
-  }>({
+  const [tempCourseData, setTempCourseData] = useState({
     title: course.title,
     description: course.description,
   });
+  const [isHoveringBanner, setIsHoveringBanner] = useState(false);
+  const [newBanner, setNewBanner] = useState<File | null>(null);
   const [showStudents, setShowStudents] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showKickConfirm, setShowKickConfirm] = useState(false);
+  const [studentToKick, setStudentToKick] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const dummyStudents = [
     "John Doe",
     "Jane Smith",
@@ -41,6 +52,97 @@ export const Courses = ({ course }: { course: any }) => {
     "Bob Brown",
     "Charlie Davis",
   ];
+
+  const toggleLock = async () => {
+    // try {
+    //   const result: any = await putFetch(
+    //     `/user/teacher/course/lock?courseId=${course._id}&locked=${!isLocked}`,
+    //     {}
+    //   );
+    //   if (result.success) {
+    setIsLocked(!isLocked);
+    toast.success(`Course ${!isLocked ? "locked" : "unlocked"} successfully`);
+    //   }
+    // } catch (error) {
+    //   toast.error("Failed to update lock status");
+    //   console.error("Error updating lock status:", error);
+    // }
+  };
+
+  const kickStudent = async (studentId: string) => {
+    setShowKickConfirm(true);
+    // try {
+    //   const result: any = await deleteFetch(
+    //     `/user/teacher/course/student?courseId=${course._id}&studentId=${studentId}`
+    //   );
+    //   if (result.success) {
+    setCourseList();
+    toast.success("Student removed successfully");
+    //   }
+    // } catch (error) {
+    //   toast.error("Failed to remove student");
+    //   console.error("Error removing student:", error);
+    // }
+  };
+
+  const handleBannerChange = async () => {
+    if (!newBanner) return;
+
+    try {
+      // Get signed URL
+      const uploadUrlResult: any = await getFetch(
+        `/user/teacher/course/getUpdateLink?filename=banner&contentType=${newBanner.type}&courseId=${course._id}`
+      );
+
+      if (uploadUrlResult?.success) {
+        // Upload file
+        await fetch(uploadUrlResult.data.signedUrl, {
+          method: "PUT",
+          body: newBanner,
+          headers: { "Content-Type": newBanner.type },
+        });
+
+        // Update course with new banner URL
+        await putFetch(`/user/teacher/course?courseId=${course._id}`, {
+          banner: uploadUrlResult.data.fileKey,
+        });
+
+        setCourseList();
+        toast.success("Banner updated successfully");
+      }
+    } catch (error) {
+      toast.error("Failed to update banner");
+      console.error("Error updating banner:", error);
+    } finally {
+      setNewBanner(null);
+    }
+  };
+
+  const BannerEditButton = () => (
+    <div
+      className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg transition-opacity"
+      onMouseEnter={() => setIsHoveringBanner(true)}
+      onMouseLeave={() => setIsHoveringBanner(false)}
+    >
+      <button
+        className="p-2 text-white bg-gray-800/50 rounded-full hover:bg-gray-800/80 transition-colors"
+        onClick={() => fileInputRef.current?.click()}
+      >
+        <FiImage size={20} />
+      </button>
+      <input
+        type="file"
+        ref={fileInputRef}
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => {
+          if (e.target.files?.[0]) {
+            setNewBanner(e.target.files[0]);
+          }
+        }}
+      />
+    </div>
+  );
 
   const addSection = async (courseId: string) => {
     try {
@@ -154,208 +256,290 @@ export const Courses = ({ course }: { course: any }) => {
 
   return (
     <>
-      <Toaster position="top-center" />
+      {showDeleteConfirm && (
+        <ConfirmationModal
+          message="Are you sure you want to delete this course?"
+          onConfirm={() => {
+            deleteCourse();
+            setShowDeleteConfirm(false);
+          }}
+          onCancel={() => setShowDeleteConfirm(false)}
+        />
+      )}
+
+      {showKickConfirm && studentToKick && (
+        <ConfirmationModal
+          message="Are you sure you want to remove this student?"
+          onConfirm={() => {
+            kickStudent(studentToKick);
+            setShowKickConfirm(false);
+          }}
+          onCancel={() => setShowKickConfirm(false)}
+        />
+      )}
+
+      {showDeleteConfirm && (
+        <ConfirmationModal
+          message="Are you sure you want to delete this course?"
+          onConfirm={() => {
+            deleteCourse();
+            setShowDeleteConfirm(false);
+          }}
+          onCancel={() => setShowDeleteConfirm(false)}
+        />
+      )}
+
+      {newBanner && (
+        <ConfirmationModal
+          message="Are you sure you want to update the course banner?"
+          onConfirm={handleBannerChange}
+          onCancel={() => setNewBanner(null)}
+        />
+      )}
+
       <motion.div
         key={course._id}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95 }}
         transition={{ duration: 0.2, ease: "easeInOut" }}
-        className="bg-gray-100 dark:bg-white/70 rounded-xl shadow-sm hover:shadow-md transition-shadow p-6"
+        className="bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden"
       >
-        <div className="flex items-start gap-4 p-2">
-          <div className="flex-1">
-            <div className="flex items-start justify-between gap-2">
-              {course.banner && (
+        <div className="flex items-center justify-center gap-4 p-6">
+          {/* Image Section */}
+          <div className="flex-shrink-0">
+            {course.banner && (
+              <div
+                className="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 p-2"
+                onMouseEnter={() => setIsHoveringBanner(true)}
+                onMouseLeave={() => setIsHoveringBanner(false)}
+              >
                 <img
                   src={course.banner}
                   alt="Course banner"
-                  className="h-16 w-16 rounded-lg object-cover flex-shrink-0"
+                  className="w-full h-full object-contain"
                 />
-              )}
-              <div className="flex-1 ml-2">
-                {editingCourseId === course._id ? (
-                  <div className="space-y-2">
-                    <input
-                      type="text"
-                      value={tempCourseData.title}
-                      onChange={(e) =>
-                        setTempCourseData({
-                          ...tempCourseData,
-                          title: e.target.value,
-                        })
-                      }
-                      className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
-                    />
-                    <textarea
-                      value={tempCourseData.description}
-                      onChange={(e) =>
-                        setTempCourseData({
-                          ...tempCourseData,
-                          description: e.target.value,
-                        })
-                      }
-                      className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
-                    />
-                    <div className="flex gap-2">
-                      <button
-                        onClick={editCourseName}
-                        className="flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600"
-                      >
-                        <FiCheck size={18} />
-                        Save
-                      </button>
-                      <button
-                        onClick={() => setEditingCourseId(null)}
-                        className="flex items-center gap-2 bg-gray-200 px-4 py-2 rounded-lg hover:bg-gray-300"
-                      >
-                        <FiX size={18} />
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-1">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 truncate">
-                      {course.title}
-                    </h3>
-                    <p className="text-gray-700 dark:text-gray-400 text-sm line-clamp-2">
-                      {course.description}
-                    </p>
-                  </div>
-                )}
+                {isHoveringBanner && <BannerEditButton />}
               </div>
+            )}
+          </div>
 
-              <div className="flex items-center gap-2 ml-2">
+          {/* Content Section */}
+          <div className="flex-1 min-w-0 space-y-4">
+            {/* Header Row */}
+            <div className="flex items-start justify-between gap-4">
+              {editingCourseId === course._id ? (
+                // Edit Mode Content
+                <div className="flex-1 space-y-4">
+                  <input
+                    type="text"
+                    value={tempCourseData.title}
+                    onChange={(e) =>
+                      setTempCourseData({
+                        ...tempCourseData,
+                        title: e.target.value,
+                      })
+                    }
+                    className="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-lg font-semibold"
+                  />
+                  <textarea
+                    value={tempCourseData.description}
+                    onChange={(e) =>
+                      setTempCourseData({
+                        ...tempCourseData,
+                        description: e.target.value,
+                      })
+                    }
+                    className="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-sm h-32"
+                  />
+                  <div className="flex flex-wrap gap-3">
+                    <button
+                      onClick={editCourseName}
+                      className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-lg hover:bg-indigo-700 text-sm"
+                    >
+                      <FiCheck size={18} />
+                      Save Changes
+                    </button>
+                    <button
+                      onClick={() => setEditingCourseId(null)}
+                      className="flex items-center gap-2 bg-gray-200 px-5 py-2.5 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 text-sm"
+                    >
+                      <FiX size={18} />
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                // Display Mode Content
+                <div className="flex-1 space-y-2">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 truncate">
+                    {course.title}
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400 text-base line-clamp-3">
+                    {course.description}
+                  </p>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-3">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    setEditingCourseId(course._id);
-                    setTempCourseData({
-                      title: course.title,
-                      description: course.description,
-                    });
+                    setEditingCourseId(editingCourseId ? null : course._id);
                   }}
-                  className="p-2 hover:bg-gray-100 rounded-lg text-gray-600 hover:text-gray-800"
+                  className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-400"
                 >
-                  <FiEdit size={18} />
+                  <FiEdit size={20} />
                 </button>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    deleteCourse();
+                    setShowDeleteConfirm(true);
                   }}
-                  className="p-2 hover:bg-red-50 rounded-lg text-red-500 hover:text-red-600"
+                  className="p-2.5 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-lg text-red-500"
                 >
-                  <FiTrash2 size={18} />
+                  <FiTrash2 size={20} />
                 </button>
                 <motion.div
                   animate={{
                     rotate: expandedCourses.has(course._id) ? 180 : 0,
                   }}
-                  className="p-2 hover:bg-gray-100 rounded-lg cursor-pointer"
+                  className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg cursor-pointer"
                   onClick={() => toggleCourse(course._id)}
                 >
-                  <FiChevronDown size={20} />
+                  <FiChevronDown size={24} />
                 </motion.div>
               </div>
             </div>
-
-            <AnimatePresence>
-              {expandedCourses.has(course._id) && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="mt-6 space-y-6 p-2"
-                >
-                  {/* Student List */}
-                  <div
-                    className="bg-gray-100 p-4 rounded-lg cursor-pointer"
-                    onClick={() => setShowStudents(!showStudents)}
-                  >
-                    <button className="flex items-center gap-2 text-gray-700 hover:text-gray-900">
-                      <FiUsers size={18} />
-                      <span>
-                        {showStudents ? "Hide Students" : "Show Students"}
-                      </span>
-                    </button>
-                    {showStudents && (
-                      <div className="mt-2 space-y-2">
-                        {dummyStudents.map((student, index) => (
-                          <div key={index} className="text-sm text-gray-600">
-                            {student}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Add Section Form */}
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <input
-                      type="text"
-                      placeholder="Section title"
-                      className="p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
-                      value={newSection?.title}
-                      onChange={(e) =>
-                        setNewSection((prev) => ({
-                          ...prev,
-                          title: e.target.value,
-                          description: prev?.description ?? "", // Ensure description is always a string
-                        }))
-                      }
-                    />
-                    <input
-                      type="text"
-                      placeholder="Section description"
-                      className="p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
-                      value={newSection?.description}
-                      onChange={(e) =>
-                        setNewSection((prev) => ({
-                          ...prev,
-                          title: prev?.title ?? "", // Ensure description is always a string
-                          description: e.target.value,
-                        }))
-                      }
-                    />
-                  </div>
-                  <button
-                    onClick={() => addSection(course._id)}
-                    className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
-                  >
-                    <FiPlus size={18} />
-                    Add Section
-                  </button>
-
-                  {/* Sections List */}
-                  <div className="space-y-4">
-                    {course?.sectionIds?.map((section: any, index: number) => (
-                      <Section
-                        key={section._id}
-                        section={section}
-                        courseId={course._id}
-                        sectionNum={index + 1}
-                      />
-                    ))}
-                  </div>
-
-                  {/* Publish Button */}
-                  <button
-                    onClick={() => publishCourse(course._id, isPublished)}
-                    className={`w-full py-3 rounded-lg transition-colors ${
-                      isPublished || !course.sectionIds?.length
-                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                        : "bg-green-500 hover:bg-green-600 text-white"
-                    }`}
-                  >
-                    {isPublished ? "Published ✓" : "Publish Course"}
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
           </div>
         </div>
+        {/* Expandable Content */}
+        <AnimatePresence>
+          {expandedCourses.has(course._id) && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mt-6 space-y-6 p-6"
+            >
+              {/* Students Section */}
+              <div className="bg-gray-50 dark:bg-gray-700/30 p-4 rounded-xl">
+                <div className="flex items-center justify-between mb-3">
+                  <button
+                    onClick={() => setShowStudents(!showStudents)}
+                    className="flex items-center gap-3 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+                  >
+                    <FiUsers size={20} />
+                    <span className="font-medium">
+                      {showStudents ? "Hide Students" : "Show Students"} (
+                      {dummyStudents.length})
+                    </span>
+                  </button>
+                  <button
+                    onClick={toggleLock}
+                    className="relative flex items-center justify-center w-10 h-10 rounded-lg text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white group"
+                  >
+                    {isLocked ? (
+                      <FiLock size={24} className="text-red-600" />
+                    ) : (
+                      <FiUnlock size={24} className="text-green-600" />
+                    )}
+                    <span className="absolute top-full mt-2 px-3 py-1 text-sm bg-gray-800 text-white rounded opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                      {isLocked ? "Unlock Course" : "Lock Course"}
+                    </span>
+                  </button>
+                </div>
+
+                {showStudents && (
+                  <div className="mt-4 space-y-3">
+                    {dummyStudents.map((student) => (
+                      <div
+                        key={student}
+                        className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg"
+                      >
+                        <span className="text-gray-600 dark:text-gray-300">
+                          {student}
+                        </span>
+                        <button
+                          onClick={() => {
+                            setStudentToKick(student);
+                            setShowKickConfirm(true);
+                          }}
+                          className="text-red-500 hover:text-red-600 text-sm flex items-center gap-2"
+                        >
+                          <FiTrash2 size={16} />
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Add Section Form */}
+              <div className="space-y-5">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <input
+                    type="text"
+                    placeholder="Section Title"
+                    className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600"
+                    value={newSection.title}
+                    onChange={(e) =>
+                      setNewSection({
+                        ...newSection,
+                        title: e.target.value,
+                      })
+                    }
+                  />
+                  <input
+                    type="text"
+                    placeholder="Section Description"
+                    className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600"
+                    value={newSection.description}
+                    onChange={(e) =>
+                      setNewSection({
+                        ...newSection,
+                        description: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+                <button
+                  onClick={() => addSection(course._id)}
+                  className="w-full flex items-center justify-center gap-3 bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 text-base"
+                >
+                  <FiPlus size={20} />
+                  Add New Section
+                </button>
+              </div>
+
+              {/* Sections List */}
+              <div className="space-y-4">
+                {course?.sectionIds?.map((section: any, index: number) => (
+                  <Section
+                    key={section._id}
+                    section={section}
+                    courseId={course._id}
+                    sectionNum={index + 1}
+                  />
+                ))}
+              </div>
+
+              {/* Publish Button */}
+              <button
+                onClick={() => publishCourse(course._id, isPublished)}
+                className={`w-full py-3.5 rounded-xl transition-colors text-base font-medium ${
+                  isPublished || !course.sectionIds?.length
+                    ? "bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed"
+                    : "bg-green-500 hover:bg-green-600 text-white"
+                }`}
+              >
+                {isPublished ? "Published ✓" : "Publish Course"}
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
     </>
   );
