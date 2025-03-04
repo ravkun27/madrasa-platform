@@ -100,8 +100,8 @@ export const Section = ({
         <div className="p-4 md:p-6">
           <div className="flex justify-between gap-5 mb-2">
             <div className="flex items-center gap-3">
-              <span className="px-3 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-300 rounded-full text-md font-medium">
-                Post {sectionNum}
+              <span className="px-3 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-300 rounded-xl text-md font-medium">
+                Section {sectionNum}
               </span>
             </div>
             <div className="flex justify-center gap-2">
@@ -170,65 +170,65 @@ export const Section = ({
                 </div>
               </div>
             ) : (
-              <div className="space-y-2">
-                <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
-                  {section.title}
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-3">
-                  {section.description}
-                </p>
+              <div className="flex flex-col">
+                <div className="mb-4">
+                  <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
+                    {section.title}
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-3">
+                    {section.description}
+                  </p>
+                </div>
               </div>
             )}
           </div>
 
-          <AnimatePresence>
-            {expandedSections && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                className="md:space-y-6"
-              >
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:flex gap-3 py-2">
-                  {[
-                    { type: "video", icon: <LuVideo size={20} /> },
-                    { type: "lecture", icon: <LuText size={20} /> },
-                    { type: "quiz", icon: <LuClipboardList size={20} /> },
-                  ].map(({ type, icon }) => (
-                    <button
-                      key={type}
-                      onClick={() => {
-                        setAddingContent({
-                          courseId,
-                          sectionId: section._id,
-                          type: type as ContentType,
-                        });
-                        setIsAddingContent(true);
-                      }}
-                      className="flex items-center gap-3 px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 
+          {expandedSections && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="md:space-y-6"
+            >
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:flex gap-3 py-2">
+                {[
+                  { type: "video", icon: <LuVideo size={20} /> },
+                  { type: "lecture", icon: <LuText size={20} /> },
+                  { type: "quiz", icon: <LuClipboardList size={20} /> },
+                ].map(({ type, icon }) => (
+                  <button
+                    key={type}
+                    onClick={() => {
+                      setAddingContent({
+                        courseId,
+                        sectionId: section._id,
+                        type: type as ContentType,
+                      });
+                      setIsAddingContent(true);
+                    }}
+                    className="flex items-center gap-3 px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 
                  hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:border-indigo-500 
                  rounded-lg text-gray-700 dark:text-gray-300 hover:text-indigo-600 
                  transition-all"
-                    >
-                      {icon}
-                      <span className="capitalize font-medium">{type}</span>
-                    </button>
-                  ))}
-                </div>
+                  >
+                    {icon}
+                    <span className="capitalize font-medium">{type}</span>
+                  </button>
+                ))}
+              </div>
 
-                <div>
-                  {section?.lessonIds?.map((contentId: any) => (
-                    <Content
-                      key={contentId}
-                      contentId={contentId}
-                      sectionId={section._id}
-                      courseId={courseId}
-                    />
-                  ))}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+              <div>
+                {section?.lessonIds?.map((contentId: any) => (
+                  <Content
+                    key={contentId}
+                    contentId={contentId}
+                    sectionId={section._id}
+                    courseId={courseId}
+                  />
+                ))}
+              </div>
+            </motion.div>
+          )}
         </div>
       </div>
     </>

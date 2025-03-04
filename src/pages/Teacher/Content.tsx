@@ -134,7 +134,7 @@ export const Content = ({
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.1 }}
             className="group bg-white dark:bg-gray-800 p-2 md:p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm transition-all"
           >
             {/* Top Section: Icon, Title & Actions */}
@@ -206,13 +206,15 @@ export const Content = ({
                     </div>
                   ) : (
                     /* View Mode */
-                    <div className="space-2">
-                      <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-100 line-clamp-1 md:line-clamp-2">
-                        {content.title}
-                      </h4>
-                      <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed line-clamp-3">
-                        {content.description}
-                      </p>
+                    <div className="flex flex-col">
+                      <div className="mb-2 md:mb-4">
+                        <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-100 line-clamp-1 md:line-clamp-2">
+                          {content.title}
+                        </h4>
+                        <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed line-clamp-3">
+                          {content.description}
+                        </p>
+                      </div>
                       {content.filePath && (
                         <button
                           onClick={() => setIsOpen(true)}

@@ -5,8 +5,7 @@ import { ThemeProvider } from "./context/ThemeContext";
 import router from "./routes/Router";
 import "./App.css";
 import ErrorBoundary from "./components/ErrorBoundary";
-import { Toaster } from 'react-hot-toast';
-
+import { Toaster } from "react-hot-toast";
 
 const App: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
@@ -25,7 +24,7 @@ const App: React.FC = () => {
     <ErrorBoundary>
       <ThemeProvider>
         <Suspense fallback={<LoadingScreen />}>
-        <Toaster position="top-center" />
+          <Toaster position="top-center" toastOptions={{ duration: 5000 }} />
           <RouterProvider router={router} />
         </Suspense>
       </ThemeProvider>

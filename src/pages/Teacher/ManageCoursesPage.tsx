@@ -79,7 +79,7 @@ const ManageCoursesPage = () => {
         <button
           onClick={() => setShowCourseForm(true)}
           className="bg-indigo-600 text-white px-6 py-3 rounded-xl hover:bg-indigo-700 transition-all
-                   active:scale-95 font-medium shadow-md hover:shadow-lg text-md md:text-3xl"
+                   active:scale-95 font-medium shadow-md hover:shadow-lg text-md md:text-2xl"
         >
           Create New Course
         </button>
@@ -184,7 +184,7 @@ const ManageCoursesPage = () => {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.2 }}
-                  className="mt-4"
+                  className="mb-4 md:mb-8"
                 >
                   <Courses course={course} />
                 </motion.div>

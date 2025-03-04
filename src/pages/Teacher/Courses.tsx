@@ -49,6 +49,8 @@ export const Courses = ({ course }: { course: any }) => {
   const [crop, setCrop] = useState<Crop>();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [cropping, setCropping] = useState(false);
+  const [copied, setCopied] = useState(false);
+
   const imgRef = useRef<HTMLImageElement>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -84,19 +86,19 @@ export const Courses = ({ course }: { course: any }) => {
   };
 
   // const kickStudent = async () => {
-    // setShowKickConfirm(true);
-    // try {
-    //   const result: any = await deleteFetch(
-    //     `/user/teacher/course/student?courseId=${course._id}&studentId=${studentId}`
-    //   );
-    //   if (result.success) {
-    // setCourseList();
-    // toast.success("Student removed successfully");
-    //   }
-    // } catch (error) {
-    //   toast.error("Failed to remove student");
-    //   console.error("Error removing student:", error);
-    // }
+  // setShowKickConfirm(true);
+  // try {
+  //   const result: any = await deleteFetch(
+  //     `/user/teacher/course/student?courseId=${course._id}&studentId=${studentId}`
+  //   );
+  //   if (result.success) {
+  // setCourseList();
+  // toast.success("Student removed successfully");
+  //   }
+  // } catch (error) {
+  //   toast.error("Failed to remove student");
+  //   console.error("Error removing student:", error);
+  // }
   // };
 
   const handleBannerChange = async () => {
@@ -296,6 +298,11 @@ export const Courses = ({ course }: { course: any }) => {
       }, "image/jpeg");
     });
   };
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(course._id);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000); // Reset "Copied!" after 2s
+  };
 
   return (
     <>
@@ -373,6 +380,7 @@ export const Courses = ({ course }: { course: any }) => {
                     src={selectedImage}
                     alt="Crop preview"
                     className="w-full h-auto"
+                    loading="lazy"
                   />
                 </ReactCrop>
               )}
@@ -405,7 +413,7 @@ export const Courses = ({ course }: { course: any }) => {
         className="bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden"
       >
         {/* Banner Section */}
-        <div className="relative aspect-[6/1] bg-gray-100 dark:bg-gray-900">
+        <div className="relative aspect-[6/2] bg-gray-100 dark:bg-gray-900">
           {course.banner && (
             <div
               className="relative h-full w-full"
@@ -416,6 +424,7 @@ export const Courses = ({ course }: { course: any }) => {
                 src={course.banner}
                 alt="Course banner"
                 className="w-full h-full object-cover"
+                loading="lazy"
               />
               {isHoveringBanner && <BannerEditButton />}
             </div>
@@ -432,7 +441,7 @@ export const Courses = ({ course }: { course: any }) => {
         {/* Content Section */}
         <div className="p-6">
           {/* Header Row */}
-          <div className="flex-1 space-y-2">
+          <div className="flex space-y-2">
             {editingCourseId === course._id ? (
               // Edit Mode Content
               <div className="space-y-4">
@@ -487,34 +496,39 @@ export const Courses = ({ course }: { course: any }) => {
             )}
 
             {/* Action Buttons */}
-            <div className="flex items-center gap-3">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setEditingCourseId(editingCourseId ? null : course._id);
-                }}
-                className=" p-2.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-400"
-              >
-                <FiEdit size={20} />
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowDeleteConfirm(true);
-                }}
-                className="p-2.5 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-lg text-red-500"
-              >
-                <FiTrash2 size={20} />
-              </button>
-              <motion.div
-                animate={{
-                  rotate: expandedCourses ? 180 : 0,
-                }}
-                className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg cursor-pointer"
-                onClick={() => setExpandedCourses(!expandedCourses)}
-              >
-                <FiChevronDown size={24} />
-              </motion.div>
+            <div className="flex flex-col items-center gap-3">
+              <div className="relative inline-block group">
+                <pre className="absolute bottom-12 mt-2 w-max bg-gray-800 text-white text-sm p-2 rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
+                  {course._id}
+                </pre>
+                <button
+                  onClick={copyToClipboard}
+                  className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition"
+                >
+                  {copied ? "Copied!" : "Copy Code"}
+                </button>
+              </div>
+
+              <div className="flex">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setEditingCourseId(editingCourseId ? null : course._id);
+                  }}
+                  className=" p-2.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-400"
+                >
+                  <FiEdit size={20} />
+                </button>
+                <motion.div
+                  animate={{
+                    rotate: expandedCourses ? 180 : 0,
+                  }}
+                  className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg cursor-pointer"
+                  onClick={() => setExpandedCourses(!expandedCourses)}
+                >
+                  <FiChevronDown size={24} />
+                </motion.div>
+              </div>
             </div>
           </div>
         </div>
@@ -549,7 +563,7 @@ export const Courses = ({ course }: { course: any }) => {
                     ) : (
                       <FiUnlock size={24} className="text-green-600" />
                     )}
-                    <span className="absolute top-full mt-2 px-3 py-1 text-sm bg-gray-800 text-white rounded opacity-0 transition-opacity duration-100 group-hover:opacity-100">
+                    <span className="absolute top-full px-3 py-1 text-sm bg-gray-800 text-white rounded opacity-0 transition-opacity duration-100 group-hover:opacity-100">
                       {isLocked ? "Unlock Course" : "Lock Course"}
                     </span>
                   </button>
@@ -557,7 +571,7 @@ export const Courses = ({ course }: { course: any }) => {
 
                 {showStudents && (
                   <div className="py-3">
-                    {dummyStudents.map((student) => (
+                    {[...dummyStudents].sort().map((student) => (
                       <div
                         key={student}
                         className="flex items-center justify-between p-3"
@@ -641,17 +655,26 @@ export const Courses = ({ course }: { course: any }) => {
                 ))}
               </div>
 
-              {/* Publish Button */}
-              <div className="py-4">
+              {/* Publish Button and Delete */}
+              <div className="mt-4 flex gap-4 p-2">
                 <button
                   onClick={() => publishCourse(course._id, isPublished)}
-                  className={`w-full py-3.5 rounded-xl transition-colors text-base font-medium ${
+                  className={`w-1/2 py-3.5 rounded-xl transition-colors text-base font-medium ${
                     isPublished || !course.sectionIds?.length
                       ? "bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed"
                       : "bg-green-500 hover:bg-green-600 text-white"
                   }`}
                 >
                   {isPublished ? "Published ✓" : "Publish Course"}
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowDeleteConfirm(true);
+                  }}
+                  className="w-1/2 py-3.5 text-red-400 hover:text-red-700 bg-white rounded-xl transition-colors border-2 border-red-500"
+                >
+                  Delete Course
                 </button>
               </div>
             </motion.div>
