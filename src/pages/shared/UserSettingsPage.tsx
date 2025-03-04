@@ -1,19 +1,19 @@
 import { useState, useEffect } from "react";
-import { useTheme } from "../../context/ThemeContext";
-import { postFetch, getFetch, deleteFetch } from "../../utils/apiCall";
+// import { useTheme } from "../../context/ThemeContext";
+import { getFetch, deleteFetch } from "../../utils/apiCall";
 import { toast } from "react-hot-toast";
 import {
   FiEdit,
   FiLock,
   FiMail,
-  FiPhone,
+  // FiPhone,
   FiTrash2,
   FiUser,
   FiLogOut,
   FiCheck,
   FiX,
 } from "react-icons/fi";
-import { FaTelegram, FaWhatsapp } from "react-icons/fa";
+// import { FaTelegram, FaWhatsapp } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
@@ -33,10 +33,10 @@ const UserSettingsPage = ({
   isOpen: boolean;
   onClose: () => void;
 }) => {
-  const { theme } = useTheme();
+  // const { theme } = useTheme();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
+  // const [isLoading, setIsLoading] = useState(false);
   const [userData, setUserData] = useState<UserData>({
     name: "",
     email: "",
@@ -98,8 +98,8 @@ const UserSettingsPage = ({
     if (isOpen) fetchUserData();
   }, [isOpen]);
 
-  const handleUpdate = async (type: keyof typeof isEditing) => {
-    setIsLoading(true);
+  // const handleUpdate = async (type: keyof typeof isEditing) => {
+    // setIsLoading(true);
     // try {
     //   let payload = {};
     //   let endpoint = "";
@@ -140,7 +140,7 @@ const UserSettingsPage = ({
     // } finally {
     //   setIsLoading(false);
     // }
-  };
+  // };
 
   const handleLogout = async () => {
     try {
@@ -252,7 +252,7 @@ const UserSettingsPage = ({
                         ) : (
                           <div className="flex gap-2">
                             <button
-                              onClick={() => handleUpdate("name")}
+                              // onClick={() => handleUpdate("name")}
                               className="p-2 text-green-500 hover:bg-green-100 dark:hover:bg-green-900 rounded-full"
                             >
                               <FiCheck className="w-5 h-5" />
@@ -317,7 +317,7 @@ const UserSettingsPage = ({
                         ) : (
                           <div className="flex gap-2">
                             <button
-                              onClick={() => handleUpdate("phone")}
+                              // onClick={() => handleUpdate("phone")}
                               className="p-2 text-green-500 hover:bg-green-100 dark:hover:bg-green-900 rounded-full"
                             >
                               <FiCheck className="w-5 h-5" />
@@ -482,10 +482,10 @@ const UserSettingsPage = ({
                       />
                       <div className="flex gap-2 justify-end">
                         <button
-                          onClick={() => handleUpdate("password")}
+                          // onClick={() => handleUpdate("password")}
                           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                         >
-                          {isLoading ? "Saving..." : "Save"}
+                          {/* {isLoading ? "Saving..." : "Save"} */}
                         </button>
                         <button
                           onClick={() =>
