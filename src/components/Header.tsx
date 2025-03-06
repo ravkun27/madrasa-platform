@@ -34,7 +34,7 @@ const Header = () => {
       animate={{ opacity: 1 }} // Fade in
       transition={{ duration: 0.5, ease: "easeOut", delay: 0.2 }} // Add a slight delay
     >
-      <nav className="container mx-auto px-4 lg:px-6 py-2">
+      <nav className="container px-4 lg:px-6 py-2">
         {/* Main Flex Container */}
         <div className="flex justify-between items-center">
           {/* Logo and Brand Name */}

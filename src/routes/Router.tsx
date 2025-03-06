@@ -15,6 +15,7 @@ import ManageCoursesPage from "../pages/Teacher/ManageCoursesPage";
 import { CourseProvider } from "../context/CourseContext"; // Import CourseProvider
 import UserSettingsPage from "../pages/shared/UserSettingsPage";
 import { useState } from "react";
+import CoursesPage from "../pages/CoursesPage";
 // RootLayout wraps the entire app with AuthProvider and CourseProvider
 const RootLayout = () => {
   return (
@@ -43,6 +44,7 @@ const publicRoutes = [
     element: <PublicLayout />,
     children: [
       { index: true, element: <LandingPage /> },
+      { path: "courses", element: <CoursesPage /> },
       {
         path: "signup",
         element: <Signup setIsLogin={(isLogin) => console.log(isLogin)} />,

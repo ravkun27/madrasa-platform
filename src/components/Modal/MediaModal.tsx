@@ -275,7 +275,7 @@ export const MediaModal: React.FC<MediaViewerProps> = ({
         <div
           className="absolute top-0 left-0 h-full bg-blue-400 rounded-full"
           style={{ width: `${(currentTime / duration) * 100}%` }}
-        />
+        />k
         <input
           type="range"
           min="0"

@@ -73,13 +73,14 @@ const ManageCoursesPage = () => {
   };
 
   return (
-    <div className="min-h-screen p-4  md:max-w-2xl mx-auto">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="md:text-3xl font-bold text-gray-500">Manage Courses</h1>
+    <div className="min-h-screen p-4">
+      <div className="flex items-center justify-center gap-4 md:gap-20 mb-8 flex-nowrap">
+        <h1 className="text-xl md:text-2xl font-bold text-gray-500">
+          Manage Courses
+        </h1>
         <button
           onClick={() => setShowCourseForm(true)}
-          className="bg-indigo-600 text-white px-6 py-3 rounded-xl hover:bg-indigo-700 transition-all
-                   active:scale-95 font-medium shadow-md hover:shadow-lg text-md md:text-2xl"
+          className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition active:scale-95 font-medium shadow-md hover:shadow-lg text-sm md:text-2xl whitespace-nowrap"
         >
           Create New Course
         </button>
@@ -165,32 +166,34 @@ const ManageCoursesPage = () => {
       </AnimatePresence>
 
       <LayoutGroup>
-        <div>
-          {isLoading ? (
-            Array(3)
-              .fill(0)
-              .map((_, idx) => (
-                <motion.div key={idx} layout>
-                  <ShimmerLoader />
-                </motion.div>
-              ))
-          ) : (
-            <AnimatePresence>
-              {courses.map((course) => (
-                <motion.div
-                  key={course._id}
-                  layout
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.2 }}
-                  className="mb-4 md:mb-8"
-                >
-                  <Courses course={course} />
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          )}
+        <div className="flex flex-col gap-4 items-center justify-center">
+          <div className="max-w-2xl">
+            {isLoading ? (
+              Array(3)
+                .fill(0)
+                .map((_, idx) => (
+                  <motion.div key={idx} layout>
+                    <ShimmerLoader />
+                  </motion.div>
+                ))
+            ) : (
+              <AnimatePresence>
+                {courses.map((course) => (
+                  <motion.div
+                    key={course._id}
+                    layout
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.2 }}
+                    className="mb-4 md:mb-8 max-w-2xl"
+                  >
+                    <Courses course={course} />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            )}
+          </div>
         </div>
       </LayoutGroup>
     </div>
