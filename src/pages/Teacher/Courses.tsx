@@ -7,7 +7,7 @@ import {
   FiCheck,
   FiX,
   FiUsers,
-  FiLock,
+  // FiLock,
   FiUnlock,
   FiImage,
 } from "react-icons/fi";
