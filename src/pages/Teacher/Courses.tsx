@@ -70,19 +70,19 @@ export const Courses = ({ course }: { course: any }) => {
     }
   }, [addSectionToggle, newSection]);
   // const toggleLock = async () => {
-    // try {
-    //   const result: any = await putFetch(
-    //     `/user/teacher/course/lock?courseId=${course._id}&locked=${!isLocked}`,
-    //     {}
-    //   );
-    //   if (result.success) {
-    // setIsLocked(!isLocked);
-    // toast.success(`Course ${!isLocked ? "locked" : "unlocked"} successfully`);
-    //   }
-    // } catch (error) {
-    //   toast.error("Failed to update lock status");
-    //   console.error("Error updating lock status:", error);
-    // }
+  // try {
+  //   const result: any = await putFetch(
+  //     `/user/teacher/course/lock?courseId=${course._id}&locked=${!isLocked}`,
+  //     {}
+  //   );
+  //   if (result.success) {
+  // setIsLocked(!isLocked);
+  // toast.success(`Course ${!isLocked ? "locked" : "unlocked"} successfully`);
+  //   }
+  // } catch (error) {
+  //   toast.error("Failed to update lock status");
+  //   console.error("Error updating lock status:", error);
+  // }
   // };
 
   // const kickStudent = async () => {
@@ -108,7 +108,7 @@ export const Courses = ({ course }: { course: any }) => {
 
   // Step 1: Redirect teacher to Google OAuth
   const handleGoogleAuth = () => {
-    window.location.href = `https://api.whiral.com/api/v1/meet/auth/google`;
+    window.location.href = `https://internally-massive-mosquito.ngrok-free.app/api/v1/user/teacher/course/all`;
   };
 
   // Step 2: Check authentication status
@@ -644,9 +644,9 @@ export const Courses = ({ course }: { course: any }) => {
                     className="relative flex items-center justify-center w-10 h-10 rounded-lg text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white group"
                   >
                     {/* {isLocked ? ( */}
-                      {/* <FiLock size={24} className="text-red-600" /> */}
+                    {/* <FiLock size={24} className="text-red-600" /> */}
                     {/* ) : ( */}
-                      <FiUnlock size={24} className="text-green-600" />
+                    <FiUnlock size={24} className="text-green-600" />
                     {/* )} */}
                     <span className="absolute top-full px-3 py-1 text-sm bg-gray-800 text-white rounded opacity-0 transition-opacity duration-100 group-hover:opacity-100">
                       {/* {isLocked ? "Unlock Course" : "Lock Course"} */}
