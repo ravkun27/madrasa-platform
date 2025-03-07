@@ -103,8 +103,6 @@ export const Courses = ({ course }: { course: any }) => {
   // };
 
 
-  
-  const API_BASE_URL = "http://localhost:8080"; // Replace with your backend URL
 
 
   const [userId, setUserId] = useState(null);
@@ -114,19 +112,15 @@ export const Courses = ({ course }: { course: any }) => {
 
   // Step 1: Redirect teacher to Google OAuth
   const handleGoogleAuth = () => {
-    window.location.href = `${API_BASE_URL}/auth/google`;
+    window.location.href = `https://api.whiral.com/api/v1/meet/auth/google`;
   };
 
   // Step 2: Check authentication status
   const checkAuthStatus = async () => {
     try {
 
-      const response = await fetch(`${API_BASE_URL}/auth/google/status`, {
-        method: 'GET',
-        credentials: 'include',
-      });
+      const data: any = await getFetch(`/meet/auth/google/status`);
 
-      const data = await response.json();
       setUserId(data.userId);
       setDisplayName(data.displayName);
       alert("Authentication successful! You can now create meetings.");
@@ -145,11 +139,7 @@ export const Courses = ({ course }: { course: any }) => {
     setLoading(true);
     try {
 
-      const response = await fetch(`${API_BASE_URL}/create-google-meeting`, {
-        method: 'GET',
-        credentials: 'include',
-      });
-      const data = await response.json();
+      const data: any = await getFetch(`/meet/create-google-meeting`);
 
       setMeetLink(data.meetLink);
     } catch (error) {
@@ -464,34 +454,34 @@ export const Courses = ({ course }: { course: any }) => {
         )}
       </AnimatePresence>
       <div style={{ textAlign: "center", padding: "20px" }}>
-          <h1>Google Meet Creator</h1>
+        <h1>Google Meet Creator</h1>
 
-          {!userId ? (
-            <div>
-              <button onClick={handleGoogleAuth}>Authenticate with Google</button>
-              <button onClick={checkAuthStatus} style={{ marginLeft: "10px" }}>Check Auth Status</button>
-            </div>
-          ) : (
-            <>
-              <h2>Authenticated as: {displayName}</h2>
-              <button onClick={createMeeting} disabled={loading}>
-                {loading ? "Creating..." : "Create Google Meet"}
-              </button>
+        {!userId ? (
+          <div>
+            <button onClick={handleGoogleAuth}>Authenticate with Google</button>
+            <button onClick={checkAuthStatus} style={{ marginLeft: "10px" }}>Check Auth Status</button>
+          </div>
+        ) : (
+          <>
+            <h2>Authenticated as: {displayName}</h2>
+            <button onClick={createMeeting} disabled={loading}>
+              {loading ? "Creating..." : "Create Google Meet"}
+            </button>
 
-              {meetLink && (
-                <div>
-                  <h3>Meeting Link</h3>
-                  <p>
-                    <strong>Google Meet Link:</strong> <a href={meetLink} target="_blank" rel="noopener noreferrer">{meetLink}</a>
-                  </p>
-                  <button onClick={() => { navigator.clipboard.writeText(meetLink) }}>
-                    Copy Link
-                  </button>
-                </div>
-              )}
-            </>
-          )}
-        </div>
+            {meetLink && (
+              <div>
+                <h3>Meeting Link</h3>
+                <p>
+                  <strong>Google Meet Link:</strong> <a href={meetLink} target="_blank" rel="noopener noreferrer">{meetLink}</a>
+                </p>
+                <button onClick={() => { navigator.clipboard.writeText(meetLink) }}>
+                  Copy Link
+                </button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
       <motion.div
         key={course._id}
         initial={{ opacity: 0, y: 20 }}
@@ -753,11 +743,10 @@ export const Courses = ({ course }: { course: any }) => {
               <div className="mt-4 flex gap-4 p-2">
                 <button
                   onClick={() => publishCourse(course._id, isPublished)}
-                  className={`w-1/2 py-3.5 rounded-xl transition-colors text-base font-medium ${
-                    isPublished || !course.sectionIds?.length
-                      ? "bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed"
-                      : "bg-green-500 hover:bg-green-600 text-white"
-                  }`}
+                  className={`w-1/2 py-3.5 rounded-xl transition-colors text-base font-medium ${isPublished || !course.sectionIds?.length
+                    ? "bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed"
+                    : "bg-green-500 hover:bg-green-600 text-white"
+                    }`}
                 >
                   {isPublished ? "Published ✓" : "Publish Course"}
                 </button>

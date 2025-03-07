@@ -14,7 +14,13 @@ async function apiCall<T = any>(
   method: ApiMethod = "GET"
 ): ApiResponse<T> {
   const url = `${apiUrl}${path}`;
-  const options: RequestInit = { method, headers: {} };
+  
+  // Initialize options with credentials included
+  const options: RequestInit = { 
+    method, 
+    credentials: 'include', // This is critical - it must be at the top level
+    headers: {} as Record<string, string>
+  };
 
   if (method !== "GET") {
     if (body instanceof FormData) {
@@ -22,6 +28,7 @@ async function apiCall<T = any>(
     } else {
       options.body = JSON.stringify(body);
       options.headers = {
+        ...options.headers,
         "Content-Type": "application/json",
       };
     }
@@ -31,11 +38,16 @@ async function apiCall<T = any>(
   if (token) {
     options.headers = {
       ...options.headers,
-      Authorization: `Bearer ${token}`,
+      Authorization: `Bearer ${token}`
     };
   }
 
   try {
+    console.log(`API Call: ${method} ${url}`, { 
+      withCredentials: true,
+      hasToken: !!token 
+    });
+    
     const res = await fetch(url, options);
 
     // Handle 204 No Content responses safely
