@@ -29,6 +29,7 @@ import "react-image-crop/dist/ReactCrop.css";
 import { Crop } from "react-image-crop";
 
 export const Courses = ({ course }: { course: any }) => {
+
   const { setCourseList } = useCourseActions();
   const [isPublished, setIsPublished] = useState(course?.published);
   const [isLocked, setIsLocked] = useState(course?.locked || false);
@@ -100,6 +101,55 @@ export const Courses = ({ course }: { course: any }) => {
   //   console.error("Error removing student:", error);
   // }
   // };
+
+
+
+
+  const [userId, setUserId] = useState(null);
+  const [displayName, setDisplayName] = useState(null);
+  const [meetLink, setMeetLink] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  // Step 1: Redirect teacher to Google OAuth
+  const handleGoogleAuth = () => {
+    window.location.href = `https://api.whiral.com/api/v1/meet/auth/google`;
+  };
+
+  // Step 2: Check authentication status
+  const checkAuthStatus = async () => {
+    try {
+
+      const data: any = await getFetch(`/meet/auth/google/status`);
+
+      setUserId(data.userId);
+      setDisplayName(data.displayName);
+      alert("Authentication successful! You can now create meetings.");
+    } catch (error) {
+      console.error("Auth Status Error:", error.data || error.message);
+    }
+  };
+
+  // Step 3: Create Google Meet
+  const createMeeting = async () => {
+    if (!userId) {
+      alert("Please authenticate with Google first.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+
+      const data: any = await getFetch(`/meet/create-google-meeting`);
+
+      setMeetLink(data.meetLink);
+    } catch (error) {
+      console.error("Meeting Creation Error:", error?.data || error?.message);
+      alert("Failed to create Google Meet.");
+    }
+    setLoading(false);
+  };
+
+
 
   const handleBannerChange = async () => {
     if (!newBanner) return;
@@ -403,7 +453,35 @@ export const Courses = ({ course }: { course: any }) => {
           </motion.div>
         )}
       </AnimatePresence>
+      <div style={{ textAlign: "center", padding: "20px" }}>
+        <h1>Google Meet Creator</h1>
 
+        {!userId ? (
+          <div>
+            <button onClick={handleGoogleAuth}>Authenticate with Google</button>
+            <button onClick={checkAuthStatus} style={{ marginLeft: "10px" }}>Check Auth Status</button>
+          </div>
+        ) : (
+          <>
+            <h2>Authenticated as: {displayName}</h2>
+            <button onClick={createMeeting} disabled={loading}>
+              {loading ? "Creating..." : "Create Google Meet"}
+            </button>
+
+            {meetLink && (
+              <div>
+                <h3>Meeting Link</h3>
+                <p>
+                  <strong>Google Meet Link:</strong> <a href={meetLink} target="_blank" rel="noopener noreferrer">{meetLink}</a>
+                </p>
+                <button onClick={() => { navigator.clipboard.writeText(meetLink) }}>
+                  Copy Link
+                </button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
       <motion.div
         key={course._id}
         initial={{ opacity: 0, y: 20 }}
@@ -665,11 +743,10 @@ export const Courses = ({ course }: { course: any }) => {
               <div className="mt-4 flex gap-4 p-2">
                 <button
                   onClick={() => publishCourse(course._id, isPublished)}
-                  className={`w-1/2 py-3.5 rounded-xl transition-colors text-base font-medium ${
-                    isPublished || !course.sectionIds?.length
-                      ? "bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed"
-                      : "bg-green-500 hover:bg-green-600 text-white"
-                  }`}
+                  className={`w-1/2 py-3.5 rounded-xl transition-colors text-base font-medium ${isPublished || !course.sectionIds?.length
+                    ? "bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed"
+                    : "bg-green-500 hover:bg-green-600 text-white"
+                    }`}
                 >
                   {isPublished ? "Published ✓" : "Publish Course"}
                 </button>
