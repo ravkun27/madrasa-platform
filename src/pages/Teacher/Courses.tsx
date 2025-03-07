@@ -50,6 +50,8 @@ export const Courses = ({ course }: { course: any }) => {
   const [crop, setCrop] = useState<Crop>();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [cropping, setCropping] = useState(false);
+  const [copied, setCopied] = useState(false);
+
   const imgRef = useRef<HTMLImageElement>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -85,19 +87,19 @@ export const Courses = ({ course }: { course: any }) => {
   };
 
   // const kickStudent = async () => {
-    // setShowKickConfirm(true);
-    // try {
-    //   const result: any = await deleteFetch(
-    //     `/user/teacher/course/student?courseId=${course._id}&studentId=${studentId}`
-    //   );
-    //   if (result.success) {
-    // setCourseList();
-    // toast.success("Student removed successfully");
-    //   }
-    // } catch (error) {
-    //   toast.error("Failed to remove student");
-    //   console.error("Error removing student:", error);
-    // }
+  // setShowKickConfirm(true);
+  // try {
+  //   const result: any = await deleteFetch(
+  //     `/user/teacher/course/student?courseId=${course._id}&studentId=${studentId}`
+  //   );
+  //   if (result.success) {
+  // setCourseList();
+  // toast.success("Student removed successfully");
+  //   }
+  // } catch (error) {
+  //   toast.error("Failed to remove student");
+  //   console.error("Error removing student:", error);
+  // }
   // };
 
 
@@ -356,6 +358,11 @@ export const Courses = ({ course }: { course: any }) => {
       }, "image/jpeg");
     });
   };
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(course._id);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000); // Reset "Copied!" after 2s
+  };
 
   return (
     <>
@@ -433,6 +440,7 @@ export const Courses = ({ course }: { course: any }) => {
                     src={selectedImage}
                     alt="Crop preview"
                     className="w-full h-auto"
+                    loading="lazy"
                   />
                 </ReactCrop>
               )}
@@ -490,10 +498,10 @@ export const Courses = ({ course }: { course: any }) => {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0 }}
         transition={{ duration: 0.2, ease: "easeInOut" }}
-        className="bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden"
+        className="w-full bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden"
       >
         {/* Banner Section */}
-        <div className="relative aspect-[6/1] bg-gray-100 dark:bg-gray-900">
+        <div className="relative aspect-[6/2] bg-gray-100 dark:bg-gray-900 rounded-t-xl overflow-hidden">
           {course.banner && (
             <div
               className="relative h-full w-full"
@@ -504,6 +512,7 @@ export const Courses = ({ course }: { course: any }) => {
                 src={course.banner}
                 alt="Course banner"
                 className="w-full h-full object-cover"
+                loading="lazy"
               />
               {isHoveringBanner && <BannerEditButton />}
             </div>
@@ -519,90 +528,101 @@ export const Courses = ({ course }: { course: any }) => {
 
         {/* Content Section */}
         <div className="p-6">
-          {/* Header Row */}
-          <div className="flex-1 space-y-2">
-            {editingCourseId === course._id ? (
-              // Edit Mode Content
-              <div className="space-y-4">
-                <input
-                  type="text"
-                  value={tempCourseData.title}
-                  onChange={(e) =>
-                    setTempCourseData({
-                      ...tempCourseData,
-                      title: e.target.value,
-                    })
-                  }
-                  className="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-lg font-semibold"
-                />
-                <textarea
-                  value={tempCourseData.description}
-                  onChange={(e) =>
-                    setTempCourseData({
-                      ...tempCourseData,
-                      description: e.target.value,
-                    })
-                  }
-                  className="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 text-sm h-32"
-                />
-                <div className="flex flex-wrap gap-3">
-                  <button
-                    onClick={editCourseName}
-                    className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-lg hover:bg-indigo-700 text-sm"
-                  >
-                    <FiCheck size={18} />
-                    Save Changes
-                  </button>
-                  <button
-                    onClick={() => setEditingCourseId(null)}
-                    className="flex items-center gap-2 bg-gray-200 px-5 py-2.5 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 text-sm"
-                  >
-                    <FiX size={18} />
-                    Cancel
-                  </button>
+          <div className="flex flex-col md:flex-row justify-between gap-6">
+            {/* Title and Description */}
+            <div className="flex-1">
+              {editingCourseId === course._id ? (
+                // Edit Mode
+                <div className="space-y-4">
+                  <input
+                    type="text"
+                    value={tempCourseData.title}
+                    onChange={(e) =>
+                      setTempCourseData({
+                        ...tempCourseData,
+                        title: e.target.value,
+                      })
+                    }
+                    className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-gray-800 dark:border-gray-700 text-xl font-bold dark:text-white"
+                    placeholder="Course Title"
+                  />
+                  <textarea
+                    value={tempCourseData.description}
+                    onChange={(e) =>
+                      setTempCourseData({
+                        ...tempCourseData,
+                        description: e.target.value,
+                      })
+                    }
+                    className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-gray-800 dark:border-gray-700 text-sm dark:text-gray-200 h-32"
+                    placeholder="Course Description"
+                  />
+                  <div className="flex flex-wrap gap-3">
+                    <button
+                      onClick={editCourseName}
+                      className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-lg hover:bg-indigo-700 text-sm transition-colors"
+                    >
+                      <FiCheck size={18} />
+                      Save Changes
+                    </button>
+                    <button
+                      onClick={() => setEditingCourseId(null)}
+                      className="flex items-center gap-2 bg-gray-200 px-5 py-2.5 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 text-sm transition-colors"
+                    >
+                      <FiX size={18} />
+                      Cancel
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ) : (
-              // Display Mode Content
-              <div className="flex-1 space-y-2">
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  {course.title}
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 mt-2">
-                  {course.description}
-                </p>
-              </div>
-            )}
+              ) : (
+                // Display Mode
+                <div className="space-y-3">
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {course.title}
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-300">
+                    {course.description}
+                  </p>
+                </div>
+              )}
+            </div>
 
             {/* Action Buttons */}
-            <div className="flex items-center gap-3">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setEditingCourseId(editingCourseId ? null : course._id);
-                }}
-                className=" p-2.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-400"
-              >
-                <FiEdit size={20} />
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowDeleteConfirm(true);
-                }}
-                className="p-2.5 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-lg text-red-500"
-              >
-                <FiTrash2 size={20} />
-              </button>
-              <motion.div
-                animate={{
-                  rotate: expandedCourses ? 180 : 0,
-                }}
-                className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg cursor-pointer"
-                onClick={() => setExpandedCourses(!expandedCourses)}
-              >
-                <FiChevronDown size={24} />
-              </motion.div>
+            <div className="flex justify-center items-center gap-4">
+              {/* Copy Code Button */}
+              <div className="relative group">
+                <button
+                  onClick={copyToClipboard}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors text-sm"
+                >
+                  {copied ? "Copied!" : "Copy Code"}
+                </button>
+                <div className="absolute bottom-12 left-1/2 transform -translate-x-1/2 mt-2 w-max bg-gray-800 text-white text-sm p-2 rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
+                  {course._id}
+                </div>
+              </div>
+
+              {/* Edit and Expand Buttons */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setEditingCourseId(editingCourseId ? null : course._id);
+                  }}
+                  className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-400 transition-colors"
+                >
+                  <FiEdit size={20} />
+                </button>
+                <motion.div
+                  animate={{
+                    rotate: expandedCourses ? 180 : 0,
+                  }}
+                  className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg cursor-pointer transition-colors"
+                  onClick={() => setExpandedCourses(!expandedCourses)}
+                >
+                  <FiChevronDown size={24} />
+                </motion.div>
+              </div>
             </div>
           </div>
         </div>
@@ -637,7 +657,7 @@ export const Courses = ({ course }: { course: any }) => {
                     ) : (
                       <FiUnlock size={24} className="text-green-600" />
                     )}
-                    <span className="absolute top-full mt-2 px-3 py-1 text-sm bg-gray-800 text-white rounded opacity-0 transition-opacity duration-100 group-hover:opacity-100">
+                    <span className="absolute top-full px-3 py-1 text-sm bg-gray-800 text-white rounded opacity-0 transition-opacity duration-100 group-hover:opacity-100">
                       {isLocked ? "Unlock Course" : "Lock Course"}
                     </span>
                   </button>
@@ -645,7 +665,7 @@ export const Courses = ({ course }: { course: any }) => {
 
                 {showStudents && (
                   <div className="py-3">
-                    {dummyStudents.map((student) => (
+                    {[...dummyStudents].sort().map((student) => (
                       <div
                         key={student}
                         className="flex items-center justify-between p-3"
@@ -729,17 +749,26 @@ export const Courses = ({ course }: { course: any }) => {
                 ))}
               </div>
 
-              {/* Publish Button */}
-              <div className="py-4">
+              {/* Publish Button and Delete */}
+              <div className="mt-4 flex gap-4 p-2">
                 <button
                   onClick={() => publishCourse(course._id, isPublished)}
-                  className={`w-full py-3.5 rounded-xl transition-colors text-base font-medium ${
+                  className={`w-1/2 py-3.5 rounded-xl transition-colors text-base font-medium ${
                     isPublished || !course.sectionIds?.length
                       ? "bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed"
                       : "bg-green-500 hover:bg-green-600 text-white"
                   }`}
                 >
                   {isPublished ? "Published ✓" : "Publish Course"}
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowDeleteConfirm(true);
+                  }}
+                  className="w-1/2 py-3.5 text-red-400 hover:text-red-700 bg-white rounded-xl transition-colors border-2 border-red-500"
+                >
+                  Delete Course
                 </button>
               </div>
             </motion.div>

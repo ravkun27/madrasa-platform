@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import logoEng from "../assets/logoEng.png";
 import { useTheme } from "../context/ThemeContext"; // Import useTheme hook
@@ -8,7 +8,6 @@ import { FiSun, FiMoon, FiUser } from "react-icons/fi"; // Icons for light/dark 
 import UserSettingsPage from "../pages/shared/UserSettingsPage";
 
 const Header = () => {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { theme, toggleTheme } = useTheme(); // Get theme and toggle function
   const { user } = useAuth(); // Get user & logout function
   const [showSettings, setShowSettings] = useState(false);
@@ -27,7 +26,6 @@ const Header = () => {
       document.body.style.overflow = ""; // Cleanup when unmounting
     };
   }, [showSettings]);
-  const dashboardPath = user ? `/${user.role}-dashboard` : "/";
 
   return (
     <motion.header
@@ -36,7 +34,7 @@ const Header = () => {
       animate={{ opacity: 1 }} // Fade in
       transition={{ duration: 0.5, ease: "easeOut", delay: 0.2 }} // Add a slight delay
     >
-      <nav className="container mx-auto px-4 lg:px-6 py-2">
+      <nav className="container px-4 lg:px-6 py-2">
         {/* Main Flex Container */}
         <div className="flex justify-between items-center">
           {/* Logo and Brand Name */}
@@ -98,9 +96,6 @@ const Header = () => {
                     <FiUser className="w-6 h-6" />
                     <span>{user?.role || "User"}</span>
                   </button>
-                  {showSettings && (
-                    <Link to={dashboardPath} className="absolute inset-0" />
-                  )}
                 </div>
               ) : (
                 // User is NOT logged in, show login/signup buttons
@@ -155,7 +150,7 @@ const Header = () => {
             {/* Mobile Menu Toggle Button */}
             <button
               className="text-black dark:text-white focus:outline-none z-50"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              onClick={() => setShowSettings(!showSettings)}
             >
               <svg
                 className="w-8 h-8"
@@ -173,98 +168,6 @@ const Header = () => {
               </svg>
             </button>
           </div>
-
-          {/* Mobile Navigation Links (Toggled by state) */}
-          <AnimatePresence>
-            {isMobileMenuOpen && (
-              <motion.div
-                className="md:hidden fixed top-16 left-0 w-full bg-white dark:bg-gray-900 shadow-lg z-40"
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-              >
-                <div className="py-6 space-y-6 text-center flex flex-col items-center">
-                  <Link
-                    to="/courses"
-                    className="text-lg sm:text-xl block w-full max-w-xs text-gray-700 dark:text-white hover:text-gray-900 dark:hover:text-primary transition duration-300 font-medium py-3"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Courses
-                  </Link>
-                  <Link
-                    to="/about"
-                    className="text-lg sm:text-xl block w-full max-w-xs text-gray-700 dark:text-white hover:text-gray-900 dark:hover:text-primary transition duration-300 font-medium py-3"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    About
-                  </Link>
-                  <Link
-                    to="/contact"
-                    className="text-lg sm:text-xl block w-full max-w-xs text-gray-700 dark:text-white hover:text-gray-900 dark:hover:text-primary transition duration-300 font-medium py-3"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Contact
-                  </Link>
-
-                  {/* Auth Buttons */}
-                  <div className="flex flex-col items-center space-y-4 mt-4 w-full">
-                    {user ? (
-                      // If user is logged in, show profile dropdown
-                      <div className="relative w-full flex flex-col items-center">
-                        <button
-                          className="flex items-center space-x-2 text-lg sm:text-xl text-secondary dark:text-secondary-dark hover:text-secondary-dark dark:hover:text-secondary transition font-medium"
-                          onClick={() => setShowSettings(true)}
-                        >
-                          <FiUser className="w-6 h-6" />
-                          <span>{user?.role || "User"}</span>
-                          {/* Arrow Icon (Changes Direction Based on State) */}
-                          <svg
-                            className={`w-5 h-5 transition-transform ${
-                              showSettings ? "rotate-180" : "rotate-0"
-                            }`}
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M19 9l-7 7-7-7"
-                            />
-                          </svg>
-                        </button>
-                      </div>
-                    ) : (
-                      // If no user, show Sign In / Sign Up buttons
-                      <>
-                        <Link
-                          to="/login"
-                          className="text-lg sm:text-xl text-gray-700 dark:text-white hover:text-gray-900 dark:hover:text-primary transition duration-300 font-medium"
-                          onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                          Sign In
-                        </Link>
-                        <motion.div
-                          whileHover={{ scale: 1.03 }}
-                          whileTap={{ scale: 0.97 }}
-                        >
-                          <Link
-                            to="/signup"
-                            className="text-lg sm:text-xl bg-primary-gradient text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition duration-300 font-semibold w-full max-w-xs text-center block"
-                            onClick={() => setIsMobileMenuOpen(false)}
-                          >
-                            Sign Up
-                          </Link>
-                        </motion.div>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
         </div>
       </nav>
       <UserSettingsPage
