@@ -6,8 +6,10 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "http://localhost:3000",
+        target: "https://internally-massive-mosquito.ngrok-free.app/api/v1",
         changeOrigin: true,
+        secure: false,  
+        rewrite: (path) => path.replace(/^\/api/, "/api/v1"),
       },
     },
   },

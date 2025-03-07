@@ -1,4 +1,7 @@
-const apiUrl = import.meta.env.VITE_API_URL;
+const apiUrl =
+  import.meta.env.MODE === "development"
+    ? "https://internally-massive-mosquito.ngrok-free.app/api/v1" // Use full URL if proxy fails
+    : import.meta.env.VITE_API_URL;
 
 if (!apiUrl) {
   throw new Error("API URL is missing. Check your environment variables.");
@@ -14,12 +17,12 @@ async function apiCall<T = any>(
   method: ApiMethod = "GET"
 ): ApiResponse<T> {
   const url = `${apiUrl}${path}`;
-  
+
   // Initialize options with credentials included
-  const options: RequestInit = { 
-    method, 
-    credentials: 'include', // This is critical - it must be at the top level
-    headers: {} as Record<string, string>
+  const options: RequestInit = {
+    method,
+    credentials: "include", // This is critical - it must be at the top level
+    headers: {} as Record<string, string>,
   };
 
   if (method !== "GET") {
@@ -38,16 +41,16 @@ async function apiCall<T = any>(
   if (token) {
     options.headers = {
       ...options.headers,
-      Authorization: `Bearer ${token}`
+      Authorization: `Bearer ${token}`,
     };
   }
 
   try {
-    console.log(`API Call: ${method} ${url}`, { 
+    console.log(`API Call: ${method} ${url}`, {
       withCredentials: true,
-      hasToken: !!token 
+      hasToken: !!token,
     });
-    
+
     const res = await fetch(url, options);
 
     // Handle 204 No Content responses safely
