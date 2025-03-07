@@ -8,7 +8,7 @@ import {
   SkipForward,
   Settings,
   PictureInPicture2,
-  Fullscreen,
+  // Fullscreen,
   Loader2,
   AlertTriangle,
   Maximize,
