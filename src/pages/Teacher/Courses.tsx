@@ -29,10 +29,9 @@ import "react-image-crop/dist/ReactCrop.css";
 import { Crop } from "react-image-crop";
 
 export const Courses = ({ course }: { course: any }) => {
-
   const { setCourseList } = useCourseActions();
   const [isPublished, setIsPublished] = useState(course?.published);
-  const [isLocked, setIsLocked] = useState(course?.locked || false);
+  // const [isLocked, setIsLocked] = useState(course?.locked || false);
   const [newSection, setNewSection] = useState({ title: "", description: "" });
   const [expandedCourses, setExpandedCourses] = useState(false);
   const [editingCourseId, setEditingCourseId] = useState<string | null>(null);
@@ -70,21 +69,21 @@ export const Courses = ({ course }: { course: any }) => {
       return () => clearTimeout(timer); // Cleanup on component unmount
     }
   }, [addSectionToggle, newSection]);
-  const toggleLock = async () => {
+  // const toggleLock = async () => {
     // try {
     //   const result: any = await putFetch(
     //     `/user/teacher/course/lock?courseId=${course._id}&locked=${!isLocked}`,
     //     {}
     //   );
     //   if (result.success) {
-    setIsLocked(!isLocked);
-    toast.success(`Course ${!isLocked ? "locked" : "unlocked"} successfully`);
+    // setIsLocked(!isLocked);
+    // toast.success(`Course ${!isLocked ? "locked" : "unlocked"} successfully`);
     //   }
     // } catch (error) {
     //   toast.error("Failed to update lock status");
     //   console.error("Error updating lock status:", error);
     // }
-  };
+  // };
 
   // const kickStudent = async () => {
   // setShowKickConfirm(true);
@@ -102,9 +101,6 @@ export const Courses = ({ course }: { course: any }) => {
   // }
   // };
 
-
-
-
   const [userId, setUserId] = useState(null);
   const [displayName, setDisplayName] = useState(null);
   const [meetLink, setMeetLink] = useState("");
@@ -118,13 +114,12 @@ export const Courses = ({ course }: { course: any }) => {
   // Step 2: Check authentication status
   const checkAuthStatus = async () => {
     try {
-
       const data: any = await getFetch(`/meet/auth/google/status`);
 
       setUserId(data.userId);
       setDisplayName(data.displayName);
       alert("Authentication successful! You can now create meetings.");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Auth Status Error:", error.data || error.message);
     }
   };
@@ -138,18 +133,15 @@ export const Courses = ({ course }: { course: any }) => {
 
     setLoading(true);
     try {
-
       const data: any = await getFetch(`/meet/create-google-meeting`);
 
       setMeetLink(data.meetLink);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Meeting Creation Error:", error?.data || error?.message);
       alert("Failed to create Google Meet.");
     }
     setLoading(false);
   };
-
-
 
   const handleBannerChange = async () => {
     if (!newBanner) return;
@@ -459,7 +451,9 @@ export const Courses = ({ course }: { course: any }) => {
         {!userId ? (
           <div>
             <button onClick={handleGoogleAuth}>Authenticate with Google</button>
-            <button onClick={checkAuthStatus} style={{ marginLeft: "10px" }}>Check Auth Status</button>
+            <button onClick={checkAuthStatus} style={{ marginLeft: "10px" }}>
+              Check Auth Status
+            </button>
           </div>
         ) : (
           <>
@@ -472,9 +466,16 @@ export const Courses = ({ course }: { course: any }) => {
               <div>
                 <h3>Meeting Link</h3>
                 <p>
-                  <strong>Google Meet Link:</strong> <a href={meetLink} target="_blank" rel="noopener noreferrer">{meetLink}</a>
+                  <strong>Google Meet Link:</strong>{" "}
+                  <a href={meetLink} target="_blank" rel="noopener noreferrer">
+                    {meetLink}
+                  </a>
                 </p>
-                <button onClick={() => { navigator.clipboard.writeText(meetLink) }}>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(meetLink);
+                  }}
+                >
                   Copy Link
                 </button>
               </div>
@@ -639,16 +640,16 @@ export const Courses = ({ course }: { course: any }) => {
                     </span>
                   </button>
                   <button
-                    onClick={toggleLock}
+                    // onClick={toggleLock}
                     className="relative flex items-center justify-center w-10 h-10 rounded-lg text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white group"
                   >
-                    {isLocked ? (
-                      <FiLock size={24} className="text-red-600" />
-                    ) : (
+                    {/* {isLocked ? ( */}
+                      {/* <FiLock size={24} className="text-red-600" /> */}
+                    {/* ) : ( */}
                       <FiUnlock size={24} className="text-green-600" />
-                    )}
+                    {/* )} */}
                     <span className="absolute top-full px-3 py-1 text-sm bg-gray-800 text-white rounded opacity-0 transition-opacity duration-100 group-hover:opacity-100">
-                      {isLocked ? "Unlock Course" : "Lock Course"}
+                      {/* {isLocked ? "Unlock Course" : "Lock Course"} */}
                     </span>
                   </button>
                 </div>
@@ -743,10 +744,11 @@ export const Courses = ({ course }: { course: any }) => {
               <div className="mt-4 flex gap-4 p-2">
                 <button
                   onClick={() => publishCourse(course._id, isPublished)}
-                  className={`w-1/2 py-3.5 rounded-xl transition-colors text-base font-medium ${isPublished || !course.sectionIds?.length
-                    ? "bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed"
-                    : "bg-green-500 hover:bg-green-600 text-white"
-                    }`}
+                  className={`w-1/2 py-3.5 rounded-xl transition-colors text-base font-medium ${
+                    isPublished || !course.sectionIds?.length
+                      ? "bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed"
+                      : "bg-green-500 hover:bg-green-600 text-white"
+                  }`}
                 >
                   {isPublished ? "Published ✓" : "Publish Course"}
                 </button>
