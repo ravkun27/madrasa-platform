@@ -75,7 +75,7 @@ const ManageCoursesPage = () => {
   return (
     <div className="min-h-screen p-4">
       <div className="flex items-center justify-center gap-4 md:gap-20 mb-8 flex-nowrap">
-        <h1 className="text-xl md:text-2xl font-bold text-gray-500">
+        <h1 className="md:text-2xl font-bold text-gray-500">
           Manage Courses
         </h1>
         <button
@@ -167,7 +167,7 @@ const ManageCoursesPage = () => {
 
       <LayoutGroup>
         <div className="flex flex-col gap-4 items-center justify-center">
-          <div className="max-w-2xl">
+          <div className="max-w-3xl">
             {isLoading ? (
               Array(3)
                 .fill(0)
@@ -186,7 +186,7 @@ const ManageCoursesPage = () => {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
                     transition={{ duration: 0.2 }}
-                    className="mb-4 md:mb-8 max-w-2xl"
+                    className="mb-4 md:mb-8 max-w-3xl"
                   >
                     <Courses course={course} />
                   </motion.div>

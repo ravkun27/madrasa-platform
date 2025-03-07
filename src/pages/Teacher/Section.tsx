@@ -96,8 +96,8 @@ export const Section = ({
         />
       )}
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-        <div className="p-4 md:p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm">
+        <div className="md:p-6">
           <div className="flex justify-between gap-5 mb-2">
             <div className="flex items-center gap-3">
               <span className="px-3 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-300 rounded-xl text-md font-medium">

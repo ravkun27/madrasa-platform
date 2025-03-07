@@ -410,7 +410,7 @@ export const Courses = ({ course }: { course: any }) => {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0 }}
         transition={{ duration: 0.2, ease: "easeInOut" }}
-        className="bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden max-w-2xl"
+        className="w-full bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden"
       >
         {/* Banner Section */}
         <div className="relative aspect-[6/2] bg-gray-100 dark:bg-gray-900 rounded-t-xl overflow-hidden">

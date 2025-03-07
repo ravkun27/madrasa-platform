@@ -1,15 +1,6 @@
 import { deleteFetch, getFetch, putFetch } from "../../utils/apiCall";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  // LuVideo,
-  // LuBook,
-  // LuClipboardList,
-  LuFile,
-  LuPencil,
-  LuCheck,
-  LuTrash2,
-  LuX,
-} from "react-icons/lu";
+import { LuPencil, LuCheck, LuTrash2, LuX } from "react-icons/lu";
 
 import { useEffect, useState } from "react";
 import { useCourseActions } from "../../hooks/useCourseActions";
@@ -17,7 +8,6 @@ import { removeNullAndUndefinedFields } from "../../utils/utilsMethod/removeNull
 import { useCourses } from "../../context/CourseContext";
 import { MediaModal } from "../../components/Modal/MediaModal";
 import toast from "react-hot-toast";
-// import { ContentTypeOption } from "../../types";
 import { ConfirmationModal } from "../../components/Modal/ConfiramtionModal";
 
 export const Content = ({
@@ -38,7 +28,6 @@ export const Content = ({
     title: "",
     description: "",
   });
-  const [isOpen, setIsOpen] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
@@ -113,14 +102,6 @@ export const Content = ({
         />
       )}
 
-      <MediaModal
-        url={content?.filePath}
-        isOpen={isOpen}
-        onClose={() => setIsOpen(false)}
-        contentType={content?.fileType}
-        title={content?.title}
-      />
-
       <AnimatePresence>
         {!content ? (
           <motion.div
@@ -135,33 +116,17 @@ export const Content = ({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.1 }}
-            className="group bg-white dark:bg-gray-800 p-2 md:p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm transition-all"
+            className="group bg-white dark:bg-gray-800 md:p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm transition-all mt-2"
           >
+            <MediaModal
+              url={content?.filePath}
+              contentType={content?.fileType}
+              title={content?.title}
+            />
             {/* Top Section: Icon, Title & Actions */}
-            <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="flex flex-wrap items-start justify-between gap-4 p-2">
               {/* Left: Icon + Title */}
               <div className="flex items-start gap-4 flex-1 min-w-0">
-                {/* Content Type Icon */}
-                {/* <div
-                  className={`p-3 rounded-xl ${
-                    {
-                      video:
-                        "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-300",
-                      quiz: "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300",
-                      lecture:
-                        "bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-300",
-                    }[content.type as ContentTypeOption]
-                  }`}
-                >
-                  {
-                    {
-                      video: <LuVideo size={24} />,
-                      quiz: <LuClipboardList size={24} />,
-                      lecture: <LuBook size={24} />,
-                    }[content.type as ContentTypeOption]
-                  }
-                </div> */}
-
                 {/* Editable Mode */}
                 <div className="flex-1">
                   {editingContentId === content._id ? (
@@ -215,17 +180,6 @@ export const Content = ({
                           {content.description}
                         </p>
                       </div>
-                      {content.filePath && (
-                        <button
-                          onClick={() => setIsOpen(true)}
-                          className="flex items-center gap-1 md:gap-2 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 text-sm w-44"
-                        >
-                          <LuFile size={18} />
-                          <span className="md:font-medium">
-                            View Attachment
-                          </span>
-                        </button>
-                      )}
                     </div>
                   )}
                 </div>

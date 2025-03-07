@@ -131,7 +131,7 @@ const Dashboard = () => {
 
       {/* Manage Courses Section */}
       <div className="w-full bg-gray-50 dark:bg-gray-900 py-10">
-        <div className="max-w-6xl mx-auto px-6">
+        <div className="max-w-6xl mx-auto md:px-6">
           <ManageCourses />
         </div>
       </div>
