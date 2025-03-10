@@ -105,10 +105,13 @@ export const Courses = ({ course }: { course: any }) => {
   const [displayName, setDisplayName] = useState(null);
   const [meetLink, setMeetLink] = useState("");
   const [loading, setLoading] = useState(false);
+  const [title, setTitle] = useState("")
+  const [duration, setDuration] = useState("")
+  const [meeting, setMeeting] = useState({})
 
   // Step 1: Redirect teacher to Google OAuth
   const handleGoogleAuth = () => {
-    window.location.href = `https://internally-massive-mosquito.ngrok-free.app/api/v1/user/teacher/course/all`;
+    window.location.href = `http://localhost:8080/api/v1/meet/auth/google`;
   };
 
   // Step 2: Check authentication status
@@ -133,9 +136,12 @@ export const Courses = ({ course }: { course: any }) => {
 
     setLoading(true);
     try {
-      const data: any = await getFetch(`/meet/create-google-meeting`);
+      const data: any = await postFetch(`/meet/create-google-meeting`, {
+        title, duration,
+      });
 
       setMeetLink(data.meetLink);
+      setMeeting(data)
     } catch (error: any) {
       console.error("Meeting Creation Error:", error?.data || error?.message);
       alert("Failed to create Google Meet.");
@@ -458,6 +464,10 @@ export const Courses = ({ course }: { course: any }) => {
         ) : (
           <>
             <h2>Authenticated as: {displayName}</h2>
+            Title : <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} />
+            <br />
+            Duration :   <input type="text" value={duration} onChange={(e) => setDuration(e.target.value)} />
+            <br />
             <button onClick={createMeeting} disabled={loading}>
               {loading ? "Creating..." : "Create Google Meet"}
             </button>
@@ -482,6 +492,26 @@ export const Courses = ({ course }: { course: any }) => {
             )}
           </>
         )}
+
+        <div className="p-4 border rounded-lg shadow-md max-w-md mx-auto">
+          <h2 className="text-xl font-bold mb-2">{meeting.title}</h2>
+          <p className="text-gray-700">Meeting ID: {meeting.meetingId}</p>
+          <p className="text-gray-700">
+            Start Time: {new Date(meeting.startTime).toLocaleString()}
+          </p>
+          <p className="text-gray-700">
+            End Time: {new Date(meeting.endTime).toLocaleString()}
+          </p>
+          <p className="text-gray-700">Status: {meeting.status}</p>
+          <a
+            href={meeting.meetingLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-500 hover:underline"
+          >
+            Join Meeting
+          </a>
+        </div>
       </div>
       <motion.div
         key={course._id}
@@ -744,11 +774,10 @@ export const Courses = ({ course }: { course: any }) => {
               <div className="mt-4 flex gap-4 p-2">
                 <button
                   onClick={() => publishCourse(course._id, isPublished)}
-                  className={`w-1/2 py-3.5 rounded-xl transition-colors text-base font-medium ${
-                    isPublished || !course.sectionIds?.length
-                      ? "bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed"
-                      : "bg-green-500 hover:bg-green-600 text-white"
-                  }`}
+                  className={`w-1/2 py-3.5 rounded-xl transition-colors text-base font-medium ${isPublished || !course.sectionIds?.length
+                    ? "bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed"
+                    : "bg-green-500 hover:bg-green-600 text-white"
+                    }`}
                 >
                   {isPublished ? "Published ✓" : "Publish Course"}
                 </button>
