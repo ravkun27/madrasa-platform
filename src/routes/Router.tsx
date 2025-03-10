@@ -5,6 +5,7 @@ import Login from "../pages/Auth/Login";
 import Signup from "../pages/Auth/SignUp";
 import StudentDashboard from "../pages/Student/Dashboard";
 import TeacherDashboard from "../pages/Teacher/Dashboard";
+import AdminDashboard from "../pages/Admin/Dashboard";
 import NotFound from "../pages/shared/NotFound";
 import Unauthorized from "../pages/Unauthorized";
 import PublicLayout from "../layouts/PublicLayout";
@@ -67,6 +68,12 @@ const protectedRoutes = [
         element: <ProtectedLayout />, // Public layout wrapper
         children: [
           { path: "user-settings", element: <UserSettingsWrapper /> },
+          {
+            element: <RoleBasedRoute role="admin" />, // Role check
+            children: [
+              { path: "admin-dashboard", element: <AdminDashboard /> },
+            ],
+          },
           {
             element: <RoleBasedRoute role="student" />, // Role check
             children: [

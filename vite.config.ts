@@ -6,13 +6,13 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "https://internally-massive-mosquito.ngrok-free.app/api/v1",
+        target: "http://localhost:8080",
         changeOrigin: true,
-        secure: false,  
-        rewrite: (path) => path.replace(/^\/api/, "/api/v1"),
+        rewrite: (path) => path.replace(/^\/api/, ""),
       },
     },
   },
+
   build: {
     minify: "terser", // Ensures unused code is removed
   },

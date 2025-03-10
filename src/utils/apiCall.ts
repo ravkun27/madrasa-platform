@@ -1,7 +1,4 @@
-const apiUrl =
-  import.meta.env.MODE === "development"
-    ? "https://internally-massive-mosquito.ngrok-free.app/api/v1" // Use full URL if proxy fails
-    : import.meta.env.VITE_API_URL;
+import { apiUrl } from "../config";
 
 if (!apiUrl) {
   throw new Error("API URL is missing. Check your environment variables.");

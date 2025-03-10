@@ -6,33 +6,41 @@ import { motion } from "framer-motion";
 
 const Dashboard = () => {
   const [teacherCourses, setTeacherCourses] = useState<any[]>([]);
-  const [loadingTeacher, setLoadingTeacher] = useState(true);
+  const [isApproved, setIsApproved] = useState(false);
+
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchTeacherCourses = async () => {
+    const fetchTeacherStatus = async () => {
       try {
-        const teacherResponse: any = await getFetch("/user/teacher/course/all");
-
-        if (!teacherResponse?.success || !teacherResponse.data?.courseList) {
-          console.error("Failed to fetch courses or no courses found");
-          return;
-        }
-
-        // Filter only courses where published = true
-        const filteredCourses = teacherResponse.data.courseList.filter(
-          (course: any) => course.published === true
-        );
-
-        setTeacherCourses(filteredCourses);
+        // const response: any = await getFetch("/user/teacher/status");
+        // if (response?.success) {
+        //   setIsApproved(response.data.approved);
+        //   if (response.data.approved) {
+        const coursesResponse: any = await getFetch("/user/teacher/course/all");
+        setTeacherCourses(coursesResponse.data?.courseList || []);
+        // }
+        // }
       } catch (error) {
-        console.error("Error fetching teacher courses:", error);
+        console.error("Error fetching teacher status:", error);
       } finally {
-        setLoadingTeacher(false);
+        setLoading(false);
       }
     };
-
-    fetchTeacherCourses();
+    fetchTeacherStatus();
   }, []);
+
+  if (loading) return <div>Loading...</div>;
+
+  // if (!isApproved)
+  //   return (
+  //     <div className="min-h-screen text-center flex flex-col justify-center items-center">
+  //       <h2 className="text-2xl font-bold mb-4">Account Pending Approval</h2>
+  //       <p className="text-gray-600 dark:text-gray-400">
+  //         Your account is under review. Please wait for admin approval.
+  //       </p>
+  //     </div>
+  //   );
 
   const CourseCard = ({ course }: { course: any }) => (
     <motion.div
@@ -106,7 +114,7 @@ const Dashboard = () => {
           </h3>
 
           {/* Courses Grid / Loading State */}
-          {loadingTeacher ? (
+          {loading ? (
             <div className="flex justify-center items-center py-16">
               <span className="text-gray-600 dark:text-gray-300 text-lg">
                 Loading your courses...
