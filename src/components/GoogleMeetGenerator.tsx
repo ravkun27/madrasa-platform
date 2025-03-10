@@ -44,7 +44,7 @@ export const GoogleMeetCreator = () => {
         duration,
       });
 
-      setMeetLink(data.meetLink);
+      setMeetLink(data.meetingLink);
       setMeetingDetails(data);
       toast.success("Meeting created successfully!");
     } catch (error: any) {
@@ -86,7 +86,7 @@ export const GoogleMeetCreator = () => {
               onClick={checkAuthStatus}
               className="bg-gray-200 dark:bg-gray-700 px-6 py-3 rounded-lg flex items-center gap-2"
             >
-              <FiVideo /> Connect Google Account
+              <FiVideo /> Create Google Meeting
             </button>
           </div>
         </div>
