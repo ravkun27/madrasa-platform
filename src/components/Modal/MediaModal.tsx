@@ -171,33 +171,32 @@ export const MediaModal: React.FC<MediaPlayerProps> = ({
         />
       )}
 
-      {/* Controls overlay */}
-      <div
-        className={`absolute inset-0 transition-opacity duration-200 rounded-xl ${
-          showControls ? "opacity-100" : "opacity-0"
-        }`}
-      >
-        {/* Top bar */}
-        <div className="absolute top-0 left-0 right-0 p-2 bg-gradient-to-b from-black/50 to-transparent flex justify-between items-center rounded-xl">
-          <h3 className="text-white font-medium truncate text-sm sm:text-base">
-            {title}
-          </h3>
-          <div className="flex gap-2">
-            <button
-              onClick={toggleFullscreen}
-              className="text-white p-1 sm:p-2 hover:bg-white/10 rounded-xl"
-            >
-              {isFullscreen ? (
-                <Minimize className="w-5 h-5" />
-              ) : (
-                <Maximize className="w-5 h-5" />
-              )}
-            </button>
+      {/* Video-specific controls */}
+      {mediaType === "video" && (
+        <div
+          className={`absolute inset-0 transition-opacity duration-200 rounded-xl ${
+            showControls ? "opacity-100" : "opacity-0"
+          }`}
+        >
+          {/* Top bar */}
+          <div className="absolute top-0 left-0 right-0 p-2 bg-gradient-to-b from-black/50 to-transparent flex justify-between items-center rounded-xl">
+            <h3 className="text-white font-medium truncate text-sm sm:text-base">
+              {title}
+            </h3>
+            <div className="flex gap-2">
+              <button
+                onClick={toggleFullscreen}
+                className="text-white p-1 sm:p-2 hover:bg-white/10 rounded-xl"
+              >
+                {isFullscreen ? (
+                  <Minimize className="w-5 h-5" />
+                ) : (
+                  <Maximize className="w-5 h-5" />
+                )}
+              </button>
+            </div>
           </div>
-        </div>
 
-        {/* Video-specific controls */}
-        {mediaType === "video" && (
           <>
             <div className="absolute inset-0 flex items-center justify-center md:gap-4 rounded-xl">
               <button
@@ -229,7 +228,7 @@ export const MediaModal: React.FC<MediaPlayerProps> = ({
             </div>
 
             <div className="absolute bottom-0 left-0 right-0 md:p-2 bg-gradient-to-t from-black/50 to-transparent md:space-y-3 rounded-xl">
-              <div className="w-full flex items-center md:gap-2">
+              <div className="w-full flex items-center justify-center gap-2">
                 <input
                   type="range"
                   min="0"
@@ -242,12 +241,12 @@ export const MediaModal: React.FC<MediaPlayerProps> = ({
                   style={{
                     background: `linear-gradient(to right, #6366f1 ${(currentTime / duration) * 100}%, #4b5563 ${(currentTime / duration) * 100}%)`,
                   }}
-                  className="flex-1 h-2 rounded-xl appearance-none cursor-pointer 
+                  className="w-[80%] h-1 md:h-2 rounded-xl appearance-none cursor-pointer 
   [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 
   [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white"
                 />
 
-                <span className="text-white text-xs md:text-sm font-mono">
+                <span className="text-white text-[8px] md:text-sm font-mono">
                   {formatTime(currentTime)}/{formatTime(duration)}
                 </span>
               </div>
@@ -329,8 +328,8 @@ export const MediaModal: React.FC<MediaPlayerProps> = ({
               </div>
             </div>
           </>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

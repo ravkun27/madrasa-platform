@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 
 const Dashboard = () => {
   const [teacherCourses, setTeacherCourses] = useState<any[]>([]);
-  const [isApproved, setIsApproved] = useState(false);
+  // const [isApproved, setIsApproved] = useState(false);
 
   const [loading, setLoading] = useState(true);
 
@@ -61,7 +61,7 @@ const Dashboard = () => {
       <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
         {course.title}
       </h3>
-      <p className="text-gray-600 dark:text-gray-400 mt-2 line-clamp-3">
+      <p className="text-gray-600 dark:text-gray-400 mt-2 line-clamp-1 text-sm">
         {course.description}
       </p>
 

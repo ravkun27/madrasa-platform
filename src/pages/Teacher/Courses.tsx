@@ -7,9 +7,10 @@ import {
   FiCheck,
   FiX,
   FiUsers,
-  // FiLock,
   FiUnlock,
   FiImage,
+  FiVideo,
+  FiLock,
 } from "react-icons/fi";
 import "react-image-crop/dist/ReactCrop.css";
 import { useState, useRef, useEffect } from "react";
@@ -27,12 +28,11 @@ import { ConfirmationModal } from "../../components/Modal/ConfiramtionModal";
 import ReactCrop from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 import { Crop } from "react-image-crop";
-import { GoogleMeetCreator } from "../../components/GoogleMeetGenerator";
+import { format, parseISO, isBefore, isAfter } from "date-fns";
 
 export const Courses = ({ course }: { course: any }) => {
   const { setCourseList } = useCourseActions();
   const [isPublished, setIsPublished] = useState(course?.published);
-  // const [isLocked, setIsLocked] = useState(course?.locked || false);
   const [newSection, setNewSection] = useState({ title: "", description: "" });
   const [expandedCourses, setExpandedCourses] = useState(false);
   const [editingCourseId, setEditingCourseId] = useState<string | null>(null);
@@ -40,8 +40,13 @@ export const Courses = ({ course }: { course: any }) => {
     title: course.title,
     description: course.description,
   });
+  const [meetingDetails, setMeetingDetails] = useState(
+    course.meetingDetails || {}
+  );
+
   const [isHoveringBanner, setIsHoveringBanner] = useState(false);
   const [newBanner, setNewBanner] = useState<File | null>(null);
+  const [isEnrollable, setIsEnrollable] = useState(course?.enrollable || false);
   const [showStudents, setShowStudents] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showKickConfirm, setShowKickConfirm] = useState(false);
@@ -51,6 +56,8 @@ export const Courses = ({ course }: { course: any }) => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [cropping, setCropping] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  const [showMeetingForm, setShowMeetingForm] = useState(false);
 
   const imgRef = useRef<HTMLImageElement>(null);
 
@@ -70,21 +77,170 @@ export const Courses = ({ course }: { course: any }) => {
       return () => clearTimeout(timer); // Cleanup on component unmount
     }
   }, [addSectionToggle, newSection]);
-  // const toggleLock = async () => {
-  // try {
-  //   const result: any = await putFetch(
-  //     `/user/teacher/course/lock?courseId=${course._id}&locked=${!isLocked}`,
-  //     {}
-  //   );
-  //   if (result.success) {
-  // setIsLocked(!isLocked);
-  // toast.success(`Course ${!isLocked ? "locked" : "unlocked"} successfully`);
-  //   }
-  // } catch (error) {
-  //   toast.error("Failed to update lock status");
-  //   console.error("Error updating lock status:", error);
-  // }
-  // };
+
+  // Toggle enrollable status
+  const toggleEnrollable = async () => {
+    try {
+      const result: any = await putFetch(
+        `/user/teacher/course?courseId=${course._id}`,
+        {
+          enrollable: !isEnrollable,
+        }
+      );
+
+      if (result.success) {
+        setIsEnrollable(!isEnrollable);
+        toast.success(
+          `Course ${!isEnrollable ? "unlocked" : "locked"} successfully`
+        );
+      }
+    } catch (error) {
+      toast.error("Failed to update course status");
+      console.error("Error updating course:", error);
+    }
+  };
+
+  // Check if meeting is live
+  const isMeetingLive =
+    !!meetingDetails?.startTime && // Ensure startTime is not undefined/null
+    isBefore(parseISO(meetingDetails.startTime), new Date()) &&
+    (!meetingDetails.endTime ||
+      (typeof meetingDetails.endTime === "string" &&
+        isAfter(parseISO(meetingDetails.endTime), new Date())));
+
+  // Fixed meeting form handler
+  const handleMeetingSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const result: any = await putFetch(
+        `/user/teacher/course?courseId=${course._id}`,
+        { meetingDetails }
+      );
+
+      if (result.success) {
+        setShowMeetingForm(false);
+        toast.success("Meeting details updated successfully");
+        setCourseList(); // Refresh course data
+      }
+    } catch (error) {
+      toast.error("Failed to update meeting details");
+      console.error("Error updating meeting:", error);
+    }
+  };
+
+  // Meeting form component
+  const MeetingForm = () => {
+    // Create local state copy to prevent cursor jump
+    const [localMeeting, setLocalMeeting] = useState(meetingDetails);
+
+    return (
+      <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mt-4">
+        <h3 className="text-lg font-semibold mb-4">
+          {Object.keys(meetingDetails).length ? "Edit" : "Create"} Meeting
+        </h3>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            setMeetingDetails(localMeeting);
+            handleMeetingSubmit(e);
+          }}
+          className="space-y-4"
+        >
+          <input
+            type="text"
+            placeholder="Meeting Title"
+            value={localMeeting.title || ""}
+            onChange={(e) =>
+              setLocalMeeting((prev: any) => ({
+                ...prev,
+                title: e.target.value,
+              }))
+            }
+            className="w-full p-2 border rounded"
+            required
+          />
+          <textarea
+            placeholder="Meeting Description"
+            value={localMeeting.description || ""}
+            onChange={(e) =>
+              setLocalMeeting((prev: any) => ({
+                ...prev,
+                description: e.target.value,
+              }))
+            }
+            className="w-full p-2 border rounded"
+            required
+          />
+          <input
+            type="datetime-local"
+            value={localMeeting.startTime || ""}
+            onChange={(e) =>
+              setLocalMeeting((prev: any) => ({
+                ...prev,
+                startTime: e.target.value,
+              }))
+            }
+            className="w-full p-2 border rounded"
+            required
+          />
+          <input
+            type="url"
+            placeholder="Meeting Link"
+            value={localMeeting.link || ""}
+            onChange={(e) =>
+              setLocalMeeting((prev: any) => ({
+                ...prev,
+                link: e.target.value,
+              }))
+            }
+            className="w-full p-2 border rounded"
+            required
+          />
+          <div className="flex gap-6 justify-end">
+            <button
+              type="button"
+              onClick={() => setShowMeetingForm(false)}
+              className="btn-secondary"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 text-white bg-primary rounded-xl"
+            >
+              Save Meeting
+            </button>
+          </div>
+        </form>
+      </div>
+    );
+  };
+
+  // Live meeting badge
+  const LiveMeetingBadge = () => (
+    <div className="absolute top-4 right-4 bg-green-100 text-green-800 px-3 py-1 rounded-full flex items-center gap-2 text-sm">
+      <FiVideo />
+      <span>Live Now</span>
+    </div>
+  );
+
+  // Delete meeting handler
+  const handleDeleteMeeting = async () => {
+    try {
+      const result: any = await putFetch(
+        `/user/teacher/course?courseId=${course._id}`,
+        { meetingDetails: null }
+      );
+
+      if (result.success) {
+        setMeetingDetails({});
+        toast.success("Meeting deleted successfully");
+      }
+    } catch (error) {
+      toast.error("Failed to delete meeting");
+      console.error("Error deleting meeting:", error);
+    }
+  };
 
   // const kickStudent = async () => {
   // setShowKickConfirm(true);
@@ -218,7 +374,6 @@ export const Courses = ({ course }: { course: any }) => {
   };
 
   const deleteCourse = async () => {
-    if (!confirm("Are you sure you want to delete this course?")) return;
     try {
       const result: any = await deleteFetch(
         `/user/teacher/course?courseId=${course._id}`
@@ -413,6 +568,8 @@ export const Courses = ({ course }: { course: any }) => {
         transition={{ duration: 0.2, ease: "easeInOut" }}
         className="w-full bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden"
       >
+        {isMeetingLive && <LiveMeetingBadge />}
+
         {/* Banner Section */}
         <div className="relative aspect-[6/2] bg-gray-100 dark:bg-gray-900 rounded-t-xl overflow-hidden">
           {course.banner && (
@@ -500,42 +657,38 @@ export const Courses = ({ course }: { course: any }) => {
               )}
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex justify-center items-center gap-4">
-              {/* Copy Code Button */}
-              <div className="relative group">
-                <button
-                  onClick={copyToClipboard}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors text-sm"
-                >
-                  {copied ? "Copied!" : "Copy Code"}
-                </button>
-                <div className="absolute bottom-12 left-1/2 transform -translate-x-1/2 mt-2 w-max bg-gray-800 text-white text-sm p-2 rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
-                  {course._id}
-                </div>
+            {/* Copy Code Button */}
+            <div className="relative group">
+              <button
+                onClick={copyToClipboard}
+                className="flex items-center gap-2 px-4 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors text-sm"
+              >
+                {copied ? "Copied!" : "Copy Code"}
+              </button>
+              <div className="absolute bottom-12 left-1/2 transform -translate-x-1/2 mt-2 w-max bg-gray-800 text-white text-sm p-2 rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
+                {course._id}
               </div>
-
-              {/* Edit and Expand Buttons */}
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setEditingCourseId(editingCourseId ? null : course._id);
-                  }}
-                  className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-400 transition-colors"
-                >
-                  <FiEdit size={20} />
-                </button>
-                <motion.div
-                  animate={{
-                    rotate: expandedCourses ? 180 : 0,
-                  }}
-                  className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg cursor-pointer transition-colors"
-                  onClick={() => setExpandedCourses(!expandedCourses)}
-                >
-                  <FiChevronDown size={24} />
-                </motion.div>
-              </div>
+            </div>
+            {/* Edit and Expand Buttons */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setEditingCourseId(editingCourseId ? null : course._id);
+                }}
+                className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-400 transition-colors"
+              >
+                <FiEdit size={20} />
+              </button>
+              <motion.div
+                animate={{
+                  rotate: expandedCourses ? 180 : 0,
+                }}
+                className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg cursor-pointer transition-colors"
+                onClick={() => setExpandedCourses(!expandedCourses)}
+              >
+                <FiChevronDown size={24} />
+              </motion.div>
             </div>
           </div>
         </div>
@@ -548,6 +701,52 @@ export const Courses = ({ course }: { course: any }) => {
               exit={{ opacity: 0, height: 0 }}
               className="p-2 md:p-6"
             >
+              {/* Meetings Section */}
+              <div className="mb-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-semibold">Meetings</h3>
+                  <motion.div
+                    animate={{
+                      rotate: showMeetingForm ? 180 : 0,
+                    }}
+                    className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg cursor-pointer transition-colors"
+                    onClick={() => setShowMeetingForm(!showMeetingForm)}
+                  >
+                    <FiChevronDown size={24} />
+                  </motion.div>
+                </div>
+                {showMeetingForm && <MeetingForm />}
+                {meetingDetails?.title && !showMeetingForm && (
+                  <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h4 className="font-medium">{meetingDetails.title}</h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">
+                          {meetingDetails?.startTime
+                            ? format(
+                                parseISO(meetingDetails.startTime),
+                                "MMM dd, yyyy h:mm aa"
+                              )
+                            : "No start time available"}
+                        </p>
+
+                        <a
+                          href={meetingDetails.link}
+                          className="text-blue-600 hover:underline"
+                        >
+                          Join Meeting
+                        </a>
+                      </div>
+                      <button
+                        onClick={handleDeleteMeeting}
+                        className="text-red-500 hover:text-red-600 p-2"
+                      >
+                        <FiTrash2 size={18} />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
               {/* Students Section */}
               <div className="bg-gray-50 dark:bg-gray-700/30 p-1 md:p-4 rounded-xl">
                 <div className="flex items-center justify-between mb-1 md:mb-3">
@@ -562,16 +761,17 @@ export const Courses = ({ course }: { course: any }) => {
                     </span>
                   </button>
                   <button
-                    // onClick={toggleLock}
+                    onClick={toggleEnrollable}
                     className="relative flex items-center justify-center w-10 h-10 rounded-lg text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white group"
                   >
-                    {/* {isLocked ? ( */}
-                    {/* <FiLock size={24} className="text-red-600" /> */}
-                    {/* ) : ( */}
-                    <FiUnlock size={24} className="text-green-600" />
-                    {/* )} */}
+                    {isEnrollable ? (
+                      <FiUnlock size={20} />
+                    ) : (
+                      <FiLock size={20} />
+                    )}
+
                     <span className="absolute top-full px-3 py-1 text-sm bg-gray-800 text-white rounded opacity-0 transition-opacity duration-100 group-hover:opacity-100">
-                      {/* {isLocked ? "Unlock Course" : "Lock Course"} */}
+                      {isEnrollable ? "Unlock Course" : "Lock Course"}
                     </span>
                   </button>
                 </div>
@@ -600,10 +800,6 @@ export const Courses = ({ course }: { course: any }) => {
                     ))}
                   </div>
                 )}
-              </div>
-
-              <div className="p-4 border rounded-lg shadow-md max-w-4xl mx-auto my-8">
-                <GoogleMeetCreator />
               </div>
 
               {/* Add Section Form */}
