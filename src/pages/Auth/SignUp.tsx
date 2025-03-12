@@ -14,7 +14,7 @@ import { useTheme } from "../../context/ThemeContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { postFetch } from "../../utils/apiCall";
-import { toast, Toaster } from "react-hot-toast";
+import { toast } from "react-hot-toast";
 
 interface SignupResponse {
   success: boolean;
