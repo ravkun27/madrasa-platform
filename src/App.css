@@ -134,15 +134,15 @@ body {
 .admin-tab {
   @apply w-full text-left p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-2;
 }
-.status {
+/* .status {
   @apply px-2 py-1 rounded-full text-sm;
   &.approved {
     @apply bg-green-100 text-green-800;
   }
   &.pending {
     @apply bg-yellow-100 text-yellow-800;
-  }
-}
+  } */
+/* } */
 .btn-success {
   @apply px-4 py-2 bg-green-100 text-green-800 rounded-lg hover:bg-green-200 flex items-center gap-2;
 }
