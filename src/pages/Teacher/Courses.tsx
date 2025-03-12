@@ -9,7 +9,7 @@ import {
   FiUsers,
   FiUnlock,
   FiImage,
-  FiVideo,
+  // FiVideo,
   FiLock,
 } from "react-icons/fi";
 import "react-image-crop/dist/ReactCrop.css";
@@ -28,7 +28,7 @@ import { ConfirmationModal } from "../../components/Modal/ConfiramtionModal";
 import ReactCrop from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 import { Crop } from "react-image-crop";
-import { format, parseISO, isBefore, isAfter } from "date-fns";
+// import { format, parseISO, isBefore, isAfter } from "date-fns";
 
 export const Courses = ({ course }: { course: any }) => {
   const { setCourseList } = useCourseActions();
@@ -101,24 +101,25 @@ export const Courses = ({ course }: { course: any }) => {
   };
 
   // Check if meeting is live
-  const isMeetingLive =
-    !!meetingDetails?.startTime && // Ensure startTime is not undefined/null
-    isBefore(parseISO(meetingDetails.startTime), new Date()) &&
-    (!meetingDetails.endTime ||
-      (typeof meetingDetails.endTime === "string" &&
-        isAfter(parseISO(meetingDetails.endTime), new Date())));
+  // const isMeetingLive =
+  //   !!meetingDetails?.startTime && // Ensure startTime is not undefined/null
+  //   isBefore(parseISO(meetingDetails.startTime), new Date()) &&
+  //   (!meetingDetails.endTime ||
+  //     (typeof meetingDetails.endTime === "string" &&
+  //       isAfter(parseISO(meetingDetails.endTime), new Date())));
 
   // Fixed meeting form handler
-  const handleMeetingSubmit = async (e: React.FormEvent) => {
+  const handleMeetingSubmit = async (e: React.FormEvent, meetingData: any) => {
     e.preventDefault();
     try {
       const result: any = await putFetch(
         `/user/teacher/course?courseId=${course._id}`,
-        { meetingDetails }
+        { meetingDetails: meetingData } // Use passed data instead of state
       );
 
       if (result.success) {
         setShowMeetingForm(false);
+        setMeetingDetails(meetingData); // Update parent state here
         toast.success("Meeting details updated successfully");
         setCourseList(); // Refresh course data
       }
@@ -127,7 +128,6 @@ export const Courses = ({ course }: { course: any }) => {
       console.error("Error updating meeting:", error);
     }
   };
-
   // Meeting form component
   const MeetingForm = () => {
     // Create local state copy to prevent cursor jump
@@ -141,8 +141,7 @@ export const Courses = ({ course }: { course: any }) => {
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            setMeetingDetails(localMeeting);
-            handleMeetingSubmit(e);
+            handleMeetingSubmit(e, localMeeting); // Pass localMeeting as argument
           }}
           className="space-y-4"
         >
@@ -171,7 +170,7 @@ export const Courses = ({ course }: { course: any }) => {
             className="w-full p-2 border rounded"
             required
           />
-          <input
+          {/* <input
             type="datetime-local"
             value={localMeeting.startTime || ""}
             onChange={(e) =>
@@ -182,7 +181,7 @@ export const Courses = ({ course }: { course: any }) => {
             }
             className="w-full p-2 border rounded"
             required
-          />
+          /> */}
           <input
             type="url"
             placeholder="Meeting Link"
@@ -215,14 +214,6 @@ export const Courses = ({ course }: { course: any }) => {
       </div>
     );
   };
-
-  // Live meeting badge
-  const LiveMeetingBadge = () => (
-    <div className="absolute top-4 right-4 bg-green-100 text-green-800 px-3 py-1 rounded-full flex items-center gap-2 text-sm">
-      <FiVideo />
-      <span>Live Now</span>
-    </div>
-  );
 
   // Delete meeting handler
   const handleDeleteMeeting = async () => {
@@ -568,7 +559,7 @@ export const Courses = ({ course }: { course: any }) => {
         transition={{ duration: 0.2, ease: "easeInOut" }}
         className="w-full bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden"
       >
-        {isMeetingLive && <LiveMeetingBadge />}
+        {/* {isMeetingLive && <LiveMeetingBadge />} */}
 
         {/* Banner Section */}
         <div className="relative aspect-[6/2] bg-gray-100 dark:bg-gray-900 rounded-t-xl overflow-hidden">
@@ -598,7 +589,7 @@ export const Courses = ({ course }: { course: any }) => {
 
         {/* Content Section */}
         <div className="p-6">
-          <div className="flex flex-col md:flex-row justify-between gap-6">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             {/* Title and Description */}
             <div className="flex-1">
               {editingCourseId === course._id ? (
@@ -650,7 +641,7 @@ export const Courses = ({ course }: { course: any }) => {
                   <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
                     {course.title}
                   </h3>
-                  <p className="text-gray-600 dark:text-gray-300">
+                  <p className="text-gray-600 dark:text-gray-300 line-clamp-3 text-xs">
                     {course.description}
                   </p>
                 </div>
@@ -721,16 +712,17 @@ export const Courses = ({ course }: { course: any }) => {
                     <div className="flex justify-between items-start">
                       <div>
                         <h4 className="font-medium">{meetingDetails.title}</h4>
-                        <p className="text-sm text-gray-600 dark:text-gray-300">
+                        {/* <p className="text-sm text-gray-600 dark:text-gray-300">
                           {meetingDetails?.startTime
                             ? format(
                                 parseISO(meetingDetails.startTime),
                                 "MMM dd, yyyy h:mm aa"
                               )
                             : "No start time available"}
-                        </p>
+                        </p> */}
 
                         <a
+                          target="_blank"
                           href={meetingDetails.link}
                           className="text-blue-600 hover:underline"
                         >
@@ -809,7 +801,7 @@ export const Courses = ({ course }: { course: any }) => {
                     <input
                       type="text"
                       placeholder="Section Title"
-                      className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600"
+                      className="w-full p-3 border rounded-lg focus:ring-2 mb-4 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600"
                       value={newSection.title}
                       onChange={(e) =>
                         setNewSection({
@@ -821,7 +813,7 @@ export const Courses = ({ course }: { course: any }) => {
                     <input
                       type="text"
                       placeholder="Section Description"
-                      className="w-full p-3 border rounded-lg focus:ring-2 mb-4 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600"
+                      className="w-full p-3 border rounded-lg focus:ring-2 mb-4 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 line-clamp-3 text-sm"
                       value={newSection.description}
                       onChange={(e) =>
                         setNewSection({
