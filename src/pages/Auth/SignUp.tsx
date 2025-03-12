@@ -415,187 +415,189 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
                   </div>
                 )}
                 {/* Phone Number & OTP Section */}
-                {/* {isOtpVerified && !isPhoneOtpVerified && ( */}
-                <>
-                  <div className="space-y-4">
-                    {/* OTP Method Selection */}
-                    <div className="space-y-2">
-                      <p className="text-sm text-gray-600 dark:text-gray-300">
-                        Choose verification method:
-                      </p>
-                      <div className="flex gap-4">
-                        <button
-                          type="button"
-                          onClick={() => setVerificationMethod("whatsapp")}
-                          className={`flex-1 p-2 rounded-lg border-2 transition-colors text-text flex items-center justify-center gap-2 ${
-                            verificationMethod === "whatsapp"
-                              ? "border-green-500 bg-green-500/10"
-                              : "border-gray-200 hover:border-green-500"
-                          }`}
-                        >
-                          <FaWhatsapp className="text-green-500 text-xl" />
-                          WhatsApp
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setVerificationMethod("sms")}
-                          className={`flex-1 p-2 rounded-lg border-2 transition-colors text-text flex items-center justify-center gap-2 ${
-                            verificationMethod === "sms"
-                              ? "border-blue-500 bg-blue-500/10"
-                              : "border-gray-200 hover:border-blue-500"
-                          }`}
-                        >
-                          <FaComment className="text-blue-500 text-xl" />
-                          SMS
-                        </button>
-                      </div>
-                    </div>
-                    {/* Phone Number Input */}
-                    <div className="flex flex-col sm:flex-row gap-2 items-center">
-                      <div className="relative flex-1">
-                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1 text-gray-500">
-                          <span>+964</span>
+                {isOtpVerified && !isPhoneOtpVerified && (
+                  <>
+                    <div className="space-y-4">
+                      {/* OTP Method Selection */}
+                      <div className="space-y-2">
+                        <p className="text-sm text-gray-600 dark:text-gray-300">
+                          Choose verification method:
+                        </p>
+                        <div className="flex gap-4">
+                          <button
+                            type="button"
+                            onClick={() => setVerificationMethod("whatsapp")}
+                            className={`flex-1 p-2 rounded-lg border-2 transition-colors text-text flex items-center justify-center gap-2 ${
+                              verificationMethod === "whatsapp"
+                                ? "border-green-500 bg-green-500/10"
+                                : "border-gray-200 hover:border-green-500"
+                            }`}
+                          >
+                            <FaWhatsapp className="text-green-500 text-xl" />
+                            WhatsApp
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setVerificationMethod("sms")}
+                            className={`flex-1 p-2 rounded-lg border-2 transition-colors text-text flex items-center justify-center gap-2 ${
+                              verificationMethod === "sms"
+                                ? "border-blue-500 bg-blue-500/10"
+                                : "border-gray-200 hover:border-blue-500"
+                            }`}
+                          >
+                            <FaComment className="text-blue-500 text-xl" />
+                            SMS
+                          </button>
                         </div>
-                        <input
-                          type="text"
-                          placeholder="Phone Number"
-                          required
-                          value={formData.phoneNumber}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              phoneNumber: e.target.value
-                                .replace(/\D/g, "")
-                                .slice(0, 15),
-                            })
-                          }
-                          className="w-full p-3 pl-16 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                        />
                       </div>
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (!verificationMethod) {
-                            toast.error("Please select a verification method");
-                            return;
-                          }
-                          handleSendOtp({
-                            phoneNumber: formData.phoneNumber,
-                            method: verificationMethod as "whatsapp" | "sms",
-                          });
-                        }}
-                        disabled={phoneCountdown > 0 || isPhoneOtpVerified}
-                        className={`w-full sm:w-32 px-4 py-2 rounded-lg transition-colors text-text flex items-center justify-center gap-2 ${
-                          phoneCountdown > 0 ||
-                          isSendingOtp ||
-                          isPhoneOtpVerified
-                            ? "bg-gray-300 cursor-not-allowed"
-                            : "bg-primary hover:bg-primary/90 text-white"
-                        }`}
-                      >
-                        {isSendingOtp ? (
-                          <>
-                            <FaSpinner className="animate-spin" />
-                            Sending...
-                          </>
-                        ) : phoneCountdown > 0 ? (
-                          `${phoneCountdown}s`
-                        ) : (
-                          "Send OTP"
-                        )}
-                      </button>
-                    </div>
-
-                    {/* Communication Preference */}
-                    <div className="space-y-2">
-                      <p className="text-sm text-gray-600 dark:text-gray-300">
-                        Preferred communication method:
-                      </p>
-                      <div className="flex gap-4">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setFormData({
-                              ...formData,
-                              TelegramOrWhatsapp: "telegram",
-                            })
-                          }
-                          className={`flex-1 p-2 rounded-lg border-2 transition-colors text-text flex items-center justify-center gap-2 ${
-                            formData.TelegramOrWhatsapp === "telegram"
-                              ? "border-blue-500 bg-blue-500/10"
-                              : "border-gray-200 hover:border-blue-500"
-                          }`}
-                        >
-                          <FaTelegram className="text-blue-500 text-xl" />
-                          Telegram
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setFormData({
-                              ...formData,
-                              TelegramOrWhatsapp: "whatsapp",
-                            })
-                          }
-                          className={`flex-1 p-2 rounded-lg border-2 transition-colors flex text-text items-center justify-center gap-2 ${
-                            formData.TelegramOrWhatsapp === "whatsapp"
-                              ? "border-green-500 bg-green-500/10"
-                              : "border-gray-200 hover:border-green-500"
-                          }`}
-                        >
-                          <FaWhatsapp className="text-green-500 text-xl" />
-                          WhatsApp
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Phone OTP Verification */}
-                    {isPhoneOtpSent && !isPhoneOtpVerified && (
-                      <div className="flex flex-col sm:flex-row gap-2">
+                      {/* Phone Number Input */}
+                      <div className="flex flex-col sm:flex-row gap-2 items-center">
                         <div className="relative flex-1">
+                          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1 text-gray-500">
+                            <span>+964</span>
+                          </div>
                           <input
-                            type="number"
-                            placeholder="Enter 4-digit OTP"
+                            type="text"
+                            placeholder="Phone Number"
                             required
-                            value={formData.phoneOtp}
+                            value={formData.phoneNumber}
                             onChange={(e) =>
                               setFormData({
                                 ...formData,
-                                phoneOtp: e.target.value
+                                phoneNumber: e.target.value
                                   .replace(/\D/g, "")
-                                  .slice(0, 4),
+                                  .slice(0, 15),
                               })
                             }
-                            className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                            className="w-full p-3 pl-16 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                           />
                         </div>
+
                         <button
                           type="button"
-                          onClick={handleVerifyPhoneOtp}
-                          disabled={
-                            isLoading || isPhoneOtpVerified || isVerifyingOtp
-                          }
-                          className={`w-full sm:w-32 px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 ${
-                            isLoading || isPhoneOtpVerified || isVerifyingOtp
+                          onClick={() => {
+                            if (!verificationMethod) {
+                              toast.error(
+                                "Please select a verification method"
+                              );
+                              return;
+                            }
+                            handleSendOtp({
+                              phoneNumber: formData.phoneNumber,
+                              method: verificationMethod as "whatsapp" | "sms",
+                            });
+                          }}
+                          disabled={phoneCountdown > 0 || isPhoneOtpVerified}
+                          className={`w-full sm:w-32 px-4 py-2 rounded-lg transition-colors text-text flex items-center justify-center gap-2 ${
+                            phoneCountdown > 0 ||
+                            isSendingOtp ||
+                            isPhoneOtpVerified
                               ? "bg-gray-300 cursor-not-allowed"
                               : "bg-primary hover:bg-primary/90 text-white"
                           }`}
                         >
-                          {isVerifyingOtp ? (
+                          {isSendingOtp ? (
                             <>
                               <FaSpinner className="animate-spin" />
-                              Verifying...
+                              Sending...
                             </>
+                          ) : phoneCountdown > 0 ? (
+                            `${phoneCountdown}s`
                           ) : (
-                            "Verify"
+                            "Send OTP"
                           )}
                         </button>
                       </div>
-                    )}
-                  </div>
-                </>
-                {/* )} */}
+
+                      {/* Communication Preference */}
+                      <div className="space-y-2">
+                        <p className="text-sm text-gray-600 dark:text-gray-300">
+                          Preferred communication method:
+                        </p>
+                        <div className="flex gap-4">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setFormData({
+                                ...formData,
+                                TelegramOrWhatsapp: "telegram",
+                              })
+                            }
+                            className={`flex-1 p-2 rounded-lg border-2 transition-colors text-text flex items-center justify-center gap-2 ${
+                              formData.TelegramOrWhatsapp === "telegram"
+                                ? "border-blue-500 bg-blue-500/10"
+                                : "border-gray-200 hover:border-blue-500"
+                            }`}
+                          >
+                            <FaTelegram className="text-blue-500 text-xl" />
+                            Telegram
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setFormData({
+                                ...formData,
+                                TelegramOrWhatsapp: "whatsapp",
+                              })
+                            }
+                            className={`flex-1 p-2 rounded-lg border-2 transition-colors flex text-text items-center justify-center gap-2 ${
+                              formData.TelegramOrWhatsapp === "whatsapp"
+                                ? "border-green-500 bg-green-500/10"
+                                : "border-gray-200 hover:border-green-500"
+                            }`}
+                          >
+                            <FaWhatsapp className="text-green-500 text-xl" />
+                            WhatsApp
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Phone OTP Verification */}
+                      {isPhoneOtpSent && !isPhoneOtpVerified && (
+                        <div className="flex flex-col sm:flex-row gap-2">
+                          <div className="relative flex-1">
+                            <input
+                              type="number"
+                              placeholder="Enter 4-digit OTP"
+                              required
+                              value={formData.phoneOtp}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  phoneOtp: e.target.value
+                                    .replace(/\D/g, "")
+                                    .slice(0, 4),
+                                })
+                              }
+                              className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleVerifyPhoneOtp}
+                            disabled={
+                              isLoading || isPhoneOtpVerified || isVerifyingOtp
+                            }
+                            className={`w-full sm:w-32 px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 ${
+                              isLoading || isPhoneOtpVerified || isVerifyingOtp
+                                ? "bg-gray-300 cursor-not-allowed"
+                                : "bg-primary hover:bg-primary/90 text-white"
+                            }`}
+                          >
+                            {isVerifyingOtp ? (
+                              <>
+                                <FaSpinner className="animate-spin" />
+                                Verifying...
+                              </>
+                            ) : (
+                              "Verify"
+                            )}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
 
                 {/* Password Fields */}
                 {isPhoneOtpVerified && (
