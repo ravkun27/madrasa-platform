@@ -28,6 +28,7 @@ import { ConfirmationModal } from "../../components/Modal/ConfiramtionModal";
 import ReactCrop from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 import { Crop } from "react-image-crop";
+// import { Description } from "@headlessui/react";
 // import { format, parseISO, isBefore, isAfter } from "date-fns";
 
 export const Courses = ({ course }: { course: any }) => {
@@ -220,11 +221,11 @@ export const Courses = ({ course }: { course: any }) => {
     try {
       const result: any = await putFetch(
         `/user/teacher/course?courseId=${course._id}`,
-        { meetingDetails: null }
+        { meetingDetails: { title: null, link: null, description: null } }
       );
 
       if (result.success) {
-        setMeetingDetails({});
+        setMeetingDetails(null);
         toast.success("Meeting deleted successfully");
       }
     } catch (error) {
