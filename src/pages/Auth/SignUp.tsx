@@ -46,7 +46,6 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
   const [isPhoneOtpVerified, setIsPhoneOtpVerified] = useState(false);
   const [countdown, setCountdown] = useState(0);
   const [phoneCountdown, setPhoneCountdown] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
   const [isSendingOtp, setIsSendingOtp] = useState(false);
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -99,7 +98,6 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
       return;
     }
 
-    setIsLoading(true);
     setIsVerifyingOtp(true);
     try {
       const result = await postFetch<OtpResponse>("/user/verifyOtp", {
@@ -116,13 +114,11 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
     } catch (error: any) {
       toast.error(error.message || "Failed to verify OTP. Please try again.");
     } finally {
-      setIsLoading(false);
       setIsVerifyingOtp(false);
     }
   };
 
   const handleVerifyPhoneOtp = async (otp: string) => {
-    setIsLoading(true);
     setIsVerifyingOtp(true);
     try {
       const result = await postFetch<OtpResponse>("/user/verifyOtp", {
@@ -140,7 +136,6 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
     } catch (error: any) {
       toast.error(error.message || "Failed to verify OTP. Please try again.");
     } finally {
-      setIsLoading(false);
       setIsVerifyingOtp(false);
     }
   };
