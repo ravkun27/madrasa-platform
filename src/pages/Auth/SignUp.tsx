@@ -1,6 +1,5 @@
 import { useState, FormEvent, useEffect } from "react";
-import { FaCheck, FaSpinner, FaTelegram, FaWhatsapp } from "react-icons/fa";
-import { useTheme } from "../../context/ThemeContext";
+import { FaSpinner } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { postFetch } from "../../utils/apiCall";
@@ -8,6 +7,8 @@ import { toast } from "react-hot-toast";
 import { PhoneVerification } from "../../components/PhoneVerification";
 import { PasswordInput } from "../../components/PasswordInput";
 import { RoleSelection } from "../../components/RoleSelection";
+import { CommunicationPreference } from "../../components/CommunicationPreference";
+import { EmailVerification } from "../../components/EmailVerification";
 
 interface SignupResponse {
   success: boolean;
@@ -27,7 +28,6 @@ interface OtpResponse {
 }
 
 const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
-  const { theme } = useTheme();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     firstName: "",
@@ -206,83 +206,14 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center">
-      <div className="max-w-lg mx-auto p-6 border-2 border-accent rounded-xl">
-        <h1
-          className={`text-3xl font-bold mb-8 text-center ${
-            theme === "light" ? "text-primary" : "text-secondary"
-          }`}
-        >
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="w-full max-w-2xl p-6 md:p-8 border-2 border-accent rounded-xl shadow-lg">
+        <h1 className="text-3xl font-bold mb-8 text-center text-primary dark:text-secondary">
           Create Account
         </h1>
 
         <AnimatePresence mode="wait">
           {!formData.role ? (
-            // <motion.div
-            //   key="role-selection"
-            //   initial={{ opacity: 0, y: -20 }}
-            //   animate={{ opacity: 1, y: 0 }}
-            //   exit={{ opacity: 0, y: 20 }}
-            //   className="space-y-6"
-            // >
-            //   <h2
-            //     className={`text-lg ${
-            //       theme === "light" ? "text-gray-600" : "text-gray-300"
-            //     }`}
-            //   >
-            //     Select your role
-            //   </h2>
-            //   <div className="flex flex-col gap-4">
-            //     <motion.div
-            //       whileHover={{ scale: 1.02 }}
-            //       whileTap={{ scale: 0.98 }}
-            //       className={`p-4 rounded-lg cursor-pointer transition-all ${
-            //         formData.role === "student"
-            //           ? "border-2 border-primary bg-primary/10"
-            //           : "border border-gray-200 hover:border-primary"
-            //       }`}
-            //       onClick={() =>
-            //         setFormData((prev) => ({ ...prev, role: "student" }))
-            //       }
-            //     >
-            //       <div className="flex items-center gap-3">
-            //         <FaUserGraduate className="text-primary text-xl" />
-            //         <div>
-            //           <h3 className="font-semibold text-text dark:text-text-dark">
-            //             Student
-            //           </h3>
-            //           <p className="text-sm text-gray-500">
-            //             Join courses and learn
-            //           </p>
-            //         </div>
-            //       </div>
-            //     </motion.div>
-            //     <motion.div
-            //       whileHover={{ scale: 1.02 }}
-            //       whileTap={{ scale: 0.98 }}
-            //       className={`p-4 rounded-lg cursor-pointer transition-all ${
-            //         formData.role === "teacher"
-            //           ? "border-2 border-secondary bg-secondary/10"
-            //           : "border border-gray-200 hover:border-secondary"
-            //       }`}
-            //       onClick={() =>
-            //         setFormData((prev) => ({ ...prev, role: "teacher" }))
-            //       }
-            //     >
-            //       <div className="flex items-center gap-3">
-            //         <FaChalkboardTeacher className="text-secondary text-xl" />
-            //         <div>
-            //           <h3 className="font-semibold text-text dark:text-text-dark">
-            //             Teacher
-            //           </h3>
-            //           <p className="text-sm text-gray-500">
-            //             Create and manage courses
-            //           </p>
-            //         </div>
-            //       </div>
-            //     </motion.div>
-            //   </div>
-            // </motion.div>
             <RoleSelection
               setRole={(role) => setFormData((prev) => ({ ...prev, role }))}
             />
@@ -293,10 +224,9 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
               onSubmit={handleSubmit}
-              className="space-y-4"
+              className="space-y-6"
             >
-              <div className="space-y-4">
-                {/* Name Inputs */}
+              <div className="space-y-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <input
                     type="text"
@@ -320,174 +250,68 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
                   />
                 </div>
 
-                {/* Email & OTP */}
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <div className="relative flex-1">
-                    <input
-                      type="email"
-                      placeholder="Email"
-                      required
-                      value={formData.email}
-                      onChange={(e) =>
-                        setFormData({ ...formData, email: e.target.value })
-                      }
-                      disabled={isOtpVerified}
-                      className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-75"
-                    />
-                    {isOtpVerified && (
-                      <FaCheck className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500" />
-                    )}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => handleSendOtp({ email: formData.email })}
-                    disabled={countdown > 0 || isOtpVerified}
-                    className={`w-full sm:w-32 px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 ${
-                      countdown > 0 || isSendingOtp || isOtpVerified
-                        ? "bg-gray-300 cursor-not-allowed"
-                        : "bg-primary hover:bg-primary/90 text-white"
-                    }`}
-                  >
-                    {isSendingOtp ? (
-                      <>
-                        <FaSpinner className="animate-spin" />
-                        Sending...
-                      </>
-                    ) : countdown > 0 ? (
-                      `${countdown}s`
-                    ) : (
-                      "Send OTP"
-                    )}
-                  </button>
-                </div>
+                <EmailVerification
+                  email={formData.email}
+                  setEmail={(email) => setFormData({ ...formData, email })}
+                  isOtpSent={isOtpSent}
+                  isOtpVerified={isOtpVerified}
+                  isSendingOtp={isSendingOtp}
+                  countdown={countdown}
+                  onSendOtp={() => handleSendOtp({ email: formData.email })}
+                  onVerifyOtp={handleVerifyOtp}
+                  otp={formData.otp}
+                  setOtp={(otp) => setFormData({ ...formData, otp })}
+                  isVerifyingOtp={isVerifyingOtp}
+                />
 
-                {/* OTP Verification */}
-                {isOtpSent && !isOtpVerified && (
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <div className="relative flex-1">
-                      <input
-                        type="number"
-                        placeholder="Enter 4-digit OTP"
-                        required
-                        value={formData.otp}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            otp: e.target.value.replace(/\D/g, "").slice(0, 4),
-                          })
-                        }
-                        className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                      />
-                    </div>
-                    <button
-                      type="button"
-                      onClick={handleVerifyOtp}
-                      disabled={isLoading || isOtpVerified || isVerifyingOtp}
-                      className={`w-full sm:w-32 px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 ${
-                        isLoading || isOtpVerified || isVerifyingOtp
-                          ? "bg-gray-300 cursor-not-allowed"
-                          : "bg-primary hover:bg-primary/90 text-white"
-                      }`}
-                    >
-                      {isVerifyingOtp ? (
-                        <>
-                          <FaSpinner className="animate-spin" />
-                          Verifying...
-                        </>
-                      ) : (
-                        "Verify"
-                      )}
-                    </button>
-                  </div>
-                )}
-                {/* Phone Number & OTP Section */}
-                {isOtpVerified && !isPhoneOtpVerified && (
-                  <PhoneVerification
-                    phoneNumber={formData.phoneNumber}
-                    setPhoneNumber={(value: any) =>
-                      setFormData({ ...formData, phoneNumber: value })
-                    }
-                    onCommunicationChange={(method) =>
-                      setFormData({
-                        ...formData,
-                        TelegramOrWhatsapp: method || "whatsapp",
-                      })
-                    }
-                    onVerify={(otp) => handleVerifyPhoneOtp(otp)}
-                    onSendOtp={handleSendOtp}
-                    countdown={phoneCountdown}
-                    isVerified={isPhoneOtpVerified}
-                  />
-                )}
+                <PhoneVerification
+                  phoneNumber={formData.phoneNumber}
+                  setPhoneNumber={(phoneNumber) =>
+                    setFormData({ ...formData, phoneNumber })
+                  }
+                  onCommunicationChange={(method) =>
+                    setFormData({
+                      ...formData,
+                      TelegramOrWhatsapp: method || "whatsapp",
+                    })
+                  }
+                  onVerify={handleVerifyPhoneOtp}
+                  onSendOtp={handleSendOtp}
+                  countdown={phoneCountdown}
+                  isVerified={isPhoneOtpVerified}
+                />
 
-                {/* Password Fields */}
                 {isPhoneOtpVerified && (
                   <>
-                    {isPhoneOtpVerified && (
-                      <>
-                        <PasswordInput
-                          value={formData.password}
-                          onChange={(value: any) =>
-                            setFormData({ ...formData, password: value })
-                          }
-                          placeholder="Password"
-                        />
-                        <PasswordInput
-                          value={formData.confirmPassword}
-                          onChange={(value: any) =>
-                            setFormData({ ...formData, confirmPassword: value })
-                          }
-                          placeholder="Confirm Password"
-                        />
-                      </>
-                    )}
-                    {/* Communication Preference */}
-                    <div className="space-y-2">
-                      <p className="text-sm text-gray-600 dark:text-gray-300">
-                        Preferred communication method:
-                      </p>
-                      <div className="flex justify-center items-center gap-4">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setFormData({
-                              ...formData,
-                              TelegramOrWhatsapp: "telegram",
-                            })
-                          }
-                          className={`flex-1 p-2 rounded-lg border-2 transition-colors text-text flex items-center justify-center gap-2 ${
-                            formData.TelegramOrWhatsapp === "telegram"
-                              ? "border-blue-500 bg-blue-500/10"
-                              : "border-gray-200 hover:border-blue-500"
-                          }`}
-                        >
-                          <FaTelegram className="text-blue-500 text-xl" />
-                          Telegram
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setFormData({
-                              ...formData,
-                              TelegramOrWhatsapp: "whatsapp",
-                            })
-                          }
-                          className={`flex-1 p-2 rounded-lg border-2 transition-colors text-text flex items-center justify-center gap-2 ${
-                            formData.TelegramOrWhatsapp === "whatsapp"
-                              ? "border-green-500 bg-green-500/10"
-                              : "border-gray-200 hover:border-green-500"
-                          }`}
-                        >
-                          <FaWhatsapp className="text-green-500 text-xl" />
-                          WhatsApp
-                        </button>
-                      </div>
+                    <div className="space-y-4">
+                      <PasswordInput
+                        value={formData.password}
+                        onChange={(value) =>
+                          setFormData({ ...formData, password: value })
+                        }
+                        placeholder="Password"
+                      />
+                      <PasswordInput
+                        value={formData.confirmPassword}
+                        onChange={(value) =>
+                          setFormData({ ...formData, confirmPassword: value })
+                        }
+                        placeholder="Confirm Password"
+                      />
                     </div>
+
+                    <CommunicationPreference
+                      value={formData.TelegramOrWhatsapp}
+                      onChange={(method) =>
+                        setFormData({
+                          ...formData,
+                          TelegramOrWhatsapp: method,
+                        })
+                      }
+                    />
                   </>
                 )}
 
-                {/* Submit Button */}
                 {isPhoneOtpVerified && formData.TelegramOrWhatsapp && (
                   <button
                     type="submit"
@@ -501,7 +325,7 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
                     {isSubmitting ? (
                       <>
                         <FaSpinner className="animate-spin" />
-                        Creating...
+                        Creating Account...
                       </>
                     ) : (
                       "Create Account"
@@ -510,16 +334,16 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
                 )}
               </div>
 
-              <div className="flex gap-2 justify-center">
-                <p className="text-text dark:text-text-dark">
-                  Already have Account?
+              <div className="flex flex-col sm:flex-row gap-2 justify-center items-center mt-6">
+                <p className="text-gray-600 dark:text-gray-300">
+                  Already have an account?
                 </p>
                 <Link
-                  to={"/login"}
+                  to="/login"
                   onClick={() => setIsLogin(false)}
-                  className="font-bold text-primary"
+                  className="font-semibold text-primary hover:text-primary/80 transition-colors"
                 >
-                  Sign In
+                  Sign In Now
                 </Link>
               </div>
             </motion.form>
