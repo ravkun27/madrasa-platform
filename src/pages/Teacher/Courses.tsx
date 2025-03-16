@@ -28,7 +28,6 @@ import { ConfirmationModal } from "../../components/Modal/ConfiramtionModal";
 import ReactCrop from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 import { Crop } from "react-image-crop";
-// import { Description } from "@headlessui/react";
 // import { format, parseISO, isBefore, isAfter } from "date-fns";
 
 export const Courses = ({ course }: { course: any }) => {

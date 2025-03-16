@@ -42,34 +42,22 @@ async function apiCall<T = any>(
     };
   }
 
-  try {
-    console.log(`API Call: ${method} ${url}`, {
-      withCredentials: true,
-      hasToken: !!token,
-    });
+  const res = await fetch(url, options);
 
-    const res = await fetch(url, options);
+  // Handle 204 No Content responses safely
+  if (res.status === 204) return {} as T;
 
-    // Handle 204 No Content responses safely
-    if (res.status === 204) return {} as T;
+  const result = await res.json().catch(() => null); // Handle cases where JSON parsing fails
 
-    const result = await res.json().catch(() => null); // Handle cases where JSON parsing fails
-
-    if (!res.ok) {
-      const errorMessage =
-        result && typeof result === "object" && "message" in result
-          ? (result.message as string)
-          : `API Error: ${res.status} ${res.statusText}`;
-      throw new Error(errorMessage);
-    }
-
-    return result;
-  } catch (error) {
-    console.error("API Call Failed:", error);
-    throw new Error(
-      error instanceof Error ? error.message : "Network or API error occurred."
-    );
+  if (!res.ok) {
+    const errorMessage =
+      result && typeof result === "object" && "message" in result
+        ? (result.message as string)
+        : `API Error: ${res.status} ${res.statusText}`;
+    throw new Error(errorMessage);
   }
+
+  return result;
 }
 
 // Utility functions for specific HTTP methods

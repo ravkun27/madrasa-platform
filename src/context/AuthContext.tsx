@@ -41,8 +41,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         case "student":
           navigate("/student-dashboard");
           break;
-        case "admin":
-          navigate("/admin-dashboard");
+        case "superadmin":
+        case "generaladmin":
+          navigate("/admin/dashboard");
           break;
         default:
           navigate("/"); // Fallback to landing page for unknown roles

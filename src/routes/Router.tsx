@@ -17,6 +17,8 @@ import { CourseProvider } from "../context/CourseContext"; // Import CourseProvi
 import UserSettingsPage from "../pages/shared/UserSettingsPage";
 import { useState } from "react";
 import CoursesPage from "../pages/CoursesPage";
+import AdminLayout from "../layouts/AdminLayout";
+import AdminLogin from "../pages/Auth/AdminLogin";
 // RootLayout wraps the entire app with AuthProvider and CourseProvider
 const RootLayout = () => {
   return (
@@ -54,6 +56,7 @@ const publicRoutes = [
         path: "login",
         element: <Login setIsLogin={(isLogin) => console.log(isLogin)} />,
       },
+
       { path: "unauthorized", element: <Unauthorized /> },
     ],
   },
@@ -68,12 +71,7 @@ const protectedRoutes = [
         element: <ProtectedLayout />, // Public layout wrapper
         children: [
           { path: "user-settings", element: <UserSettingsWrapper /> },
-          {
-            element: <RoleBasedRoute role="admin" />, // Role check
-            children: [
-              { path: "admin-dashboard", element: <AdminDashboard /> },
-            ],
-          },
+
           {
             element: <RoleBasedRoute role="student" />, // Role check
             children: [
@@ -96,6 +94,23 @@ const protectedRoutes = [
   },
 ];
 
+const adminRoutes = [
+  {
+    path: "admin",
+    element: <AdminLayout />,
+    children: [
+      {
+        path: "login",
+        element: <AdminLogin setIsLogin={(isLogin) => console.log(isLogin)} />,
+      },
+      {
+        element: <PrivateRoute />, // Protect admin pages
+        children: [{ path: "dashboard", element: <AdminDashboard /> }],
+      },
+    ],
+  },
+];
+
 // Router configuration
 const router = createBrowserRouter([
   {
@@ -103,6 +118,7 @@ const router = createBrowserRouter([
     children: [
       ...publicRoutes, // Public routes
       ...protectedRoutes, // Protected routes
+      ...adminRoutes,
       { path: "*", element: <NotFound /> }, // 404 route
     ],
   },

@@ -26,10 +26,7 @@ const ManageCoursesPage = () => {
   const [isCreating, setIsCreating] = useState(false);
   const { setCourseList } = useCourseActions();
   const { courses, isLoading } = useCourses();
-
-  useEffect(() => {
-    setCourseList();
-  }, []);
+  const [isSuspended, setIsSuspended] = useState(false);
 
   const createCourse = async () => {
     setIsCreating(true);
@@ -71,19 +68,40 @@ const ManageCoursesPage = () => {
     setShowCourseForm(false);
     setNewCourse({});
   };
+  const checkSuspended = async () => {
+    try {
+      const response: any = await getFetch("/user");
+      if (response?.success) {
+        console.log("Suspended status:", response.data.suspended);
+
+        setIsSuspended(response.data.suspended);
+      }
+    } catch (error) {
+      console.error("Error fetching suspended status:", error);
+    }
+  };
+  useEffect(() => {
+    setCourseList();
+    checkSuspended();
+  }, []);
 
   return (
     <div className="min-h-screen p-4">
-      <div className="flex items-center justify-center gap-4 md:gap-20 mb-8 flex-nowrap">
-        <h1 className="md:text-2xl font-bold text-gray-500">
-          Manage Courses
-        </h1>
-        <button
-          onClick={() => setShowCourseForm(true)}
-          className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition active:scale-95 font-medium shadow-md hover:shadow-lg text-sm md:text-2xl whitespace-nowrap"
-        >
-          Create New Course
-        </button>
+      <div className="flex items-center justify-center gap-4 md:gap-20 mb-8 flex-nowrap relative">
+        <h1 className="md:text-2xl font-bold text-gray-500">Manage Courses</h1>
+
+        {!isSuspended ? (
+          <button
+            onClick={() => setShowCourseForm(true)}
+            className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition active:scale-95 font-medium shadow-md hover:shadow-lg text-sm md:text-2xl whitespace-nowrap"
+          >
+            Create New Course
+          </button>
+        ) : (
+          <p className="text-red-500 text-sm md:text-xl font-medium absolute top-10 left-1/2 -translate-x-1/2">
+            Your account is suspended. Please contact support.
+          </p>
+        )}
       </div>
 
       <AnimatePresence>

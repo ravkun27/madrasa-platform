@@ -6,41 +6,65 @@ import { motion } from "framer-motion";
 
 const Dashboard = () => {
   const [teacherCourses, setTeacherCourses] = useState<any[]>([]);
-  // const [isApproved, setIsApproved] = useState(false);
-
+  const [isApproved, setIsApproved] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchTeacherStatus = async () => {
       try {
-        // const response: any = await getFetch("/user/teacher/status");
-        // if (response?.success) {
-        //   setIsApproved(response.data.approved);
-        //   if (response.data.approved) {
-        const coursesResponse: any = await getFetch("/user/teacher/course/all");
-        setTeacherCourses(coursesResponse.data?.courseList || []);
-        // }
-        // }
+        const response: any = await getFetch("/user");
+        if (response?.success) {
+          setIsApproved(response.data.approved);
+          if (response.data.approved) {
+            const coursesResponse: any = await getFetch(
+              "/user/teacher/course/all"
+            );
+            const publishedCourses =
+              coursesResponse.data?.courseList.filter(
+                (course: any) => course.published
+              ) || [];
+            setTeacherCourses(publishedCourses);
+          }
+        }
       } catch (error) {
         console.error("Error fetching teacher status:", error);
       } finally {
         setLoading(false);
       }
     };
+
     fetchTeacherStatus();
   }, []);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading)
+    return (
+      <div className="w-full px-6 py-8 flex flex-col items-center">
+        <div className="max-w-6xl w-full">
+          <h3 className="text-2xl font-bold mb-6 flex items-center gap-3 text-gray-900 dark:text-white">
+            <FiBookOpen className="text-blue-600 dark:text-blue-400 text-3xl" />
+            Loading your courses...
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {[...Array(4)].map((_, i) => (
+              <div
+                key={i}
+                className="animate-pulse bg-gray-200 dark:bg-gray-700 h-72 rounded-lg"
+              ></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
 
-  // if (!isApproved)
-  //   return (
-  //     <div className="min-h-screen text-center flex flex-col justify-center items-center">
-  //       <h2 className="text-2xl font-bold mb-4">Account Pending Approval</h2>
-  //       <p className="text-gray-600 dark:text-gray-400">
-  //         Your account is under review. Please wait for admin approval.
-  //       </p>
-  //     </div>
-  //   );
+  if (!isApproved)
+    return (
+      <div className="min-h-screen text-center flex flex-col justify-center items-center">
+        <h2 className="text-2xl font-bold mb-4">Account Pending Approval</h2>
+        <p className="text-gray-600 dark:text-gray-400">
+          Your account is under review. Please wait for admin approval.
+        </p>
+      </div>
+    );
 
   const CourseCard = ({ course }: { course: any }) => (
     <motion.div
@@ -48,7 +72,6 @@ const Dashboard = () => {
       animate={{ opacity: 1, y: 0 }}
       className="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-shadow p-6 flex flex-col"
     >
-      {/* Course Banner */}
       {course.banner && (
         <img
           src={course.banner}
@@ -56,8 +79,6 @@ const Dashboard = () => {
           className="w-full h-48 object-cover rounded-lg mb-4"
         />
       )}
-
-      {/* Course Title & Description */}
       <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
         {course.title}
       </h3>
@@ -65,7 +86,6 @@ const Dashboard = () => {
         {course.description}
       </p>
 
-      {/* Course Metadata */}
       <div className="mt-4 space-y-2 text-sm text-gray-500 dark:text-gray-400">
         <div className="flex items-center gap-2">
           <FiUsers className="text-gray-500" />
@@ -87,7 +107,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Tags */}
       {course.tags?.length > 0 && (
         <div className="mt-4 flex flex-wrap gap-2">
           {course.tags.map((tag: string) => (
@@ -107,20 +126,12 @@ const Dashboard = () => {
     <>
       <div className="w-full px-6 py-8 flex flex-col items-center">
         <div className="max-w-6xl w-full">
-          {/* Section Title */}
           <h3 className="text-2xl font-bold mb-6 flex items-center gap-3 text-gray-900 dark:text-white">
             <FiBookOpen className="text-blue-600 dark:text-blue-400 text-3xl" />
             Your Published Courses
           </h3>
 
-          {/* Courses Grid / Loading State */}
-          {loading ? (
-            <div className="flex justify-center items-center py-16">
-              <span className="text-gray-600 dark:text-gray-300 text-lg">
-                Loading your courses...
-              </span>
-            </div>
-          ) : teacherCourses.length > 0 ? (
+          {teacherCourses.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {teacherCourses.map((course) => (
                 <CourseCard key={course._id} course={course} />
@@ -137,7 +148,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Manage Courses Section */}
       <div className="w-full bg-gray-50 dark:bg-gray-900 py-10">
         <div className="max-w-6xl mx-auto md:px-6">
           <ManageCourses />
