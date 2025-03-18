@@ -1,3 +1,13 @@
+.badge-style {
+  @apply px-2 py-1 text-sm rounded-full whitespace-nowrap;
+}
+.suspended {
+  @apply bg-red-100 text-red-800;
+}
+.active {
+  @apply bg-green-100 text-green-800;
+}
+
 /* CSS Variables */
 :root {
   --color-primary: #1d4ed8; /* Blue */

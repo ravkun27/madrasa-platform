@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTheme } from "../../context/ThemeContext";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { postFetch } from "../../utils/apiCall";
 import { useAuth } from "../../context/AuthContext";
 import { FaSpinner } from "react-icons/fa";
@@ -16,11 +16,7 @@ type LoginResponse = {
   message?: string;
 };
 
-const AdminLogin = ({
-  setIsLogin,
-}: {
-  setIsLogin: (isLogin: boolean) => void;
-}) => {
+const AdminLogin = () => {
   const { theme } = useTheme();
   const { login } = useAuth();
   const [identifier, setIdentifier] = useState("");
@@ -152,23 +148,6 @@ const AdminLogin = ({
               "Sign In"
             )}
           </motion.button>
-
-          <div className="text-center mt-4">
-            <span className={`text-sm ${currentTheme.text}`}>
-              Don't have an account?{" "}
-              <Link
-                to="/signup"
-                onClick={() => setIsLogin(false)}
-                className={`font-semibold underline ${
-                  theme === "light"
-                    ? "text-primary hover:text-primary/80"
-                    : "text-secondary hover:text-secondary/80"
-                } transition-colors`}
-              >
-                Create account
-              </Link>
-            </span>
-          </div>
         </form>
       </motion.div>
     </div>

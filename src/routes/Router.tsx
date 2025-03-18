@@ -19,6 +19,7 @@ import { useState } from "react";
 import CoursesPage from "../pages/CoursesPage";
 import AdminLayout from "../layouts/AdminLayout";
 import AdminLogin from "../pages/Auth/AdminLogin";
+import AboutUs from "../pages/AboutusPage";
 // RootLayout wraps the entire app with AuthProvider and CourseProvider
 const RootLayout = () => {
   return (
@@ -48,6 +49,7 @@ const publicRoutes = [
     children: [
       { index: true, element: <LandingPage /> },
       { path: "courses", element: <CoursesPage /> },
+      { path: "about", element: <AboutUs /> },
       {
         path: "signup",
         element: <Signup setIsLogin={(isLogin) => console.log(isLogin)} />,
@@ -101,7 +103,7 @@ const adminRoutes = [
     children: [
       {
         path: "login",
-        element: <AdminLogin setIsLogin={(isLogin) => console.log(isLogin)} />,
+        element: <AdminLogin />,
       },
       {
         element: <PrivateRoute />, // Protect admin pages
