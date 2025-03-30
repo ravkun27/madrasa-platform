@@ -15,6 +15,8 @@ export const PhoneVerification = ({
   onVerify,
   onSendOtp,
   isVerified,
+  selectedCountry,
+  setSelectedCountry,
 }: {
   phoneNumber: string;
   setPhoneNumber: (value: string) => void;
@@ -27,10 +29,11 @@ export const PhoneVerification = ({
   onCommunicationChange: (method: "telegram" | "whatsapp") => void;
   countdown: number;
   isVerified: boolean;
+  selectedCountry: { code: string; country: string };
+  setSelectedCountry: (value: { code: string; country: string }) => void;
 }) => {
   const [method, setMethod] = useState<"whatsapp" | "sms">("whatsapp");
   const [otp, setOtp] = useState("");
-  const [selectedCountry, setSelectedCountry] = useState(CountryOptions[0]);
   const [otpCountdown, setOtpCountdown] = useState(0);
   const [isSending, setIsSending] = useState(false);
 
@@ -181,9 +184,7 @@ export const PhoneVerification = ({
               }
             }}
             isVerified={isVerified}
-            isSending={false}
             isVerifying={false}
-            countdown={otpCountdown}
           />
         </motion.div>
       )}

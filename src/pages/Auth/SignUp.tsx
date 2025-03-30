@@ -50,6 +50,7 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [phoneOtpId, setPhoneOtpId] = useState("");
+  const [country, setCountry] = useState({ code: "+91", country: "India" });
 
   const handleSendOtp = async (payload: {
     email?: string;
@@ -124,7 +125,8 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
       const result = await postFetch<OtpResponse>("/user/verifyOtp", {
         phoneNumber: formData.phoneNumber,
         otp: otp,
-        optId: phoneOtpId, // Include OTP ID for phone verification
+        optId: phoneOtpId,
+        country: country.country, // Include OTP ID for phone verification
       });
 
       if (result.success) {
@@ -274,6 +276,8 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
                   onSendOtp={handleSendOtp}
                   countdown={phoneCountdown}
                   isVerified={isPhoneOtpVerified}
+                  selectedCountry={country}
+                  setSelectedCountry={setCountry}
                 />
 
                 {isPhoneOtpVerified && (

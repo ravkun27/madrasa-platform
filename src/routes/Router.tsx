@@ -20,6 +20,7 @@ import CoursesPage from "../pages/CoursesPage";
 import AdminLayout from "../layouts/AdminLayout";
 import AdminLogin from "../pages/Auth/AdminLogin";
 import AboutUs from "../pages/AboutusPage";
+import { CoursePage } from "../pages/Student/CoursePage";
 // RootLayout wraps the entire app with AuthProvider and CourseProvider
 const RootLayout = () => {
   return (
@@ -78,6 +79,7 @@ const protectedRoutes = [
             element: <RoleBasedRoute role="student" />, // Role check
             children: [
               { path: "student-dashboard", element: <StudentDashboard /> },
+              { path: "/course/:courseId", element: <CoursePage /> },
             ],
           },
           {
