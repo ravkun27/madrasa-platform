@@ -51,43 +51,62 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [phoneOtpId, setPhoneOtpId] = useState("");
   const [country, setCountry] = useState({ code: "+91", country: "India" });
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleSendOtp = async (payload: {
     email?: string;
     phoneNumber?: string;
     method?: "whatsapp" | "sms";
     country?: string;
-  }) => {
-    if (payload.phoneNumber && !payload.method) {
-      toast.error("Please select a method (WhatsApp or SMS) for phone OTP.");
-      return;
-    }
-
+  }): Promise<{ success: boolean; message?: string }> => {
     setIsSendingOtp(true);
     try {
+      const postData: any = { ...payload };
+
+      if (payload.phoneNumber && payload.country) {
+        let rawNumber = payload.phoneNumber.replace(/\D/g, ""); // Remove all non-digit characters
+
+        // Remove leading zeros
+        rawNumber = rawNumber.replace(/^0+/, "");
+
+        // Trim to the last 10 digits if it's longer than 10
+        if (rawNumber.length > 10) {
+          rawNumber = rawNumber.slice(-10);
+        }
+
+        postData.phoneNumber = rawNumber;
+      }
+
       const result = await postFetch<OtpResponse>(
         "/user/sendOTP?for=createUser",
-        {
-          ...payload,
-          phoneNumber: payload.phoneNumber?.replace(/^0/, ""),
-        }
+        postData
       );
 
       if (result.success) {
         const receivedOtpId = result.data?.optId || "";
 
-        if (payload.phoneNumber && receivedOtpId) {
+        if (payload.phoneNumber) {
           setPhoneOtpId(receivedOtpId);
+          setPhoneCountdown(30);
+        } else if (payload.email) {
+          setCountdown(30);
+          setIsOtpSent(true);
         }
 
-        setCountdown(10);
-        if (payload.email) setIsOtpSent(true);
         toast.success(`OTP sent to ${payload.email ? "email" : "phone"}!`);
+        return { success: true };
       } else {
         toast.error(result.message || "Failed to send OTP");
+        return {
+          success: false,
+          message: result.message || "Failed to send OTP",
+        };
       }
-    } catch (error) {
-      toast.error("Failed to send OTP");
+    } catch (error: any) {
+      const errorMessage =
+        error.message || "Failed to send OTP. Please try again.";
+      toast.error(errorMessage);
+      return { success: false, message: errorMessage };
     } finally {
       setIsSendingOtp(false);
     }
@@ -156,6 +175,13 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
       return () => clearInterval(timer);
     }
   }, [countdown]);
+  // Update countdown effects
+  useEffect(() => {
+    if (countdown > 0) {
+      const timer = setInterval(() => setCountdown((prev) => prev - 1), 1000);
+      return () => clearInterval(timer);
+    }
+  }, [countdown]);
 
   useEffect(() => {
     if (phoneCountdown > 0) {
@@ -170,12 +196,32 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    try {
-      if (formData.password !== formData.confirmPassword) {
-        toast.error("Passwords do not match");
-        return;
-      }
 
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.firstName.trim())
+      newErrors.firstName = "First name is required.";
+    if (!formData.lastName.trim())
+      newErrors.lastName = "Last name is required.";
+    if (!formData.email.trim()) newErrors.email = "Email is required.";
+    if (!formData.phoneNumber.trim())
+      newErrors.phoneNumber = "Phone number is required.";
+    if (!formData.password) newErrors.password = "Password is required.";
+    if (formData.password !== formData.confirmPassword)
+      newErrors.confirmPassword = "Passwords do not match.";
+    if (!formData.role) newErrors.role = "Please select a role.";
+    if (!isPhoneOtpVerified)
+      newErrors.phoneOtp = "Please verify your phone OTP.";
+
+    setErrors(newErrors);
+
+    if (Object.keys(newErrors).length > 0) {
+      toast.error("Please fix the errors and try again.");
+      setIsSubmitting(false);
+      return;
+    }
+
+    try {
       const result = await postFetch<SignupResponse>("/user/signup", {
         firstName: formData.firstName,
         lastName: formData.lastName,
@@ -233,7 +279,9 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
                     onChange={(e) =>
                       setFormData({ ...formData, firstName: e.target.value })
                     }
-                    className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 ${
+                      errors.firstName ? "border-red-500" : "border-gray-300"
+                    }`}
                   />
                   <input
                     type="text"
@@ -243,7 +291,9 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
                     onChange={(e) =>
                       setFormData({ ...formData, lastName: e.target.value })
                     }
-                    className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 ${
+                      errors.firstName ? "border-red-500" : "border-gray-300"
+                    }`}
                   />
                 </div>
 
@@ -273,11 +323,13 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
                     })
                   }
                   onVerify={handleVerifyPhoneOtp}
-                  onSendOtp={handleSendOtp}
                   countdown={phoneCountdown}
                   isVerified={isPhoneOtpVerified}
                   selectedCountry={country}
                   setSelectedCountry={setCountry}
+                  onSendOtp={async (payload) => {
+                    return await handleSendOtp(payload);
+                  }}
                 />
 
                 {isPhoneOtpVerified && (

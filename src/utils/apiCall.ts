@@ -18,7 +18,7 @@ async function apiCall<T = any>(
   // Initialize options with credentials included
   const options: RequestInit = {
     method,
-    credentials: "include", // This is critical - it must be at the top level
+    credentials: "include",
     headers: {} as Record<string, string>,
   };
 
@@ -42,22 +42,34 @@ async function apiCall<T = any>(
     };
   }
 
-  const res = await fetch(url, options);
+  try {
+    const res = await fetch(url, options);
 
-  // Handle 204 No Content responses safely
-  if (res.status === 204) return {} as T;
+    // Handle 204 No Content responses safely
+    if (res.status === 204) {
+      console.log("Received 204 No Content");
+      return {} as T;
+    }
 
-  const result = await res.json().catch(() => null); // Handle cases where JSON parsing fails
+    const result = await res.json().catch((err) => {
+      console.error("Failed to parse JSON response:", err);
+      return null;
+    });
 
-  if (!res.ok) {
-    const errorMessage =
-      result && typeof result === "object" && "message" in result
-        ? (result.message as string)
-        : `API Error: ${res.status} ${res.statusText}`;
-    throw new Error(errorMessage);
+    if (!res.ok) {
+      const errorMessage =
+        result && typeof result === "object" && "message" in result
+          ? (result.message as string)
+          : `API Error: ${res.status} ${res.statusText}`;
+      console.error("API Error:", errorMessage);
+      throw new Error(errorMessage);
+    }
+
+    return result;
+  } catch (error) {
+    console.error("Network or API Error:", error);
+    throw error;
   }
-
-  return result;
 }
 
 // Utility functions for specific HTTP methods

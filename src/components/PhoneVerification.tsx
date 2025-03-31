@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+// PhoneVerification.tsx
+import { useState } from "react";
 import { FaComment, FaSpinner, FaWhatsapp } from "react-icons/fa";
 import { OtpInput } from "./OtpInput";
 import { motion } from "framer-motion";
@@ -17,6 +18,7 @@ export const PhoneVerification = ({
   isVerified,
   selectedCountry,
   setSelectedCountry,
+  countdown,
 }: {
   phoneNumber: string;
   setPhoneNumber: (value: string) => void;
@@ -25,42 +27,31 @@ export const PhoneVerification = ({
     phoneNumber: string;
     method: "whatsapp" | "sms";
     country: string;
-  }) => void;
-  onCommunicationChange: (method: "telegram" | "whatsapp") => void;
-  countdown: number;
+  }) => Promise<boolean | { success: boolean; message?: string }>;
+
   isVerified: boolean;
   selectedCountry: { code: string; country: string };
   setSelectedCountry: (value: { code: string; country: string }) => void;
+  onCommunicationChange: (method: "telegram" | "whatsapp") => void;
+  countdown: number;
 }) => {
   const [method, setMethod] = useState<"whatsapp" | "sms">("whatsapp");
   const [otp, setOtp] = useState("");
-  const [otpCountdown, setOtpCountdown] = useState(0);
   const [isSending, setIsSending] = useState(false);
 
-  // Handle countdown timer
-  useEffect(() => {
-    if (otpCountdown > 0) {
-      const timer = setInterval(() => {
-        setOtpCountdown((prev) => prev - 1);
-      }, 1000);
-      return () => clearInterval(timer);
-    }
-  }, [otpCountdown]);
-
-  const handleSendOtp = () => {
+  const handleSendOtp = async () => {
     if (!phoneNumber) {
       toast.error("Please enter a valid phone number");
       return;
     }
 
-    const payload = {
-      phoneNumber: phoneNumber,
+    setIsSending(true);
+    await onSendOtp({
+      phoneNumber,
       method,
       country: selectedCountry.country,
-    };
-    onSendOtp(payload);
-    setOtpCountdown(10); // Start 10-second countdown
-    setIsSending(true);
+    });
+    setIsSending(false);
   };
 
   return (
@@ -116,7 +107,7 @@ export const PhoneVerification = ({
                 );
                 if (newCountry) setSelectedCountry(newCountry);
               }}
-              className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+              className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent bg-white"
             >
               {CountryOptions.map((c) => (
                 <option key={c.code} value={c.code}>
@@ -135,7 +126,7 @@ export const PhoneVerification = ({
               onChange={(e) =>
                 setPhoneNumber(e.target.value.replace(/\D/g, "").slice(0, 15))
               }
-              className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+              className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-white"
             />
           </div>
 
@@ -145,9 +136,9 @@ export const PhoneVerification = ({
             whileTap={{ scale: 0.98 }}
             type="button"
             onClick={handleSendOtp}
-            disabled={otpCountdown > 0 || isSending}
+            disabled={countdown > 0 || isSending}
             className={`px-6 py-3 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 ${
-              otpCountdown > 0 || isSending
+              countdown > 0 || isSending
                 ? "bg-gray-300 cursor-not-allowed"
                 : "bg-primary hover:bg-primary/90 text-white"
             }`}
@@ -157,8 +148,8 @@ export const PhoneVerification = ({
                 <FaSpinner className="animate-spin" />
                 Sending...
               </>
-            ) : otpCountdown > 0 ? (
-              `Resend in ${otpCountdown}s`
+            ) : countdown > 0 ? (
+              ` ${countdown}s`
             ) : (
               "Send OTP"
             )}
@@ -167,7 +158,7 @@ export const PhoneVerification = ({
       </div>
 
       {/* OTP Input */}
-      {isSending && !isVerified && (
+      {countdown > 0 && !isVerified && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
