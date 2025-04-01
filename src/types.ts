@@ -52,3 +52,47 @@ export type CourseAction =
       };
     }
   | { type: "PUBLISH_COURSE"; payload: string };
+export interface Course {
+  _id: string;
+  title: string;
+  description: string;
+  teacherId: string;
+  sectionIds: Section[];
+  meetingDetails?: MeetingDetails | null;
+}
+
+export interface Section {
+  _id: string;
+  title: string;
+  description: string;
+  courseId: string;
+  lessonIds: string[];
+}
+
+export interface Lesson {
+  _id: string;
+  title: string;
+  description: string;
+  fileType: string;
+  filePath: string;
+  notes: Note[];
+  sectionId: string;
+  completed?: boolean;
+}
+
+export interface Note {
+  _id: string;
+  content: {
+    title: string;
+    description: string;
+    url?: string;
+  };
+}
+
+export interface MeetingDetails {
+  isLive: boolean;
+  scheduledTime?: string;
+  title: string;
+  description: string;
+  url: string;
+}

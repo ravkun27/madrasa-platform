@@ -140,9 +140,17 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
 
   const handleVerifyPhoneOtp = async (otp: string) => {
     setIsVerifyingOtp(true);
+
+    // Remove leading zeros and ensure the phone number is exactly 10 digits
+    let processedPhoneNumber = formData.phoneNumber.replace(/^0+/, "");
+
+    if (processedPhoneNumber.length > 10) {
+      processedPhoneNumber = processedPhoneNumber.slice(-10); // Keep only the last 10 digits
+    }
+
     try {
       const result = await postFetch<OtpResponse>("/user/verifyOtp", {
-        phoneNumber: formData.phoneNumber,
+        phoneNumber: processedPhoneNumber,
         otp: otp,
         optId: phoneOtpId,
         country: country.country, // Include OTP ID for phone verification

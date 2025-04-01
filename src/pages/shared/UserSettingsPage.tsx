@@ -99,47 +99,47 @@ const UserSettingsPage = ({
   }, [isOpen]);
 
   // const handleUpdate = async (type: keyof typeof isEditing) => {
-    // setIsLoading(true);
-    // try {
-    //   let payload = {};
-    //   let endpoint = "";
+  // setIsLoading(true);
+  // try {
+  //   let payload = {};
+  //   let endpoint = "";
 
-    //   switch (type) {
-    //     case "name":
-    //       endpoint = "/user/update-name";
-    //       payload = { name: formData.newName };
-    //       break;
-    //     case "phone":
-    //       endpoint = "/user/phone_or_email";
-    //       payload = { phone: formData.newPhone };
-    //       break;
-    //     case "contact":
-    //       endpoint = "/user/update-contact";
-    //       payload = {
-    //         telegram: formData.newTelegram,
-    //         whatsapp: formData.newWhatsapp,
-    //       };
-    //       break;
-    //     case "password":
-    //       endpoint = "/user/password";
-    //       payload = {
-    //         currentPassword: formData.currentPassword,
-    //         newPassword: formData.newPassword,
-    //       };
-    //       break;
-    //   }
+  //   switch (type) {
+  //     case "name":
+  //       endpoint = "/user/update-name";
+  //       payload = { name: formData.newName };
+  //       break;
+  //     case "phone":
+  //       endpoint = "/user/phone_or_email";
+  //       payload = { phone: formData.newPhone };
+  //       break;
+  //     case "contact":
+  //       endpoint = "/user/update-contact";
+  //       payload = {
+  //         telegram: formData.newTelegram,
+  //         whatsapp: formData.newWhatsapp,
+  //       };
+  //       break;
+  //     case "password":
+  //       endpoint = "/user/password";
+  //       payload = {
+  //         currentPassword: formData.currentPassword,
+  //         newPassword: formData.newPassword,
+  //       };
+  //       break;
+  //   }
 
-    //   const result: any = await postFetch(endpoint, payload);
-    //   if (result.success) {
-    //     toast.success("Update successful");
-    //     setUserData((prev) => ({ ...prev, ...payload }));
-    //     setIsEditing((prev) => ({ ...prev, [type]: false }));
-    //   }
-    // } catch (error: any) {
-    //   toast.error(error.message || "Update failed");
-    // } finally {
-    //   setIsLoading(false);
-    // }
+  //   const result: any = await postFetch(endpoint, payload);
+  //   if (result.success) {
+  //     toast.success("Update successful");
+  //     setUserData((prev) => ({ ...prev, ...payload }));
+  //     setIsEditing((prev) => ({ ...prev, [type]: false }));
+  //   }
+  // } catch (error: any) {
+  //   toast.error(error.message || "Update failed");
+  // } finally {
+  //   setIsLoading(false);
+  // }
   // };
 
   const handleLogout = async () => {
@@ -159,7 +159,7 @@ const UserSettingsPage = ({
       )
     ) {
       try {
-        await deleteFetch("/user/delete");
+        await deleteFetch("/user");
         logout();
         toast.success("Account deleted");
         navigate("/");

@@ -813,7 +813,7 @@ export const Courses = ({ course }: { course: any }) => {
                     <input
                       type="text"
                       placeholder="Section Description"
-                      className="w-full p-3 border rounded-lg focus:ring-2 mb-4 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 line-clamp-3 text-sm"
+                      className="w-full p-3 border rounded-lg focus:ring-2 mb-4 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 line-clamp-2 text-sm"
                       value={newSection.description}
                       onChange={(e) =>
                         setNewSection({

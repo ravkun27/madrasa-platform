@@ -51,8 +51,10 @@ const Login = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
       } else {
         toast.error(result.message || "Invalid credentials");
       }
-    } catch (error) {
-      toast.error("Something went wrong. Please try again.");
+    } catch (error: any) {
+      const errorMessage = error.message || "Something went wrong.";
+      toast.error(errorMessage);
+      return { success: false, message: errorMessage };
     } finally {
       setLoading(false);
     }
