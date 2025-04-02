@@ -32,7 +32,6 @@ export const CoursePage = () => {
 
         const lessonsPromises = courseData.sectionIds.flatMap((section: any) =>
           section.lessonIds.map(async (lessonId: string) => {
-            console.log(`Fetching lesson ${lessonId}...`);
             const lessonRes: any = await getFetch(
               `/user/student/course/lesson?lessonId=${lessonId}&courseId=${courseId}`
             );
