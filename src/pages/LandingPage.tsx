@@ -7,8 +7,8 @@ import {
   FaSearch,
   FaKey,
   FaUsers,
+  FaArrowRight,
 } from "react-icons/fa";
-import { useTheme } from "../context/ThemeContext"; // Import useTheme hook
 
 interface StepCardProps {
   icon: React.ElementType;
@@ -19,8 +19,8 @@ interface StepCardProps {
 
 const LandingPage = () => {
   const [searchValue, setSearchValue] = useState("");
-  const { theme } = useTheme(); // Get current theme
 
+  // Animation variants
   const fadeInUp = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0 },
@@ -37,54 +37,21 @@ const LandingPage = () => {
   };
 
   return (
-    <div
-      className={`min-h-screen bg-gradient-to-br ${
-        theme === "light"
-          ? "from-white to-light-teal"
-          : "from-background-dark to-background-dark/90"
-      }`}
-    >
+    <div className={`min-h-screen bg-background`}>
       {/* Hero Section */}
       <motion.section
-        className={`relative pt-24 pb-24 px-4 overflow-hidden ${
-          theme === "light"
-            ? "bg-gradient-to-br from-white to-gray-50"
-            : "bg-gradient-to-br from-gray-900 to-gray-800"
-        }`}
+        className="relative pt-16 md:pt-24 pb-20 md:pb-32 px-4 overflow-hidden"
         initial="hidden"
         animate="visible"
         variants={containerVariants}
       >
-        {/* Animated Background Blob */}
+        {/* Animated Background Blobs - more subtle animation */}
         <motion.div
-          className={`absolute top-0 right-0 w-1/2 h-1/2 rounded-full blur-[100px] ${
-            theme === "light"
-              ? "bg-gradient-to-r from-[#6E45E2] via-[#FF6B6B] to-[#FFE66D]"
-              : "bg-gradient-to-r from-[#8B5CF6] via-[#FF6B6B] to-[#FFE66D]"
-          }`}
-          animate={{
-            scale: [1, 1.2, 1],
-            rotate: [0, 90, 180, 270, 360],
-            opacity: [0.4, 0.8, 0.4],
-          }}
-          transition={{
-            duration: 6,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-
-        {/* Optional: Add a second blob for more depth */}
-        <motion.div
-          className={`absolute bottom-0 left-0 w-1/3 h-1/3 rounded-full blur-[80px] ${
-            theme === "light"
-              ? "bg-gradient-to-r from-[#4f77e6] via-[#770cca] to-[#6E45E2]"
-              : "bg-gradient-to-r from-[#00C9A7] via-[#B8F2E6] to-[#8B5CF6]"
-          }`}
+          className="absolute top-0 right-0 w-1/2 h-1/2 rounded-full blur-[100px] bg-gradient-to-r from-primary via-secondary to-accent opacity-20"
           animate={{
             scale: [1, 1.1, 1],
-            rotate: [0, -90, -180, -270, -360],
-            opacity: [0.3, 0.6, 0.3],
+            rotate: [0, 45, 0],
+            opacity: [0.2, 0.3, 0.2],
           }}
           transition={{
             duration: 8,
@@ -93,107 +60,105 @@ const LandingPage = () => {
           }}
         />
 
-        <div className="md:max-w-6xl mx-auto relative z-10">
-          <motion.h1
-            className="text-4xl md:text-8xl font-extrabold text-center mb-6"
-            variants={fadeInUp}
-            initial="hidden"
-            animate="visible"
-            transition={{ duration: 0.8, delay: 0.2 }}
-          >
-            <span
-              className={`bg-gradient-to-r ${
-                theme === "light"
-                  ? "from-[#5A2D91] via-[#57A3A2] to-[#1ABF9F]"
-                  : "from-[#6E45E2] via-[#88D3CE] to-[#B8F2E6]"
-              } animate-gradient bg-300% bg-clip-text text-transparent text-3xl md:text-5xl`}
-            >
-              Learning is Easier with
-            </span>
-            <br />
-            <span className="relative inline-block">
-              <span
-                className={`absolute inset-0 ${
-                  theme === "light" ? "bg-[#6E45E2]/20" : "bg-[#6E45E2]/10"
-                } blur-3xl rounded-full animate-pulse`}
-              />
-              <motion.span
-                className={`relative bg-gradient-to-r ${
-                  theme === "light"
-                    ? "from-[#FF6B6B] to-[#FFE66D]"
-                    : "from-[#FF6B6B] to-[#FFE66D]"
-                } bg-clip-text text-transparent`}
-                whileHover={{ scale: 1.05 }}
-                transition={{ type: "spring", stiffness: 300 }}
-              >
-                Madrasa Platform
-              </motion.span>
-            </span>
-          </motion.h1>
+        <motion.div
+          className="absolute bottom-0 left-0 w-1/3 h-1/3 rounded-full blur-[80px] bg-gradient-to-r from-secondary via-accent to-primary opacity-15"
+          animate={{
+            scale: [1, 1.05, 1],
+            rotate: [0, -30, 0],
+            opacity: [0.15, 0.25, 0.15],
+          }}
+          transition={{
+            duration: 10,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
 
+        <div className="md:max-w-6xl mx-auto relative z-10">
+          {/* Hero content with improved typography hierarchy */}
+          <motion.div className="text-center mb-12" variants={fadeInUp}>
+            <span className="text-lg md:text-xl font-medium text-secondary mb-3 block">
+              Revolutionize Your Learning Experience
+            </span>
+
+            <h1 className="text-3xl sm:text-5xl md:text-7xl font-extrabold mb-6 leading-tight">
+              <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                Learning is Easier with
+              </span>
+              <br />
+              <span className="relative inline-block">
+                <span className="absolute inset-0 bg-primary/10 blur-3xl rounded-full" />
+                <motion.span
+                  className="relative text-text font-black"
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                >
+                  Madrasa Platform
+                </motion.span>
+              </span>
+            </h1>
+
+            <p className="text-muted max-w-2xl mx-auto text-lg">
+              Join thousands of educators and students to create, share and
+              access interactive learning materials all in one place.
+            </p>
+          </motion.div>
+
+          {/* Search box with improved layout */}
           <motion.div className="max-w-lg mx-auto mb-12" variants={fadeInUp}>
-            <div
-              className={`flex items-center gap-2 sm:gap-3 ${
-                theme === "light" ? "bg-white" : "bg-background-dark"
-              } rounded-xl shadow-lg p-3 sm:p-4 border ${
-                theme === "light" ? "border-light-teal" : "border-primary-dark"
-              }`}
-            >
-              {/* Search Icon with proper spacing */}
+            <div className="flex items-center gap-3 bg-card rounded-xl shadow-lg p-2 md:p-4 border border-card-border">
               <div className="relative flex-shrink-0">
-                <FaSearch
-                  className={`${
-                    theme === "light" ? "text-primary" : "text-primary-dark"
-                  } text-lg sm:text-xl`}
-                />
+                <FaSearch className="text-primary text-xl" />
               </div>
 
-              {/* Input Field */}
               <input
                 type="text"
                 value={searchValue}
                 onChange={(e) => setSearchValue(e.target.value)}
                 placeholder="Enter course code to join..."
-                className={`flex-1 min-w-[120px] outline-none bg-transparent text-sm sm:text-base ${
-                  theme === "light"
-                    ? "text-accent placeholder-primary/50"
-                    : "text-text-dark placeholder-primary-dark/50"
-                }`}
+                className="flex-1 outline-none bg-transparent text-text placeholder-muted"
+                aria-label="Course code"
               />
 
-              {/* Join Button with responsive sizing */}
               <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className={`bg-primary-gradient text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg hover:shadow-lg transition-all
-        whitespace-nowrap min-w-[90px] sm:min-w-[100px] text-xs sm:text-sm
-        inline-flex items-center justify-center flex-shrink-0`}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                className="bg-gradient-to-r from-primary to-secondary text-button-text px-2 md:px-5 py- md:py-2.5 rounded-lg shadow-md transition-all
+                whitespace-nowrap font-medium flex items-center gap-2"
+                aria-label="Join now"
               >
                 Join Now
+                <FaArrowRight className="text-sm" />
               </motion.button>
             </div>
           </motion.div>
-          {/* CTA Buttons */}
+
+          {/* CTA Buttons with consistent styling */}
           <motion.div
             className="flex flex-col sm:flex-row justify-center gap-4 sm:gap-6"
             variants={fadeInUp}
           >
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <motion.div
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              className="w-full sm:w-auto"
+            >
               <Link
                 to="/signup?role=teacher"
-                className={`block text-center ${
-                  theme === "light" ? "bg-secondary" : "bg-secondary-dark"
-                } text-white px-8 py-3 rounded-lg text-lg hover:shadow-xl transition-all`}
+                className="block w-full text-center bg-secondary text-white px-8 py-3.5 rounded-xl text-lg font-semibold hover:shadow-xl transition-all"
               >
-                Create Course
+                Create Courses
               </Link>
             </motion.div>
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+
+            <motion.div
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              className="w-full sm:w-auto"
+            >
               <Link
                 to="/signup?role=student"
-                className={`block text-center ${
-                  theme === "light" ? "bg-primary" : "bg-primary-dark"
-                } text-white px-8 py-3 rounded-lg text-lg hover:shadow-xl transition-all`}
+                className="block w-full text-center bg-primary text-white px-8 py-3.5 rounded-xl text-lg font-semibold hover:shadow-xl transition-all"
               >
                 Join as Student
               </Link>
@@ -202,28 +167,26 @@ const LandingPage = () => {
         </div>
       </motion.section>
 
-      {/* Features Section */}
+      {/* Features Section with improved card layout */}
       <motion.section
-        className={`py-24 ${
-          theme === "light" ? "bg-white" : "bg-background-dark"
-        }`}
+        className="py-20 md:py-28 bg-background"
         initial="hidden"
         whileInView="visible"
-        viewport={{ once: true }}
+        viewport={{ once: true, margin: "-100px" }}
         variants={containerVariants}
       >
         <div className="max-w-6xl mx-auto px-4">
-          <motion.h2
-            className={`text-3xl md:text-4xl font-bold text-center ${
-              theme === "light" ? "text-accent" : "text-text-dark"
-            } mb-16`}
-            variants={fadeInUp}
-          >
-            Platform Features
-          </motion.h2>
+          <motion.div className="text-center mb-16" variants={fadeInUp}>
+            <span className="text-primary font-semibold block mb-2">
+              FEATURES
+            </span>
+            <h2 className="text-3xl md:text-4xl font-bold text-text">
+              Platform Features
+            </h2>
+          </motion.div>
 
           <motion.div
-            className="grid md:grid-cols-2 gap-8"
+            className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8"
             variants={containerVariants}
           >
             {[
@@ -231,190 +194,235 @@ const LandingPage = () => {
                 icon: FaChalkboardTeacher,
                 title: "For Teachers",
                 description:
-                  "Create and manage courses effortlessly with our intuitive tools",
-                colorClass:
-                  theme === "light" ? "text-primary" : "text-primary-dark",
-                bgColorClass:
-                  theme === "light" ? "bg-light-teal" : "bg-background-dark/50",
+                  "Create interactive courses, track student progress, and manage assignments with our intuitive tools.",
+                colorClass: "text-primary",
               },
               {
                 icon: FaUserGraduate,
                 title: "For Students",
                 description:
-                  "Access course materials and track your progress seamlessly",
-                colorClass:
-                  theme === "light" ? "text-secondary" : "text-secondary-dark",
-                bgColorClass:
-                  theme === "light" ? "bg-amber-50" : "bg-background-dark/50",
+                  "Access course materials, submit assignments, and track your progress seamlessly from any device.",
+                colorClass: "text-secondary",
+              },
+              {
+                icon: FaUsers,
+                title: "Collaborative Learning",
+                description:
+                  "Engage in discussions, participate in group activities, and learn together in real-time.",
+                colorClass: "text-accent",
               },
             ].map((feature, index) => (
               <motion.div
                 key={index}
-                className={`${
-                  feature.bgColorClass
-                } rounded-xl p-8 shadow-lg border ${
-                  theme === "light"
-                    ? "border-light-teal"
-                    : "border-primary-dark"
-                }`}
+                className="bg-card rounded-xl p-6 md:p-8 shadow-lg border border-card-border flex flex-col h-full"
                 variants={fadeInUp}
-                whileHover={{ y: -5 }}
+                whileHover={{
+                  y: -5,
+                  boxShadow:
+                    "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+                }}
               >
-                <feature.icon
-                  className={`${feature.colorClass} text-4xl mb-6`}
-                />
-                <h3
-                  className={`text-xl font-bold ${
-                    theme === "light" ? "text-accent" : "text-text-dark"
-                  } mb-4`}
+                <div
+                  className={`${feature.colorClass} bg-card-border/10 w-12 h-12 rounded-lg flex items-center justify-center mb-6`}
                 >
+                  <feature.icon className="text-2xl" />
+                </div>
+                <h3 className="text-xl font-bold text-text mb-3">
                   {feature.title}
                 </h3>
-                <p
-                  className={`${
-                    theme === "light" ? "text-slate" : "text-text-dark/80"
-                  }`}
+                <p className="text-muted flex-grow">{feature.description}</p>
+                <Link
+                  to={`/learn-more/${feature.title.toLowerCase()}`}
+                  className={`${feature.colorClass} mt-4 flex items-center font-medium`}
                 >
-                  {feature.description}
-                </p>
+                  Learn more <FaArrowRight className="ml-2 text-xs" />
+                </Link>
               </motion.div>
             ))}
           </motion.div>
         </div>
       </motion.section>
 
-      {/* How It Works Section */}
-      <section
-        className={`py-24 ${
-          theme === "light" ? "bg-cream" : "bg-background-dark/90"
-        }`}
-      >
+      {/* How It Works Section with improved visual flow */}
+      <section className="py-20 md:py-28 bg-background/50">
         <div className="max-w-6xl mx-auto px-4">
-          <motion.h2
-            className={`text-3xl md:text-4xl font-bold text-center ${
-              theme === "light" ? "text-accent" : "text-text-dark"
-            } mb-16`}
+          <motion.div
+            className="text-center mb-16"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            How It Works
-          </motion.h2>
+            <span className="text-secondary font-semibold block mb-2">
+              PROCESS
+            </span>
+            <h2 className="text-3xl md:text-4xl font-bold text-text">
+              How It Works
+            </h2>
+          </motion.div>
 
-          <div className="grid md:grid-cols-2 gap-8">
+          <div className="grid md:grid-cols-2 gap-8 md:gap-12">
             <StepCard
               icon={FaKey}
               title="For Teachers"
               steps={[
-                "Create your course",
-                "Get unique course code",
-                "Share with students",
+                "Create your personalized course with our easy-to-use tools",
+                "Receive a unique course code to share with your students",
+                "Monitor student progress and engagement in real-time",
               ]}
-              color={theme === "light" ? "primary" : "primary-dark"}
+              color="primary"
             />
             <StepCard
               icon={FaUsers}
               title="For Students"
               steps={[
-                "Sign up for free",
-                "Enter course code",
-                "Start learning",
+                "Sign up for free with just a few simple steps",
+                "Enter the course code shared by your teacher",
+                "Access materials and start learning at your own pace",
               ]}
-              color={theme === "light" ? "secondary" : "secondary-dark"}
+              color="secondary"
             />
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
+      {/* CTA Section with improved layout and accessibility */}
       <motion.section
-        className={`py-24 ${
-          theme === "light" ? "bg-primary-gradient" : "bg-primary-dark-gradient"
-        }`}
+        className="py-20 md:py-28 bg-gradient-to-r from-primary to-secondary"
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true }}
         variants={containerVariants}
       >
-        <div className="max-w-xl mx-auto px-4 text-center">
+        <div className="max-w-4xl mx-auto px-4 text-center">
           <motion.h2
-            className="text-3xl md:text-4xl font-bold text-white mb-8"
+            className="text-3xl md:text-5xl font-bold text-white mb-6"
             variants={fadeInUp}
           >
             Ready to Transform Your Education?
           </motion.h2>
 
-          <motion.p className="text-xl text-white/90 mb-12" variants={fadeInUp}>
+          <motion.p
+            className="text-xl text-white/90 mb-10 max-w-2xl mx-auto"
+            variants={fadeInUp}
+          >
             Join thousands of educators and students already using our platform
+            to enhance learning experiences
           </motion.p>
 
           <motion.div
-            className="flex flex-col sm:flex-row justify-center gap-4"
+            className="flex flex-col sm:flex-row justify-center gap-5"
             variants={fadeInUp}
           >
             <Link
               to="/signup?role=teacher"
-              className={`block text-center px-8 py-3 rounded-lg text-lg font-semibold transition-all shadow-lg ${
-                theme === "light"
-                  ? "bg-primary text-white hover:bg-primary-dark"
-                  : "bg-primary-dark text-white hover:bg-primary"
-              }`}
+              className="block text-center px-8 py-4 rounded-xl text-lg font-semibold transition-all bg-white text-primary hover:bg-white/90 shadow-lg"
             >
               Start Teaching
             </Link>
 
-            {/* Start Learning Button */}
             <Link
               to="/signup?role=student"
-              className={`block text-center px-8 py-3 rounded-lg text-lg font-semibold transition-colors shadow-md ${
-                theme === "light"
-                  ? "bg-white border border-primary text-primary hover:bg-white/60"
-                  : " border border-primary-dark text-primary-dark hover:bg-primary-dark/10"
-              }`}
+              className="block text-center px-8 py-4 rounded-xl text-lg font-semibold transition-all bg-white/20 backdrop-blur-sm text-white border border-white/30 hover:bg-white/30 shadow-lg"
             >
               Start Learning
             </Link>
           </motion.div>
         </div>
       </motion.section>
+
+      {/* Testimonials Section (New) */}
+      <section className="py-20 md:py-28 bg-background">
+        <div className="max-w-6xl mx-auto px-4">
+          <motion.div
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <span className="text-accent font-semibold block mb-2">
+              TESTIMONIALS
+            </span>
+            <h2 className="text-3xl md:text-4xl font-bold text-text">
+              What Our Users Say
+            </h2>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[
+              {
+                quote:
+                  "Madrasa Platform has completely transformed how I teach. My students are more engaged than ever!",
+                name: "Sarah Johnson",
+                role: "High School Teacher",
+                color: "primary",
+              },
+              {
+                quote:
+                  "The interactive lessons make learning fun and accessible. I can study at my own pace and track my progress.",
+                name: "Ahmed Ali",
+                role: "University Student",
+                color: "secondary",
+              },
+              {
+                quote:
+                  "As a school administrator, I've seen tremendous improvements in both teaching quality and student outcomes.",
+                name: "Michael Chen",
+                role: "School Principal",
+                color: "accent",
+              },
+            ].map((testimonial, index) => (
+              <motion.div
+                key={index}
+                className="bg-card rounded-xl p-6 shadow-lg border border-card-border"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{
+                  opacity: 1,
+                  y: 0,
+                  transition: { delay: index * 0.1 },
+                }}
+                viewport={{ once: true }}
+              >
+                <div className={`text-${testimonial.color} mb-4`}>
+                  {"★".repeat(5)}
+                </div>
+                <p className="text-text mb-6 italic">"{testimonial.quote}"</p>
+                <div>
+                  <p className="font-semibold text-text">{testimonial.name}</p>
+                  <p className="text-muted text-sm">{testimonial.role}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
     </div>
   );
 };
 
 const StepCard = ({ icon: Icon, title, steps, color }: StepCardProps) => {
-  const { theme } = useTheme(); // Get current theme
-
   return (
     <motion.div
-      className={`${
-        theme === "light" ? "bg-white" : "bg-background-dark"
-      } rounded-xl p-8 shadow-lg border ${
-        theme === "light" ? "border-light-teal" : "border-primary-dark"
-      }`}
+      className="bg-card rounded-xl p-8 shadow-lg border border-card-border"
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       whileHover={{ y: -5 }}
     >
-      <div className="flex items-center mb-8">
-        <Icon className={`text-${color} mr-4`} size={28} />
-        <h3
-          className={`text-xl font-bold ${
-            theme === "light" ? "text-accent" : "text-text-dark"
-          }`}
-        >
-          {title}
-        </h3>
+      <div className="flex items-center mb-6">
+        <div className={`bg-${color}/10 p-3 rounded-lg mr-4`}>
+          <Icon className={`text-${color}`} size={28} />
+        </div>
+        <h3 className="text-2xl font-bold text-text">{title}</h3>
       </div>
-      <ul className="list-disc list-inside space-y-2">
+      <ul className="space-y-4">
         {steps.map((step, index) => (
-          <li
-            key={index}
-            className={`${
-              theme === "light" ? "text-slate" : "text-text-dark/80"
-            }`}
-          >
-            {step}
+          <li key={index} className="flex items-start">
+            <span
+              className={`bg-${color} text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-medium mr-3 flex-shrink-0 mt-0.5`}
+            >
+              {index + 1}
+            </span>
+            <span className="text-muted">{step}</span>
           </li>
         ))}
       </ul>

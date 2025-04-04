@@ -29,7 +29,7 @@ const Header = () => {
 
   return (
     <motion.header
-      className="bg-white dark:bg-background-dark shadow-md sticky top-0 z-50"
+      className="bg-background shadow-md sticky top-0 z-50"
       initial={{ opacity: 0 }} // Start invisible
       animate={{ opacity: 1 }} // Fade in
       transition={{ duration: 0.5, ease: "easeOut", delay: 0.2 }} // Add a slight delay

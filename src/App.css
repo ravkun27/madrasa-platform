@@ -8,44 +8,58 @@
   @apply bg-green-100 text-green-800;
 }
 
-/* CSS Variables */
+/* Add these CSS variables to your :root in index.css */
+
 :root {
-  --color-primary: #1d4ed8; /* Blue */
-  --color-secondary: #f97316; /* Orange */
-  --color-accent: #234e5a; /* Dark Teal */
+  /* Light mode colors */
+  --color-primary: #f97316; /* Orange 500 */
+  --color-secondary: #0ea5e9; /* Blue 500 */
+  --color-accent: #14b8a6; /* Teal 500 - complementary accent */
+  --color-background: #f8fafc; /* Slate 50 */
+  --color-text: #1e293b; /* Slate 800 */
+  --color-card: #ffffff;
+  --color-card-border: #e2e8f0; /* Slate 200 */
+  --color-button: #f97316; /* Orange 500 */
+  --color-button-text: #ffffff;
+  --color-muted: #64748b; /* Slate 500 */
 
-  --color-background: #ffffff; /* Light Background */
-  --color-text: #1d1b1a; /* Dark Grayish Blue */
+  /* Gradient and supporting colors */
+  --color-orange-light: #fdba74; /* Orange 300 */
+  --color-orange-dark: #ea580c; /* Orange 600 */
+  --color-blue-light: #7dd3fc; /* Blue 300 */
+  --color-blue-dark: #0369a1; /* Blue 700 */
 
-  --color-card: #f8fafc; /* Light Gray */
-  --color-card-border: #e2e8f0; /* Soft Border */
-
-  --color-button: #2563eb; /* Blue */
-  --color-button-text: #ffffff; /* White */
-
-  --color-muted: #94a3b8; /* Muted Gray */
+  /* Other variables */
+  --header-height: 64px;
+  --sidebar-width: 300px;
+  --border-radius: 8px;
+  --box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 .dark {
-  --color-primary: #1e40af; /* Darker Blue */
-  --color-secondary: #c2410c; /* Darker Orange */
-  --color-accent: #1f3a4b; /* Darker Teal */
+  /* Dark mode colors */
+  --color-primary: #fb923c; /* Orange 400 */
+  --color-secondary: #38bdf8; /* Blue 400 */
+  --color-accent: #2dd4bf; /* Teal 400 - complementary accent */
+  --color-background: #0f172a; /* Slate 900 */
+  --color-text: #f1f5f9; /* Slate 100 */
+  --color-card: #1e293b; /* Slate 800 */
+  --color-card-border: #334155; /* Slate 700 */
+  --color-button: #fb923c; /* Orange 400 */
+  --color-button-text: #0f172a; /* Slate 900 */
+  --color-muted: #94a3b8; /* Slate 400 */
 
-  --color-background: #0f172a; /* Dark Background */
-  --color-text: #f8fafc; /* Light Grayish Blue */
-
-  --color-card: #1e293b; /* Dark Gray-Blue */
-  --color-card-border: #334155; /* Darker Border */
-
-  --color-button: #1e40af; /* Darker Blue */
-  --color-button-text: #e2e8f0; /* Soft White */
-
-  --color-muted: #64748b; /* Muted Gray */
+  /* Gradient and supporting colors */
+  --color-orange-light: #fb923c; /* Orange 400 */
+  --color-orange-dark: #c2410c; /* Orange 700 */
+  --color-blue-light: #7dd3fc; /* Blue 300 */
+  --color-blue-dark: #075985; /* Blue 800 */
 }
 
 body {
-  background-color: var(--background);
-  color: var(--text);
+  background-color: var(--color-background);
+  color: var(--color-text);
   transition:
     background-color 0.3s ease,
     color 0.3s ease;
@@ -176,4 +190,27 @@ body {
 
 .btn-secondary {
   @apply bg-gray-200 text-gray-700 hover:bg-gray-300;
+}
+
+/* Add these styles to your CSS */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
 }

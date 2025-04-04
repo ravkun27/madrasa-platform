@@ -114,7 +114,7 @@ const StudentDashboard = () => {
             <input
               type="text"
               placeholder="Enter Course ID (e.g., 67eaa3b933d18fd8227186bf)"
-              className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-accent bg-neutral-200 text-black"
               value={searchId}
               onChange={(e) => {
                 setSearchId(e.target.value);
@@ -177,12 +177,12 @@ const StudentDashboard = () => {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 bg-background">
           {courses.map((course) => (
             <motion.div
               key={course._id}
               whileHover={{ scale: 1.02 }}
-              className="bg-white rounded-xl shadow-lg p-6 border border-gray-200"
+              className="bg-card rounded-xl shadow-lg p-6 border border-cardBorder"
             >
               {course.banner && (
                 <img
