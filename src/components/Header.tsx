@@ -39,7 +39,7 @@ const Header = () => {
         <div className="flex justify-between items-center">
           {/* Logo and Brand Name */}
           <Link
-            to="/"
+            to={user ? `/${user.role}-dashboard` : "/"}
             className="flex items-center space-x-2 md:space-x-4 group flex-shrink-0"
           >
             <motion.div
@@ -64,19 +64,19 @@ const Header = () => {
           <div className="hidden md:flex items-center space-x-12 flex-grow justify-center ml-24">
             <Link
               to="/courses"
-              className="text-gray-600 dark:text-text-dark hover:text-gray-800 dark:hover:text-primary transition duration-300 font-medium"
+              className="text-text hover:text-gray-800 dark:hover:text-primary transition duration-300 font-medium"
             >
               Courses
             </Link>
             <Link
               to="/about"
-              className="text-gray-600 dark:text-text-dark hover:text-gray-800 dark:hover:text-primary transition duration-300 font-medium"
+              className="text-text hover:text-gray-800 dark:hover:text-primary transition duration-300 font-medium"
             >
               About
             </Link>
             <Link
               to="/contact"
-              className="text-gray-600 dark:text-text-dark hover:text-gray-800 dark:hover:text-primary transition duration-300 font-medium"
+              className="text-text hover:text-gray-800 dark:hover:text-primary transition duration-300 font-medium"
             >
               Contact
             </Link>
@@ -91,7 +91,7 @@ const Header = () => {
                 <div className="relative">
                   <button
                     onClick={() => setShowSettings(true)}
-                    className="flex items-center space-x-2 text-gray-600 dark:text-text-dark hover:text-primary transition"
+                    className="flex items-center space-x-2 text-text hover:text-primary transition"
                   >
                     <FiUser className="w-6 h-6" />
                     <span>{user?.role || "User"}</span>
@@ -102,7 +102,7 @@ const Header = () => {
                 <>
                   <Link
                     to="/login"
-                    className="text-gray-600 dark:text-text-dark hover:text-gray-800 dark:hover:text-primary transition duration-300 font-medium"
+                    className="text-text hover:text-gray-800 dark:hover:text-primary transition duration-300 font-medium"
                   >
                     Sign In
                   </Link>
@@ -123,7 +123,7 @@ const Header = () => {
               {/* Theme Toggle Button */}
               <button
                 onClick={toggleTheme}
-                className="p-2 text-gray-600 dark:text-text-dark hover:text-gray-800 dark:hover:text-primary transition duration-300"
+                className="p-2 text-text hover:text-gray-800 dark:hover:text-primary transition duration-300"
               >
                 {theme === "light" ? (
                   <FiMoon className="w-6 h-6" />
@@ -138,7 +138,7 @@ const Header = () => {
             {/* Theme Toggle Button (Mobile) */}
             <button
               onClick={toggleTheme}
-              className="p-2 text-gray-600 dark:text-text-dark hover:text-gray-800 dark:hover:text-primary transition duration-300"
+              className="p-2 text-text hover:text-gray-800 dark:hover:text-primary transition duration-300"
             >
               {theme === "light" ? (
                 <FiMoon className="w-6 h-6" />
@@ -149,7 +149,7 @@ const Header = () => {
 
             {/* Mobile Menu Toggle Button */}
             <button
-              className="text-black dark:text-white focus:outline-none z-50"
+              className="text-text focus:outline-none z-50"
               onClick={() => setShowSettings(!showSettings)}
             >
               <svg

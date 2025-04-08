@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
 import ManageCourses from "./ManageCoursesPage";
 import { getFetch } from "../../utils/apiCall";
-import { FiUsers, FiBookOpen, FiClock, FiCalendar } from "react-icons/fi";
+import {
+  FiUsers,
+  FiBookOpen,
+  FiClock,
+  FiCalendar,
+  FiRefreshCw,
+} from "react-icons/fi";
 import { motion } from "framer-motion";
 
 const Dashboard = () => {
@@ -9,30 +15,31 @@ const Dashboard = () => {
   const [isApproved, setIsApproved] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchTeacherStatus = async () => {
-      try {
-        const response: any = await getFetch("/user");
-        if (response?.success) {
-          setIsApproved(response.data.approved);
-          if (response.data.approved) {
-            const coursesResponse: any = await getFetch(
-              "/user/teacher/course/all"
-            );
-            const publishedCourses =
-              coursesResponse.data?.courseList.filter(
-                (course: any) => course.published
-              ) || [];
-            setTeacherCourses(publishedCourses);
-          }
+  const fetchTeacherStatus = async () => {
+    try {
+      const response: any = await getFetch("/user");
+      if (response?.success) {
+        setIsApproved(response.data.approved);
+        if (response.data.approved) {
+          const coursesResponse: any = await getFetch(
+            "/user/teacher/course/all"
+          );
+          const publishedCourses =
+            coursesResponse.data?.courseList.filter(
+              (course: any) => course.published.value
+            ) || [];
+          setTeacherCourses(publishedCourses);
+          console.log(publishedCourses);
         }
-      } catch (error) {
-        console.error("Error fetching teacher status:", error);
-      } finally {
-        setLoading(false);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching teacher status:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchTeacherStatus();
   }, []);
 
@@ -106,7 +113,11 @@ const Dashboard = () => {
           </span>
         </div>
       </div>
-
+      <div>
+        <span className="text-text font-bold text-sm mt-2">
+          {course.category || "Uncategorized"}
+        </span>
+      </div>
       {course.tags?.length > 0 && (
         <div className="mt-4 flex flex-wrap gap-2">
           {course.tags.map((tag: string) => (
@@ -126,10 +137,21 @@ const Dashboard = () => {
     <>
       <div className="w-full px-6 py-8 flex flex-col items-center">
         <div className="max-w-6xl w-full">
-          <h3 className="text-2xl font-bold mb-6 flex items-center gap-3 text-gray-900 dark:text-white">
-            <FiBookOpen className="text-blue-600 dark:text-blue-400 text-3xl" />
-            Your Published Courses
-          </h3>
+          {/* Header with Refresh Button */}
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-2xl font-bold flex items-center gap-3 text-gray-900 dark:text-white">
+              <FiBookOpen className="text-blue-600 dark:text-blue-400 text-3xl" />
+              Your Published Courses
+            </h3>
+            <button
+              onClick={fetchTeacherStatus}
+              className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition"
+              disabled={loading}
+            >
+              <FiRefreshCw className={loading ? "animate-spin" : ""} />
+              Refresh
+            </button>
+          </div>
 
           {teacherCourses.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">

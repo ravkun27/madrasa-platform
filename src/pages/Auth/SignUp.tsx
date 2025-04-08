@@ -287,7 +287,7 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
                     onChange={(e) =>
                       setFormData({ ...formData, firstName: e.target.value })
                     }
-                    className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 ${
+                    className={`w-full p-3 border rounded-lg focus:outline-none text-black focus:ring-2 ${
                       errors.firstName ? "border-red-500" : "border-gray-300"
                     }`}
                   />
@@ -299,7 +299,7 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
                     onChange={(e) =>
                       setFormData({ ...formData, lastName: e.target.value })
                     }
-                    className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 ${
+                    className={`w-full p-3 border rounded-lg focus:outline-none text-black focus:ring-2 ${
                       errors.firstName ? "border-red-500" : "border-gray-300"
                     }`}
                   />

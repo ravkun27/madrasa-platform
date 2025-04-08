@@ -2,13 +2,11 @@ import { useState, useEffect } from "react";
 import {
   FiChevronUp,
   FiChevronDown,
-  FiCheckCircle,
   FiBook,
   FiMenu,
   FiX,
 } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
-import { Course, Lesson } from "../../types";
 
 export const CourseSidebar = ({
   course,
@@ -16,10 +14,10 @@ export const CourseSidebar = ({
   selectedLesson,
   onLessonSelect,
 }: {
-  course: Course | null;
-  lessons: Lesson[];
-  selectedLesson: Lesson | null;
-  onLessonSelect: (lesson: Lesson) => void;
+  course: any;
+  lessons: any;
+  selectedLesson: any;
+  onLessonSelect: (lesson: any) => void;
 }) => {
   const [expandedSections, setExpandedSections] = useState<string[]>([]);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
@@ -47,25 +45,18 @@ export const CourseSidebar = ({
     );
   };
 
-  const calculateProgress = (sectionId: string) => {
-    const sectionLessons = lessons.filter(
-      (lesson) => lesson.sectionId === sectionId
-    );
-    if (!sectionLessons.length) return 0;
-
-    const completedLessons = sectionLessons.filter(
-      (lesson) => lesson.completed
-    ).length;
-    return Math.round((completedLessons / sectionLessons.length) * 100);
-  };
-
   if (!course) return null;
 
   // Group lessons by section for easier rendering
-  const lessonsBySection = course.sectionIds.map((section) => ({
+  const lessonsBySection = course.sectionIds.map((section: any) => ({
     section,
-    lessons: lessons.filter((lesson) => lesson.sectionId === section._id),
+    lessons: lessons.filter((lesson: any) => lesson.sectionId === section._id),
   }));
+  const calculateProgress = (sectionId: string): number => {
+    const section = course?.sectionIds.find((s: any) => s._id === sectionId);
+    if (!section || section.totalLessons === 0) return 0;
+    return Math.round((section.completedLessons / section.totalLessons) * 100);
+  };
 
   return (
     <>
@@ -73,7 +64,7 @@ export const CourseSidebar = ({
       <div className="md:hidden fixed bottom-4 right-4 z-20">
         <button
           onClick={() => setIsMobileSidebarOpen(true)}
-          className="bg-blue-600 text-white p-4 rounded-full shadow-lg hover:bg-blue-700 transition-colors"
+          className="bg-color-secondary text-white p-4 rounded-full shadow-lg hover:bg-blue-700 transition-colors"
           aria-label="Open course navigation"
         >
           <FiMenu size={24} />
@@ -101,17 +92,17 @@ export const CourseSidebar = ({
             animate={{ x: isMobileSidebarOpen ? 0 : 0 }}
             exit={{ x: "-100%" }}
             transition={{ type: "tween", duration: 0.3 }}
-            className={`bg-white border-r shadow-lg flex flex-col z-40 ${
+            className={`bg-background border-r flex flex-col z-40 ${
               isMobileSidebarOpen
                 ? "fixed inset-y-0 left-0 w-4/5 max-w-xs"
                 : "hidden md:flex w-full md:w-80"
             }`}
           >
             {/* Course header */}
-            <div className="p-4 border-b flex items-center justify-between sticky top-0 bg-white z-10">
+            <div className="p-4 border-b flex items-center justify-between sticky top-0 bg-background z-10">
               <div className="flex items-center gap-2">
-                <FiBook className="text-blue-600" size={20} />
-                <h2 className="text-lg font-bold truncate text-gray-800">
+                <FiBook className="text-text" size={20} />
+                <h2 className="text-lg font-bold truncate text-text">
                   {course.title}
                 </h2>
               </div>
@@ -129,17 +120,17 @@ export const CourseSidebar = ({
 
             {/* Course content */}
             <div className="flex-1 overflow-y-auto p-3 space-y-4">
-              {lessonsBySection.map(({ section, lessons }) => (
+              {lessonsBySection.map(({ section, lessons }: any) => (
                 <div
                   key={section._id}
                   className="space-y-2 rounded-lg overflow-hidden border border-gray-100 shadow-sm"
                 >
                   <button
                     onClick={() => toggleSection(section._id)}
-                    className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 transition-colors"
+                    className="w-full flex items-center justify-between p-3 bg-background transition-colors"
                   >
                     <div className="flex flex-col items-start">
-                      <span className="font-medium truncate text-gray-800">
+                      <span className="font-medium truncate text-text">
                         {section.title}
                       </span>
                       <div className="flex items-center space-x-2 mt-1">
@@ -157,9 +148,9 @@ export const CourseSidebar = ({
                       </div>
                     </div>
                     {expandedSections.includes(section._id) ? (
-                      <FiChevronUp className="text-gray-500 shrink-0" />
+                      <FiChevronUp className="text-text shrink-0" />
                     ) : (
-                      <FiChevronDown className="text-gray-500 shrink-0" />
+                      <FiChevronDown className="text-text shrink-0" />
                     )}
                   </button>
 
@@ -172,26 +163,18 @@ export const CourseSidebar = ({
                         transition={{ duration: 0.2 }}
                         className="space-y-1 mx-1 mb-2"
                       >
-                        {lessons.map((lesson) => (
+                        {lessons.map((lesson: any) => (
                           <button
                             key={lesson._id}
                             onClick={() => onLessonSelect(lesson)}
                             className={`w-full text-left p-3 rounded-lg transition-all ${
                               selectedLesson?._id === lesson._id
-                                ? "bg-blue-50 text-blue-600 shadow-sm"
+                                ? "bg-color-secondary text-white shadow-sm"
                                 : "hover:bg-gray-50 text-gray-700"
                             }`}
                           >
                             <div className="flex items-center space-x-2">
-                              {lesson.completed ? (
-                                <FiCheckCircle
-                                  className="text-green-500 shrink-0"
-                                  size={18}
-                                />
-                              ) : (
-                                <div className="w-4 h-4 rounded-full border-2 border-gray-300 shrink-0" />
-                              )}
-                              <span className="truncate text-sm">
+                              <span className="truncate text-sm text-text">
                                 {lesson.title}
                               </span>
                             </div>

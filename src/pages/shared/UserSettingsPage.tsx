@@ -1,19 +1,25 @@
 import { useState, useEffect } from "react";
-// import { useTheme } from "../../context/ThemeContext";
-import { getFetch, deleteFetch } from "../../utils/apiCall";
+import {
+  getFetch,
+  deleteFetch,
+  patchFetch,
+  postFetch,
+} from "../../utils/apiCall";
 import { toast } from "react-hot-toast";
 import {
   FiEdit,
   FiLock,
   FiMail,
-  // FiPhone,
+  FiPhone,
   FiTrash2,
   FiUser,
   FiLogOut,
   FiCheck,
   FiX,
+  FiChevronLeft,
+  FiSettings,
 } from "react-icons/fi";
-// import { FaTelegram, FaWhatsapp } from "react-icons/fa";
+import { FaTelegram, FaWhatsapp } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
@@ -24,6 +30,7 @@ interface UserData {
   phone: string;
   telegram?: string;
   whatsapp?: string;
+  contactMethod?: string;
 }
 
 const UserSettingsPage = ({
@@ -33,35 +40,32 @@ const UserSettingsPage = ({
   isOpen: boolean;
   onClose: () => void;
 }) => {
-  // const { theme } = useTheme();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  // const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [userData, setUserData] = useState<UserData>({
     name: "",
     email: "",
     phone: "",
+    contactMethod: "telegram",
   });
 
-  const [isEditing, setIsEditing] = useState({
-    name: false,
-    phone: false,
-    contact: false,
-    password: false,
+  const [editState, setEditState] = useState({
+    field: "",
+    isEditing: false,
+    value: "",
+    showOptions: false,
   });
 
-  const [formData, setFormData] = useState({
-    newName: "",
-    newPhone: "",
-    newTelegram: "",
-    newWhatsapp: "",
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: "",
+  const [otpState, setOtpState] = useState({
+    otpId: "",
+    otpCode: "",
+    isOTPSent: false,
+    otpMethod: "sms",
   });
 
   // Animation variants
-  const mobileMenuVariants = {
+  const slideInVariants = {
     hidden: { x: "100%", opacity: 0 },
     visible: {
       x: 0,
@@ -73,14 +77,20 @@ const UserSettingsPage = ({
 
   const overlayVariants = {
     hidden: { opacity: 0 },
-    visible: { opacity: 1 },
+    visible: { opacity: 1, transition: { duration: 0.2 } },
+    exit: { opacity: 0, transition: { duration: 0.2 } },
+  };
+
+  const buttonVariants = {
+    hover: { scale: 1.05 },
+    tap: { scale: 0.95 },
   };
 
   useEffect(() => {
     const fetchUserData = async () => {
+      setIsLoading(true);
       try {
         const result: any = await getFetch("/user");
-        // console.log(result.data.phoneNumber);
         if (result.success) {
           setUserData({
             name: `${result.data.firstName || ""} ${result.data.lastName || ""}`.trim(),
@@ -88,64 +98,205 @@ const UserSettingsPage = ({
             phone: result.data.phoneNumber,
             telegram: result.data.telegram,
             whatsapp: result.data.whatsapp,
+            contactMethod: result.data.TelegramOrWhatsapp || "telegram",
           });
         }
       } catch (error) {
         toast.error("Failed to load user data");
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    if (isOpen) fetchUserData();
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+      fetchUserData();
+    }
+
+    return () => {
+      document.body.style.overflow = "auto";
+    };
   }, [isOpen]);
 
-  // const handleUpdate = async (type: keyof typeof isEditing) => {
-  // setIsLoading(true);
-  // try {
-  //   let payload = {};
-  //   let endpoint = "";
+  const handleFieldHover = (field: string) => {
+    // Only allow hover state if no field is being edited
+    if (!editState.isEditing) {
+      setEditState((prev) => ({
+        ...prev,
+        field,
+        showOptions: true,
+      }));
+    }
+  };
 
-  //   switch (type) {
-  //     case "name":
-  //       endpoint = "/user/update-name";
-  //       payload = { name: formData.newName };
-  //       break;
-  //     case "phone":
-  //       endpoint = "/user/phone_or_email";
-  //       payload = { phone: formData.newPhone };
-  //       break;
-  //     case "contact":
-  //       endpoint = "/user/update-contact";
-  //       payload = {
-  //         telegram: formData.newTelegram,
-  //         whatsapp: formData.newWhatsapp,
-  //       };
-  //       break;
-  //     case "password":
-  //       endpoint = "/user/password";
-  //       payload = {
-  //         currentPassword: formData.currentPassword,
-  //         newPassword: formData.newPassword,
-  //       };
-  //       break;
-  //   }
+  const handleFieldLeave = () => {
+    // Only update hover state if not editing
+    if (!editState.isEditing) {
+      setEditState((prev) => ({
+        ...prev,
+        showOptions: false,
+      }));
+    }
+  };
 
-  //   const result: any = await postFetch(endpoint, payload);
-  //   if (result.success) {
-  //     toast.success("Update successful");
-  //     setUserData((prev) => ({ ...prev, ...payload }));
-  //     setIsEditing((prev) => ({ ...prev, [type]: false }));
-  //   }
-  // } catch (error: any) {
-  //   toast.error(error.message || "Update failed");
-  // } finally {
-  //   setIsLoading(false);
-  // }
-  // };
+  const startEditing = (field: string, currentValue: string) => {
+    setEditState({
+      field,
+      isEditing: true,
+      value: currentValue,
+      showOptions: false,
+    });
+    setOtpState({
+      otpId: "",
+      otpCode: "",
+      isOTPSent: false,
+      otpMethod: "sms",
+    });
+  };
+
+  const cancelEditing = () => {
+    setEditState({
+      field: "",
+      isEditing: false,
+      value: "",
+      showOptions: false,
+    });
+    setOtpState({
+      otpId: "",
+      otpCode: "",
+      isOTPSent: false,
+      otpMethod: "sms",
+    });
+  };
+
+  const handleSendOTP = async () => {
+    setIsLoading(true);
+    try {
+      let endpoint =
+        "/user/send_OTP_for_updateMailOrPhone?for=updateMailOrPhone";
+      let body: any = {};
+
+      if (editState.field === "phone") {
+        body.phoneNumber = editState.value;
+        body.method = otpState.otpMethod;
+      } else if (editState.field === "email") {
+        body.email = editState.value;
+      } else if (editState.field === "password") {
+        endpoint = "/user/sendOTP?for=forgetPassword";
+        if (userData.phone) {
+          body.phoneNumber = userData.phone;
+          body.method = "whatsapp";
+        } else if (userData.email) {
+          body.email = userData.email;
+        }
+      }
+
+      const result: any = await postFetch(endpoint, body);
+      if (result.success) {
+        setOtpState((prev) => ({
+          ...prev,
+          otpId: result.data.otpId,
+          isOTPSent: true,
+        }));
+        toast.success("OTP sent successfully");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to send OTP");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleUpdate = async () => {
+    if (
+      editState.field === "password" &&
+      editState.value !== otpState.otpCode
+    ) {
+      toast.error("Passwords don't match");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      let payload: any = {};
+      let endpoint = "/user";
+      let method = "PATCH";
+
+      switch (editState.field) {
+        case "name":
+          payload.firstName = editState.value.split(" ")[0];
+          payload.lastName = editState.value.split(" ")[1] || "";
+          break;
+
+        case "phone":
+          payload.phoneNumber = editState.value;
+          payload.otpId = otpState.otpId;
+          payload.otp = otpState.otpCode;
+          break;
+
+        case "email":
+          payload.email = editState.value;
+          payload.otpId = otpState.otpId;
+          payload.otp = otpState.otpCode;
+          break;
+
+        case "contactMethod":
+          payload.TelegramOrWhatsapp = editState.value;
+          break;
+
+        case "password":
+          endpoint = "/user/password";
+          method = "POST";
+          payload = {
+            password: editState.value,
+            otpId: otpState.otpId,
+            otp: otpState.otpCode,
+          };
+          if (userData.phone) payload.phoneNumber = userData.phone;
+          if (userData.email) payload.email = userData.email;
+          break;
+      }
+
+      const result: any = await (method === "PATCH" ? patchFetch : postFetch)(
+        endpoint,
+        payload
+      );
+
+      if (result.success) {
+        toast.success("Update successful");
+
+        // Update local state
+        const updatedData = { ...userData };
+        switch (editState.field) {
+          case "name":
+            updatedData.name = editState.value;
+            break;
+          case "phone":
+            updatedData.phone = editState.value;
+            break;
+          case "email":
+            updatedData.email = editState.value;
+            break;
+          case "contactMethod":
+            updatedData.contactMethod = editState.value;
+            break;
+        }
+
+        setUserData(updatedData);
+        cancelEditing();
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Update failed");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleLogout = async () => {
     try {
-      logout();
+      await logout();
       toast.success("Logged out successfully");
+      onClose();
       navigate("/login");
     } catch (error) {
       toast.error("Logout failed");
@@ -155,407 +306,471 @@ const UserSettingsPage = ({
   const handleDeleteAccount = async () => {
     if (
       window.confirm(
-        "Are you sure you want to permanently delete your account?"
+        "Are you sure you want to permanently delete your account? This action cannot be undone."
       )
     ) {
+      setIsLoading(true);
       try {
         await deleteFetch("/user");
         logout();
-        toast.success("Account deleted");
+        toast.success("Account deleted successfully");
+        onClose();
         navigate("/");
       } catch (error) {
-        toast.error("Deletion failed");
+        toast.error("Account deletion failed");
+      } finally {
+        setIsLoading(false);
       }
     }
+  };
+
+  const renderField = (
+    field: string,
+    label: string,
+    icon: React.ReactNode,
+    currentValue: string
+  ) => {
+    const isActive = editState.field === field && editState.isEditing;
+    const isHovered =
+      editState.field === field &&
+      editState.showOptions &&
+      !editState.isEditing;
+
+    return (
+      <div
+        className={`relative p-4 rounded-lg transition-all ${
+          isActive ? "bg-blue-50 dark:bg-blue-900/20" : ""
+        }`}
+        onMouseEnter={() => handleFieldHover(field)}
+        onMouseLeave={handleFieldLeave}
+      >
+        <div className="flex items-end justify-between">
+          <div className="flex items-end gap-3">
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
+              {icon}
+            </div>
+            <div className="flex-grow">
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                {label}
+              </p>
+              <div className="text-gray-800 dark:text-gray-200 mt-1">
+                {isActive ? (
+                  <input
+                    type={field === "password" ? "password" : "text"}
+                    value={editState.value}
+                    onChange={(e) =>
+                      setEditState((prev) => ({
+                        ...prev,
+                        value: e.target.value,
+                      }))
+                    }
+                    className="w-full bg-white dark:bg-gray-800 border border-blue-300 dark:border-blue-700 rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    autoFocus
+                    placeholder={`Enter your ${label.toLowerCase()}`}
+                  />
+                ) : field === "password" ? (
+                  "••••••••"
+                ) : (
+                  <span className="font-medium">
+                    {currentValue || "Not set"}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {isActive ? (
+            <div className="flex flex-shrink-0 gap-2 ml-4">
+              {otpState.isOTPSent ? (
+                <>
+                  <motion.button
+                    variants={buttonVariants}
+                    whileHover="hover"
+                    whileTap="tap"
+                    onClick={handleUpdate}
+                    className="p-2 bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400 dark:hover:bg-green-800/50 rounded-full"
+                    disabled={isLoading}
+                  >
+                    <FiCheck className="w-5 h-5" />
+                  </motion.button>
+                  <motion.button
+                    variants={buttonVariants}
+                    whileHover="hover"
+                    whileTap="tap"
+                    onClick={cancelEditing}
+                    className="p-2 bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-800/50 rounded-full"
+                  >
+                    <FiX className="w-5 h-5" />
+                  </motion.button>
+                </>
+              ) : (
+                <>
+                  {["phone", "email", "password"].includes(field) && (
+                    <motion.button
+                      variants={buttonVariants}
+                      whileHover="hover"
+                      whileTap="tap"
+                      onClick={handleSendOTP}
+                      className="text-sm bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? "Sending..." : "Verify"}
+                    </motion.button>
+                  )}
+                  <motion.button
+                    variants={buttonVariants}
+                    whileHover="hover"
+                    whileTap="tap"
+                    onClick={cancelEditing}
+                    className="p-2 bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 rounded-full"
+                  >
+                    <FiX className="w-5 h-5" />
+                  </motion.button>
+                </>
+              )}
+            </div>
+          ) : (
+            <AnimatePresence>
+              {isHovered && (
+                <motion.button
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ duration: 0.15 }}
+                  onClick={() => startEditing(field, currentValue)}
+                  className="p-2 bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 rounded-full"
+                >
+                  <FiEdit className="w-5 h-5" />
+                </motion.button>
+              )}
+            </AnimatePresence>
+          )}
+        </div>
+
+        {isActive && otpState.isOTPSent && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-4 bg-white dark:bg-gray-800 p-3 rounded-lg border border-blue-200 dark:border-blue-800"
+          >
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+              {field === "phone" && (
+                <div className="w-full sm:w-auto">
+                  <span className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                    Choose OTP Method
+                  </span>
+                  <div className="inline-flex items-center rounded-lg bg-gray-100 dark:bg-gray-800 p-1">
+                    {["sms", "whatsapp"].map((method) => (
+                      <button
+                        key={method}
+                        type="button"
+                        onClick={() =>
+                          setOtpState((prev) => ({
+                            ...prev,
+                            otpMethod: method,
+                          }))
+                        }
+                        className={`px-4 py-2 text-sm font-medium rounded-md transition-all
+                        ${
+                          otpState.otpMethod === method
+                            ? "bg-blue-600 text-white shadow"
+                            : "text-gray-600 dark:text-gray-300"
+                        }`}
+                      >
+                        {method === "sms" ? "SMS" : "WhatsApp"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <input
+                type="text"
+                placeholder="Enter OTP code"
+                value={otpState.otpCode}
+                onChange={(e) =>
+                  setOtpState((prev) => ({ ...prev, otpCode: e.target.value }))
+                }
+                className="flex-1 text-sm p-2 rounded border bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+              OTP sent to {field === "email" ? editState.value : userData.phone}
+            </p>
+          </motion.div>
+        )}
+      </div>
+    );
+  };
+
+  const renderContactMethodSelector = () => {
+    const isActive = editState.field === "contactMethod" && editState.isEditing;
+    const isHovered =
+      editState.field === "contactMethod" &&
+      editState.showOptions &&
+      !editState.isEditing;
+
+    return (
+      <div
+        className={`relative p-4 rounded-lg transition-all ${
+          isActive ? "bg-blue-50 dark:bg-blue-900/20" : ""
+        }`}
+        onMouseEnter={() => handleFieldHover("contactMethod")}
+        onMouseLeave={handleFieldLeave}
+      >
+        <div className="flex items-end justify-between">
+          <div className="flex items-end gap-3">
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
+              {userData.contactMethod === "telegram" ? (
+                <FaTelegram className="text-blue-500 w-5 h-5" />
+              ) : (
+                <FaWhatsapp className="text-green-500 w-5 h-5" />
+              )}
+            </div>
+            <div className="flex-grow">
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                Preferred Contact Method
+              </p>
+              <div className="text-gray-800 dark:text-gray-200 mt-2">
+                {isActive ? (
+                  <div className="relative inline-flex bg-gray-100 dark:bg-gray-800 p-1 rounded-full shadow-inner w-full sm:w-auto">
+                    {["telegram", "whatsapp"].map((option) => {
+                      const isSelected = editState.value === option;
+                      const Icon =
+                        option === "telegram" ? FaTelegram : FaWhatsapp;
+                      const label =
+                        option === "telegram" ? "Telegram" : "WhatsApp";
+                      const color =
+                        option === "telegram"
+                          ? "text-blue-500"
+                          : "text-green-500";
+
+                      return (
+                        <button
+                          key={option}
+                          type="button"
+                          onClick={() =>
+                            setEditState((prev) => ({ ...prev, value: option }))
+                          }
+                          className={`relative z-10 flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-full transition-colors duration-200
+              ${isSelected ? "bg-white dark:bg-gray-900 shadow" : "text-gray-500 dark:text-gray-300"}
+            `}
+                        >
+                          <Icon className={color} />
+                          {label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <span className="font-medium flex items-center gap-2">
+                    {userData.contactMethod === "telegram" ? (
+                      <>
+                        <FaTelegram className="text-blue-500" /> Telegram
+                      </>
+                    ) : (
+                      <>
+                        <FaWhatsapp className="text-green-500" /> WhatsApp
+                      </>
+                    )}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {isActive ? (
+            <div className="flex flex-shrink-0 gap-2 ml-4">
+              <motion.button
+                variants={buttonVariants}
+                whileHover="hover"
+                whileTap="tap"
+                onClick={handleUpdate}
+                className="p-2 bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400 dark:hover:bg-green-800/50 rounded-full"
+                disabled={isLoading}
+              >
+                <FiCheck className="w-5 h-5" />
+              </motion.button>
+              <motion.button
+                variants={buttonVariants}
+                whileHover="hover"
+                whileTap="tap"
+                onClick={cancelEditing}
+                className="p-2 bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-800/50 rounded-full"
+              >
+                <FiX className="w-5 h-5" />
+              </motion.button>
+            </div>
+          ) : (
+            <AnimatePresence>
+              {isHovered && (
+                <motion.button
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ duration: 0.15 }}
+                  onClick={() =>
+                    startEditing(
+                      "contactMethod",
+                      userData.contactMethod || "telegram"
+                    )
+                  }
+                  className="p-2 bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 rounded-full"
+                >
+                  <FiEdit className="w-5 h-5" />
+                </motion.button>
+              )}
+            </AnimatePresence>
+          )}
+        </div>
+      </div>
+    );
   };
 
   return (
     <AnimatePresence>
       {isOpen && (
-        <motion.div
-          className="fixed inset-0 z-50"
-          initial="hidden"
-          animate="visible"
-          exit="exit"
-        >
+        <div className="fixed inset-0 z-50 overflow-hidden">
           <motion.div
             variants={overlayVariants}
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={onClose}
           />
 
-          <motion.div
-            variants={mobileMenuVariants}
-            className="absolute right-0 top-0 h-full w-full max-w-md bg-white dark:bg-gray-900 shadow-xl overflow-y-auto"
-          >
-            <div className="p-6 space-y-6">
-              {/* Header Section */}
-              <div className="flex justify-between items-center">
-                <button
-                  onClick={onClose}
-                  className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                >
-                  <FiX className="w-6 h-6" />
-                </button>
-                {user && (
-                  <Link
-                    to={`/${user.role}-dashboard`}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-                  >
-                    Dashboard
-                  </Link>
-                )}
-              </div>
-
-              {/* Mobile Navigation (Only for non-authenticated users on mobile) */}
-              {!user && (
-                <motion.div className="space-y-4">
-                  {["Courses", "About", "Contact"].map((item) => (
-                    <Link
-                      key={item}
-                      to={`/${item.toLowerCase()}`}
-                      className="block md:hidden text-lg font-medium text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400"
+          <div className="absolute inset-y-0 right-0 max-w-full flex">
+            <motion.div
+              variants={slideInVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className="w-full sm:w-96 md:w-[32rem] bg-white dark:bg-gray-900 shadow-xl overflow-y-auto flex flex-col h-full"
+            >
+              <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 shadow-sm">
+                <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-800">
+                  <div className="flex items-end gap-3">
+                    <motion.button
+                      variants={buttonVariants}
+                      whileHover="hover"
+                      whileTap="tap"
+                      onClick={onClose}
+                      className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+                      aria-label="Close"
                     >
-                      {item}
-                    </Link>
-                  ))}
-                </motion.div>
-              )}
-
-              {/* User Profile Section */}
-              <div className="space-y-6">
-                {/* Profile Information */}
-                <div className="p-6 rounded-xl bg-gray-50 dark:bg-gray-800">
-                  <h2 className="text-xl font-semibold flex items-center gap-3 mb-4">
-                    <FiUser className="w-6 h-6" />
-                    Profile Information
-                  </h2>
-
-                  <div className="space-y-4">
-                    {/* Name Field */}
-                    <div className="flex flex-col gap-2">
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium">Name:</span>
-                        {!isEditing.name ? (
-                          <button
-                            onClick={() => {
-                              setFormData({
-                                ...formData,
-                                newName: userData.name,
-                              });
-                              setIsEditing({ ...isEditing, name: true });
-                            }}
-                            className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full"
-                          >
-                            <FiEdit className="w-5 h-5" />
-                          </button>
-                        ) : (
-                          <div className="flex gap-2">
-                            <button
-                              // onClick={() => handleUpdate("name")}
-                              className="p-2 text-green-500 hover:bg-green-100 dark:hover:bg-green-900 rounded-full"
-                            >
-                              <FiCheck className="w-5 h-5" />
-                            </button>
-                            <button
-                              onClick={() =>
-                                setIsEditing({ ...isEditing, name: false })
-                              }
-                              className="p-2 text-red-500 hover:bg-red-100 dark:hover:bg-red-900 rounded-full"
-                            >
-                              <FiX className="w-5 h-5" />
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                      {isEditing.name ? (
-                        <input
-                          value={formData.newName}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              newName: e.target.value,
-                            })
-                          }
-                          className="w-full p-2 rounded-lg border dark:bg-gray-700"
-                        />
-                      ) : (
-                        <p className="text-gray-600 dark:text-gray-300 capitalize">
-                          {userData.name}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Email Field */}
-                    <div className="flex flex-col gap-2">
-                      <div className="flex items-center gap-2">
-                        <FiMail />
-                        <span className="font-medium">Email:</span>
-                      </div>
-                      <p className="text-gray-600 dark:text-gray-300">
-                        {userData.email}
-                      </p>
-                    </div>
-
-                    {/* Phone Field */}
-                    <div className="flex flex-col gap-2">
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium">Phone:</span>
-                        {!isEditing.phone ? (
-                          <button
-                            onClick={() => {
-                              setFormData({
-                                ...formData,
-                                newPhone: userData.phone,
-                              });
-                              setIsEditing({ ...isEditing, phone: true });
-                            }}
-                            className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full"
-                          >
-                            <FiEdit className="w-5 h-5" />
-                          </button>
-                        ) : (
-                          <div className="flex gap-2">
-                            <button
-                              // onClick={() => handleUpdate("phone")}
-                              className="p-2 text-green-500 hover:bg-green-100 dark:hover:bg-green-900 rounded-full"
-                            >
-                              <FiCheck className="w-5 h-5" />
-                            </button>
-                            <button
-                              onClick={() =>
-                                setIsEditing({ ...isEditing, phone: false })
-                              }
-                              className="p-2 text-red-500 hover:bg-red-100 dark:hover:bg-red-900 rounded-full"
-                            >
-                              <FiX className="w-5 h-5" />
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                      {isEditing.phone ? (
-                        <input
-                          value={formData.newPhone}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              newPhone: e.target.value,
-                            })
-                          }
-                          className="w-full p-2 rounded-lg border dark:bg-gray-700"
-                        />
-                      ) : (
-                        <p className="text-gray-600 dark:text-gray-300">
-                          {userData.phone || "Not set"}
-                        </p>
-                      )}
-                    </div>
+                      <FiChevronLeft className="w-5 h-5" />
+                    </motion.button>
+                    <h1 className="text-lg font-semibold flex items-center gap-2">
+                      <FiSettings className="w-5 h-5" />
+                      Account Settings
+                    </h1>
                   </div>
-                </div>
 
-                {/* <div className="space-y-6"> */}
-                {/* Telegram */}
-                {/* <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"> */}
-                {/* <div className="flex items-center gap-3">
-                      <FaTelegram className="w-6 h-6 text-blue-500" />
-                      <span className="font-medium">Telegram:</span>
-                    </div>
-                    <div className="flex-1">
-                      {isEditing.contact ? (
-                        <input
-                          type="text"
-                          value={formData.newTelegram}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              newTelegram: e.target.value,
-                            })
-                          }
-                          className="w-full sm:w-auto px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition"
-                          placeholder="@username"
-                        />
-                      ) : (
-                        <span className="text-gray-700 dark:text-gray-300">
-                          {userData.telegram || "Not set"}
-                        </span>
-                      )}
-                    </div> */}
-
-                {/* Edit / Save Buttons */}
-                {/* <div className="flex gap-2">
-                      {isEditing.contact ? (
-                        <>
-                          <button
-                            onClick={() => handleUpdate("contact")}
-                            className="p-2 text-green-500 hover:bg-green-100 dark:hover:bg-green-800 rounded-full transition"
-                          >
-                            <FiCheck className="w-5 h-5" />
-                          </button>
-                          <button
-                            onClick={() =>
-                              setIsEditing({ ...isEditing, contact: false })
-                            }
-                            className="p-2 text-red-500 hover:bg-red-100 dark:hover:bg-red-800 rounded-full transition"
-                          >
-                            <FiX className="w-5 h-5" />
-                          </button>
-                        </>
-                      ) : (
-                        <button
-                          onClick={() => {
-                            setFormData({
-                              ...formData,
-                              newTelegram: userData.telegram || "",
-                              newWhatsapp: userData.whatsapp || "",
-                            });
-                            setIsEditing({ ...isEditing, contact: true });
-                          }}
-                          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition"
-                        >
-                          <FiEdit className="w-5 h-5" />
-                        </button>
-                      )}
-                    </div> */}
-                {/* </div> */}
-
-                {/* WhatsApp */}
-                {/* <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <FaWhatsapp className="w-6 h-6 text-green-500" />
-                      <span className="font-medium">WhatsApp:</span>
-                    </div>
-                    <div className="flex-1">
-                      {isEditing.contact ? (
-                        <input
-                          type="tel"
-                          value={formData.newWhatsapp}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              newWhatsapp: e.target.value,
-                            })
-                          }
-                          className="w-full sm:w-auto px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition"
-                          placeholder="Phone number"
-                        />
-                      ) : (
-                        <span className="text-gray-700 dark:text-gray-300">
-                          {userData.whatsapp || "Not set"}
-                        </span>
-                      )}
-                    </div>
-                  </div> */}
-                {/* </div> */}
-
-                {/* Security Section */}
-                <div className="p-6 rounded-xl bg-gray-50 dark:bg-gray-800">
-                  <h2 className="text-xl font-semibold flex items-center gap-3 mb-4">
-                    <FiLock className="w-6 h-6" />
-                    Security
-                  </h2>
-
-                  {isEditing.password ? (
-                    <div className="space-y-4">
-                      <input
-                        type="password"
-                        placeholder="Current Password"
-                        value={formData.currentPassword}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            currentPassword: e.target.value,
-                          })
-                        }
-                        className="w-full p-2 rounded-lg border dark:bg-gray-700"
-                      />
-                      <input
-                        type="password"
-                        placeholder="New Password"
-                        value={formData.newPassword}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            newPassword: e.target.value,
-                          })
-                        }
-                        className="w-full p-2 rounded-lg border dark:bg-gray-700"
-                      />
-                      <div className="flex gap-2 justify-end">
-                        <button
-                          // onClick={() => handleUpdate("password")}
-                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                        >
-                          {/* {isLoading ? "Saving..." : "Save"} */}
-                        </button>
-                        <button
-                          onClick={() =>
-                            setIsEditing({ ...isEditing, password: false })
-                          }
-                          className="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() =>
-                        setIsEditing({ ...isEditing, password: true })
-                      }
-                      className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                  {user && (
+                    <Link
+                      to={`/${user.role}-dashboard`}
+                      className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
                     >
-                      Change Password
-                    </button>
+                      Dashboard
+                    </Link>
                   )}
                 </div>
-
-                {/* Dangerous Zone */}
-                <div className="p-6 rounded-xl border border-red-200 dark:border-red-800">
-                  <h3 className="text-lg font-semibold text-red-600 mb-4">
-                    Dangerous Zone
-                  </h3>
-                  <div className="flex flex-col sm:flex-row gap-4">
-                    <button
-                      onClick={handleLogout}
-                      className="flex items-center gap-2 px-4 py-2 bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-200 rounded-lg hover:bg-red-200 dark:hover:bg-red-800 transition-colors"
-                    >
-                      <FiLogOut /> Log Out
-                    </button>
-                    <button
-                      onClick={handleDeleteAccount}
-                      className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                    >
-                      <FiTrash2 /> Delete Account
-                    </button>
-                  </div>
-                </div>
               </div>
 
-              {/* Auth Section for Guests */}
-              {!user && (
-                <div className="text-center space-y-4">
-                  <p className="text-gray-600 dark:text-gray-300">
-                    Sign in to access all features
-                  </p>
-                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                    <Link
-                      to="/login"
-                      className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                    >
-                      Sign In
-                    </Link>
-                    <Link
-                      to="/signup"
-                      className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                    >
-                      Create Account
-                    </Link>
+              {isLoading && !editState.isEditing ? (
+                <div className="flex-1 flex items-end justify-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+                </div>
+              ) : (
+                <div className="flex-1 p-4 overflow-y-auto">
+                  <div className="space-y-6">
+                    <section className="bg-gray-50 dark:bg-gray-800 rounded-xl overflow-hidden">
+                      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                        <h2 className="text-lg font-semibold flex items-center gap-2">
+                          <FiUser className="w-5 h-5 text-blue-500" />
+                          Profile Information
+                        </h2>
+                      </div>
+                      <div className="divide-y divide-gray-100 dark:divide-gray-800">
+                        {renderField(
+                          "name",
+                          "Name",
+                          <FiUser className="w-5 h-5 text-gray-500" />,
+                          userData.name
+                        )}
+                        {renderField(
+                          "email",
+                          "Email",
+                          <FiMail className="w-5 h-5 text-gray-500" />,
+                          userData.email
+                        )}
+                        {renderField(
+                          "phone",
+                          "Phone",
+                          <FiPhone className="w-5 h-5 text-gray-500" />,
+                          userData.phone
+                        )}
+                        {renderContactMethodSelector()}
+                      </div>
+                    </section>
+
+                    <section className="bg-gray-50 dark:bg-gray-800 rounded-xl overflow-hidden">
+                      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                        <h2 className="text-lg font-semibold flex items-center gap-2">
+                          <FiLock className="w-5 h-5 text-blue-500" />
+                          Security
+                        </h2>
+                      </div>
+                      <div>
+                        {renderField(
+                          "password",
+                          "Password",
+                          <FiLock className="w-5 h-5 text-gray-500" />,
+                          ""
+                        )}
+                      </div>
+                    </section>
+
+                    <section className="mt-8">
+                      <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-4 border border-red-200 dark:border-red-800/50">
+                        <h3 className="text-base font-semibold text-red-600 dark:text-red-400 mb-4">
+                          Account Management
+                        </h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <motion.button
+                            variants={buttonVariants}
+                            whileHover="hover"
+                            whileTap="tap"
+                            onClick={handleLogout}
+                            className="flex justify-center items-center gap-2 py-2.5 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors font-medium"
+                          >
+                            <FiLogOut className="w-4 h-4" />
+                            Log Out
+                          </motion.button>
+                          <motion.button
+                            variants={buttonVariants}
+                            whileHover="hover"
+                            whileTap="tap"
+                            onClick={handleDeleteAccount}
+                            className="flex justify-center items-center gap-2 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+                            disabled={isLoading}
+                          >
+                            <FiTrash2 className="w-4 h-4" />
+                            {isLoading ? "Processing..." : "Delete Account"}
+                          </motion.button>
+                        </div>
+                        <p className="text-xs text-red-500 dark:text-red-400 mt-3">
+                          Warning: Deleting your account is permanent and cannot
+                          be undone.
+                        </p>
+                      </div>
+                    </section>
                   </div>
                 </div>
               )}
-            </div>
-          </motion.div>
-        </motion.div>
+            </motion.div>
+          </div>
+        </div>
       )}
     </AnimatePresence>
   );

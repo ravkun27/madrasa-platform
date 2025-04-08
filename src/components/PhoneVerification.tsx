@@ -107,7 +107,7 @@ export const PhoneVerification = ({
                 );
                 if (newCountry) setSelectedCountry(newCountry);
               }}
-              className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent bg-white"
+              className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent bg-white text-black"
             >
               {CountryOptions.map((c) => (
                 <option key={c.code} value={c.code}>
@@ -126,7 +126,7 @@ export const PhoneVerification = ({
               onChange={(e) =>
                 setPhoneNumber(e.target.value.replace(/\D/g, "").slice(0, 15))
               }
-              className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-white"
+              className="w-full p-3 text-black rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-white"
             />
           </div>
 

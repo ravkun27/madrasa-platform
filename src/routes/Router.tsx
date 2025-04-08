@@ -21,6 +21,9 @@ import AdminLayout from "../layouts/AdminLayout";
 import AdminLogin from "../pages/Auth/AdminLogin";
 import AboutUs from "../pages/AboutusPage";
 import { CoursePage } from "../pages/Student/CoursePage";
+import PrivacyPolicy from "../pages/PrivacyPolicy";
+import TermsOfUse from "../pages/TermsOfUse";
+import ContactPage from "../pages/ContactPage";
 // RootLayout wraps the entire app with AuthProvider and CourseProvider
 const RootLayout = () => {
   return (
@@ -51,6 +54,9 @@ const publicRoutes = [
       { index: true, element: <LandingPage /> },
       { path: "courses", element: <CoursesPage /> },
       { path: "about", element: <AboutUs /> },
+      { path: "privacy", element: <PrivacyPolicy /> },
+      { path: "terms", element: <TermsOfUse /> },
+      { path: "contact", element: <ContactPage /> },
       {
         path: "signup",
         element: <Signup setIsLogin={(isLogin) => console.log(isLogin)} />,

@@ -138,7 +138,7 @@ export const CoursePage = () => {
             {selectedLesson ? (
               <div className="space-y-8">
                 <div className="bg-card rounded-xl shadow-sm p-6 border border-cardBorder">
-                  <LessonContent lesson={selectedLesson} />
+                  <LessonContent lesson={selectedLesson} courseId={courseId ?? ""} />
                 </div>
 
                 <div className="bg-card rounded-xl shadow-sm p-6 border border-cardBorder">

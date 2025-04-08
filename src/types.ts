@@ -24,6 +24,7 @@ export interface Course {
   banner: File | null;
   category: string;
   published: boolean;
+  tags: string[];
 }
 
 export type CourseAction =
@@ -90,9 +91,7 @@ export interface Note {
 }
 
 export interface MeetingDetails {
-  isLive: boolean;
-  scheduledTime?: string;
   title: string;
   description: string;
-  url: string;
+  link: string;
 }

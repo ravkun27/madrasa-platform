@@ -56,6 +56,7 @@ export const Courses = ({ course }: { course: any }) => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [cropping, setCropping] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [students, setStudents] = useState([]);
 
   const [showMeetingForm, setShowMeetingForm] = useState(false);
 
@@ -63,13 +64,30 @@ export const Courses = ({ course }: { course: any }) => {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const dummyStudents = [
-    "John Doe",
-    "Jane Smith",
-    "Alice Johnson",
-    "Bob Brown",
-    "Charlie Davis",
-  ];
+  const fetchStudentsForCourse = async (courseId: string) => {
+    try {
+      const response: any = await getFetch(
+        `/user/teacher/course/students?courseId=${courseId}`
+      );
+      console.log("Students List:", response);
+
+      if (Array.isArray(response?.data?.students)) {
+        setStudents(response.data.student); // list of students
+      } else {
+        console.error("Unexpected response format:", response);
+        return [];
+      }
+    } catch (error) {
+      console.error("Error fetching students:", error);
+      return [];
+    }
+  };
+
+  useEffect(() => {
+    if (showStudents) {
+      fetchStudentsForCourse(course._id);
+    }
+  }, [showStudents, course._id]);
 
   useEffect(() => {
     if (addSectionToggle && !newSection.title && !newSection.description) {
@@ -304,8 +322,7 @@ export const Courses = ({ course }: { course: any }) => {
     toast.custom((t) => (
       <div className="bg-white p-6 rounded-xl shadow-lg flex flex-col gap-4">
         <p className="text-lg font-medium text-gray-800">
-          Are you sure you want to {isPublished ? "unpublish" : "publish"} this
-          course?
+          Are you sure you want to publish this course?
         </p>
         <div className="flex justify-end gap-3">
           <button
@@ -332,14 +349,14 @@ export const Courses = ({ course }: { course: any }) => {
     setIsPublished(!isPublished);
     try {
       const result: any = await putFetch(
-        `/user/teacher/course/publish?courseId=${courseId}&published=${!isPublished}`,
-        {}
+        `/user/teacher/course?courseId=${courseId}`,
+        {
+          published: true,
+        }
       );
       if (result.success) {
         setCourseList();
-        toast.success(
-          `Course ${!isPublished ? "published" : "unpublished"} successfully`
-        );
+        toast.success(`Course published successfully`);
       }
     } catch (error) {
       toast.error("Failed to publish course");
@@ -654,7 +671,7 @@ export const Courses = ({ course }: { course: any }) => {
                 onClick={copyToClipboard}
                 className="flex items-center gap-2 px-4 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors text-sm"
               >
-                {copied ? "Copied!" : "Copy Code"}
+                {copied ? "Copied!" : "Copy Joining Code"}
               </button>
               <div className="absolute bottom-12 left-1/2 transform -translate-x-1/2 mt-2 w-max bg-gray-800 text-white text-sm p-2 rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
                 {course._id}
@@ -749,7 +766,7 @@ export const Courses = ({ course }: { course: any }) => {
                     <FiUsers size={20} />
                     <span className="font-medium">
                       {showStudents ? "Hide Students" : "Show Students"} (
-                      {dummyStudents.length})
+                      {students.length})
                     </span>
                   </button>
                   <button
@@ -770,7 +787,7 @@ export const Courses = ({ course }: { course: any }) => {
 
                 {showStudents && (
                   <div className="py-3">
-                    {[...dummyStudents].sort().map((student) => (
+                    {students.sort().map((student) => (
                       <div
                         key={student}
                         className="flex items-center justify-between p-3"
@@ -859,12 +876,12 @@ export const Courses = ({ course }: { course: any }) => {
                 <button
                   onClick={() => publishCourse(course._id, isPublished)}
                   className={`w-1/2 py-3.5 rounded-xl transition-colors text-base font-medium ${
-                    isPublished || !course.sectionIds?.length
+                    course.published.value
                       ? "bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed"
                       : "bg-green-500 hover:bg-green-600 text-white"
                   }`}
                 >
-                  {isPublished ? "Published ✓" : "Publish Course"}
+                  {course.published.value ? "Published" : "Publish Course"}
                 </button>
                 <button
                   onClick={(e) => {

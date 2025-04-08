@@ -3,8 +3,9 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getFetch } from "../../utils/apiCall";
 import { motion } from "framer-motion";
-import { FiSearch, FiAlertCircle, FiCheckCircle } from "react-icons/fi";
-import toast from "react-hot-toast";
+import CourseSearch from "../../components/CourseSearch";
+import { FiCheckCircle } from "react-icons/fi";
+import { useAuth } from "../../context/AuthContext";
 
 interface Course {
   _id: string;
@@ -17,11 +18,8 @@ interface Course {
 const StudentDashboard = () => {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchId, setSearchId] = useState("");
-  const [foundCourse, setFoundCourse] = useState<Course | null>(null);
-  const [searchError, setSearchError] = useState("");
-  const [isEnrolling, setIsEnrolling] = useState(false);
 
+  const { user } = useAuth();
   const fetchEnrolledCourses = async () => {
     setLoading(true);
     try {
@@ -29,7 +27,7 @@ const StudentDashboard = () => {
       if (res.success) {
         const coursesWithProgress = res.data.courseList.map((course: any) => ({
           ...course,
-          progress: calculateCourseProgress(),
+          progress: calculateCourseProgress(course),
         }));
         setCourses(coursesWithProgress);
       }
@@ -44,118 +42,16 @@ const StudentDashboard = () => {
     fetchEnrolledCourses();
   }, []);
 
-  const calculateCourseProgress = (): number => {
-    return Math.floor(Math.random() * 100);
+  const calculateCourseProgress = (course: any): number => {
+    if (!course.totalLessons || course.totalLessons === 0) return 0;
+    return Math.floor((course.completedLessons / course.totalLessons) * 100);
   };
-
-  const handleSearch = async (courseId: string) => {
-    setSearchId(courseId);
-
-    if (!/^[0-9a-fA-F]{24}$/.test(courseId)) {
-      setFoundCourse(null);
-      setSearchError("Invalid Course ID format");
-      return;
-    }
-
-    try {
-      const res: any = await getFetch(
-        `/user/student/course?courseId=${courseId}`
-      );
-      if (res.success) {
-        setFoundCourse(res.data.course);
-        setSearchError("");
-      } else {
-        setSearchError("Course not found");
-        setFoundCourse(null);
-      }
-    } catch (error) {
-      setSearchError("Error searching course");
-      console.error("Search error:", error);
-    }
-  };
-
-  const handleEnroll = async (courseId: string) => {
-    setIsEnrolling(true);
-    try {
-      const res: any = await getFetch(
-        `/user/student/course/enroll?courseId=${courseId}`
-      );
-      if (res.success) {
-        toast.success(res.message);
-
-        // ✅ Refetch the enrolled courses after successful enrollment
-        await fetchEnrolledCourses();
-      }
-    } catch (error: any) {
-      const errorMessage = error.message || "Enroll failed";
-      toast.error(errorMessage);
-    } finally {
-      setIsEnrolling(false);
-    }
-  };
-
-  const debounce = (func: Function, delay: number) => {
-    let timeoutId: NodeJS.Timeout;
-    return (...args: any[]) => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => func(...args), delay);
-    };
-  };
-
-  const debouncedSearch = debounce(handleSearch, 500);
 
   return (
     <div className="p-6 min-h-screen max-w-7xl mx-auto">
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-4">Enroll in New Course</h1>
-        <div className="relative max-w-xl">
-          <div className="flex items-center gap-2">
-            <FiSearch className="text-gray-400 text-lg" />
-            <input
-              type="text"
-              placeholder="Enter Course ID (e.g., 67eaa3b933d18fd8227186bf)"
-              className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-accent bg-neutral-200 text-black"
-              value={searchId}
-              onChange={(e) => {
-                setSearchId(e.target.value);
-                debouncedSearch(e.target.value);
-              }}
-              pattern="[0-9a-fA-F]{24}"
-            />
-          </div>
-
-          {searchError && (
-            <div className="mt-2 flex items-center gap-2 text-red-600">
-              <FiAlertCircle />
-              <span>{searchError}</span>
-            </div>
-          )}
-
-          {foundCourse && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mt-4 bg-white p-4 rounded-lg shadow-md border"
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold text-lg">{foundCourse.title}</h3>
-                  <p className="text-gray-600 text-sm line-clamp-2">
-                    {foundCourse.description}
-                  </p>
-                </div>
-                <button
-                  onClick={() => handleEnroll(foundCourse._id)}
-                  disabled={isEnrolling}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 
-                    disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-                >
-                  {isEnrolling ? "Enrolling..." : "Join Course"}
-                </button>
-              </div>
-            </motion.div>
-          )}
-        </div>
+        <CourseSearch user={user} onEnrollSuccess={fetchEnrolledCourses} />
       </div>
 
       <h2 className="text-3xl font-bold mb-6">My Courses</h2>

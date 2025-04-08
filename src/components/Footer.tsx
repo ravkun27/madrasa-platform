@@ -41,7 +41,7 @@ const Footer = () => {
             <ul className="flex justify-center md:justify-end space-x-6">
               <li>
                 <Link
-                  to="#"
+                  to="/about"
                   className={`hover:${
                     theme === "light" ? "text-gray-700" : "text-gray-300"
                   } transition duration-300`}
@@ -51,7 +51,7 @@ const Footer = () => {
               </li>
               <li>
                 <Link
-                  to="#"
+                  to="/contact"
                   className={`hover:${
                     theme === "light" ? "text-gray-700" : "text-gray-300"
                   } transition duration-300`}
@@ -61,12 +61,22 @@ const Footer = () => {
               </li>
               <li>
                 <Link
-                  to="#"
+                  to="/privacy"
                   className={`hover:${
                     theme === "light" ? "text-gray-700" : "text-gray-300"
                   } transition duration-300`}
                 >
                   Privacy
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/terms"
+                  className={`hover:${
+                    theme === "light" ? "text-gray-700" : "text-gray-300"
+                  } transition duration-300`}
+                >
+                  Terms & Conditions
                 </Link>
               </li>
             </ul>

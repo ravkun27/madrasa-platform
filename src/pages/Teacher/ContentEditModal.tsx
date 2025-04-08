@@ -87,7 +87,7 @@ const ContentEditModal = ({
           animate={{ scale: 1, y: 0 }}
           exit={{ scale: 0, y: 20 }}
           transition={{ type: "spring", stiffness: 300 }}
-          className="bg-white rounded-xl shadow-xl w-full max-w-md"
+          className="bg-background rounded-xl shadow-xl w-full max-w-md"
         >
           <div className="p-6">
             <div className="flex justify-between items-center mb-6">

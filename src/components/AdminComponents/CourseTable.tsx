@@ -15,36 +15,28 @@ type Course = {
 // Define the props type
 interface CoursesTableProps {
   courses: Course[];
-  courseFilter: "all" | "active" | "deleted";
 }
 
 // Function to get the course status
 const getCourseStatus = (course: Course): string => {
+  console.log(course);
   if (!course.active) return "Deleted";
+
   return course.published ? "Published" : "Draft";
 };
 
-const CoursesTable: React.FC<CoursesTableProps> = ({
-  courses,
-  courseFilter,
-}) => {
+const CoursesTable: React.FC<CoursesTableProps> = ({ courses }) => {
   // Process and filter courses
-  const processedCourses = courses
-    .filter((course) => {
-      if (courseFilter === "all") return true;
-      if (courseFilter === "active") return course.active;
-      return !course.active;
-    })
-    .sort((a, b) => {
-      // Sort deleted courses first, by deletion date (newest first)
-      if (!a.active && !b.active) {
-        return (
-          new Date(b.deletedAt || 0).getTime() -
-          new Date(a.deletedAt || 0).getTime()
-        );
-      }
-      return a.active ? 1 : -1;
-    });
+  const processedCourses = courses.sort((a, b) => {
+    // Sort deleted courses first, by deletion date (newest first)
+    if (!a.active && !b.active) {
+      return (
+        new Date(b.deletedAt || 0).getTime() -
+        new Date(a.deletedAt || 0).getTime()
+      );
+    }
+    return a.active ? 1 : -1;
+  });
 
   return (
     <div className="overflow-x-auto">

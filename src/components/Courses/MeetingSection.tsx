@@ -13,28 +13,28 @@ export const MeetingSection = ({
         <div>
           <h3 className="text-lg font-bold text-blue-800">
             {meeting.title}
-            {meeting.isLive && (
+            {/* {meeting.isLive && (
               <span className="ml-2 px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full animate-pulse">
                 LIVE
               </span>
-            )}
+            )} */}
           </h3>
           <p className="text-blue-600">{meeting.description}</p>
         </div>
         <a
-          href={meeting.url}
+          href={meeting?.link}
           target="_blank"
           rel="noopener noreferrer"
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
         >
-          {meeting.isLive ? "Join Now" : "View Details"}
+          Join Now
         </a>
       </div>
-      {meeting.scheduledTime && (
+      {/* {meeting.scheduledTime && (
         <div className="mt-2 text-sm text-blue-500">
           Scheduled: {new Date(meeting.scheduledTime).toLocaleString()}
         </div>
-      )}
+      )} */}
     </div>
   );
 };

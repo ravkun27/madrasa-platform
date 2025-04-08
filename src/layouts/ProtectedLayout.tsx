@@ -15,7 +15,7 @@ const ProtectedLayout: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="flex flex-col min-h-screen bg-background text-text">
       <Header />
       <motion.main
         initial={{ opacity: 0, y: 20 }}

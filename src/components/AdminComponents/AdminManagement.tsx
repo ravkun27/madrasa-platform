@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { FiUserPlus, FiTrash } from "react-icons/fi";
 import { getFetch, postFetch, deleteFetch } from "../../utils/apiCall";
+import toast from "react-hot-toast";
 
 const AdminManagement = () => {
   const [admins, setAdmins] = useState<any[]>([]);
@@ -23,7 +24,8 @@ const AdminManagement = () => {
         );
       } catch (error) {
         console.error("Error fetching admins:", error);
-        setAdmins([]); // Ensure it's always an array
+        toast.error("Failed to fetch admins.");
+        setAdmins([]);
       } finally {
         setLoading(false);
       }
@@ -31,14 +33,38 @@ const AdminManagement = () => {
     fetchAdmins();
   }, []);
 
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validatePhoneNumber = (phoneNumber: string) => {
+    const phoneRegex = /^(?:\+91|0)?[6-9]\d{9}$|^(?:\+964|0)?7[0-9]{9}$/;
+    return phoneRegex.test(phoneNumber);
+  };
+
   const createAdmin = async () => {
     if (!Object.values(newAdmin).every((val) => val.trim())) {
-      alert("Please fill all fields");
+      toast.error("Please fill all fields.");
       return;
     }
+    if (!validateEmail(newAdmin.email)) {
+      toast.error("Invalid email format.");
+      return;
+    }
+    if (!validatePhoneNumber(newAdmin.phoneNumber)) {
+      toast.error("Invalid phone number. Use India or Iraq format.");
+      return;
+    }
+    if (newAdmin.password.length < 6) {
+      toast.error("Password must be at least 6 characters.");
+      return;
+    }
+
     try {
       const res: any = await postFetch("/admin/auth/general", newAdmin);
       if (res.success) {
+        toast.success("Admin created successfully.");
         setAdmins([...admins, res.data]);
         setNewAdmin({
           firstName: "",
@@ -47,16 +73,24 @@ const AdminManagement = () => {
           phoneNumber: "",
           password: "",
         });
+      } else {
+        toast.error("Failed to create admin.");
       }
     } catch (error) {
       console.error("Error creating admin:", error);
+      toast.error("Error creating admin.");
     }
   };
 
   const deleteAdmin = async (adminId: string) => {
     if (window.confirm("Are you sure you want to delete this admin?")) {
-      await deleteFetch(`/admin/auth/admin/${adminId}`);
-      setAdmins(admins.filter((a) => a._id !== adminId));
+      try {
+        await deleteFetch(`/admin/auth/admin/${adminId}`);
+        setAdmins(admins.filter((a) => a._id !== adminId));
+        toast.success("Admin deleted successfully.");
+      } catch (error) {
+        toast.error("Error deleting admin.");
+      }
     }
   };
 

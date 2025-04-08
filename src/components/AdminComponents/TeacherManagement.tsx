@@ -13,9 +13,7 @@ import CoursesTable from "./CourseTable";
 const TeacherManagement = () => {
   const [teachers, setTeachers] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [courseFilter, setCourseFilter] = useState<
-    "all" | "active" | "deleted"
-  >("all");
+
   const [expandedTeacher, setExpandedTeacher] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [deletedCoursesMap, setDeletedCoursesMap] = useState<
@@ -27,7 +25,7 @@ const TeacherManagement = () => {
     const fetchDeletedCourses = async (teacherId: string) => {
       try {
         const response: any = await getFetch(
-          `/admin/auth/course/deleted?teacherId=${teacherId}`
+          `/admin/auth/course/deleted/${teacherId}`
         );
         setDeletedCoursesMap((prev) => ({
           ...prev,
@@ -264,21 +262,6 @@ const TeacherManagement = () => {
             onChange={handleSearchChange}
           />
         </div>
-        <div className="flex gap-2">
-          {["all", "active", "deleted"].map((filter) => (
-            <button
-              key={filter}
-              onClick={() => setCourseFilter(filter as any)}
-              className={`px-4 py-2 rounded-lg transition-colors ${
-                courseFilter === filter
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-200 hover:bg-gray-300"
-              }`}
-            >
-              {filter.charAt(0).toUpperCase() + filter.slice(1)} Courses
-            </button>
-          ))}
-        </div>
       </div>
 
       <div className="mb-8">
@@ -338,52 +321,67 @@ const TeacherManagement = () => {
           {teachers.map((teacher) => (
             <div
               key={teacher._id}
-              className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow"
+              className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow transition-all hover:shadow-md"
             >
-              <div className="flex flex-col xs:flex-row justify-between items-start xs:items-center gap-2 mb-4">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h4 className="text-lg font-semibold truncate">
+              <div className="flex flex-col sm:flex-row justify-between items-start gap-3">
+                <div className="flex-1 w-full">
+                  <div className="flex flex-wrap items-center gap-2 mb-3">
+                    <h4 className="text-lg font-semibold">
                       {teacher.firstName} {teacher.lastName}
                     </h4>
                     <span
-                      className={`px-2 py-1 rounded-full text-sm ${
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${
                         teacher.suspended
-                          ? "bg-red-100 text-red-800"
-                          : "bg-green-100 text-green-800"
+                          ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+                          : "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
                       }`}
                     >
                       {teacher.suspended ? "Suspended" : "Active"}
                     </span>
                   </div>
-                  <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-4 gap-2 text-sm">
-                    <div className="truncate">
-                      <span className="font-medium">Email:</span>{" "}
-                      {teacher.email}
-                    </div>
-                    <div>
-                      <span className="font-medium">Phone:</span>{" "}
-                      {teacher.phoneNumber}
-                    </div>
-                    <div>
-                      <span className="font-medium">Joined:</span>{" "}
-                      {new Date(teacher.createdAt).toLocaleDateString()}
-                    </div>
-                    <div>
-                      <span className="font-medium">
-                        Communication Preference:
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-y-2 gap-x-4 text-sm">
+                    <div className="overflow-hidden">
+                      <span className="font-medium text-gray-600 dark:text-gray-300">
+                        Email:
                       </span>{" "}
-                      {teacher.TelegramOrWhatsapp}
+                      <span className="truncate block">{teacher.email}</span>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600 dark:text-gray-300">
+                        Phone:
+                      </span>{" "}
+                      <span>{teacher.phoneNumber}</span>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600 dark:text-gray-300">
+                        Joined:
+                      </span>{" "}
+                      <span>
+                        {new Date(teacher.createdAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600 dark:text-gray-300">
+                        Communication:
+                      </span>{" "}
+                      <span>{teacher.TelegramOrWhatsapp}</span>
                     </div>
                   </div>
                 </div>
+
                 <button
                   onClick={() =>
                     setExpandedTeacher(
                       expandedTeacher === teacher._id ? null : teacher._id
                     )
                   }
-                  className="p-2 hover:bg-gray-100 rounded-lg self-start"
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors self-start ml-auto"
+                  aria-label={
+                    expandedTeacher === teacher._id
+                      ? "Collapse details"
+                      : "Expand details"
+                  }
                 >
                   {expandedTeacher === teacher._id ? (
                     <FiChevronUp />
@@ -394,27 +392,28 @@ const TeacherManagement = () => {
               </div>
 
               {expandedTeacher === teacher._id && (
-                <div className="mt-4 pt-4 border-t">
-                  <h5 className="font-semibold mb-4">Courses</h5>
-                  <div className="space-y-3">
-                    <CoursesTable
-                      courses={getCombinedCourses(teacher)}
-                      courseFilter={courseFilter}
-                    />
+                <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <h5 className="font-semibold mb-4 text-gray-800 dark:text-gray-200">
+                    Courses
+                  </h5>
+                  <div>
+                    <CoursesTable courses={getCombinedCourses(teacher)} />
                   </div>
-                  <div className="mt-4 pt-4 border-t flex flex-col sm:flex-row justify-end gap-2">
-                    <button
-                      onClick={() => suspendTeacher(teacher._id)}
-                      className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg transition-colors"
-                    >
-                      {teacher.suspended ? "Unsuspend" : "Suspend"}
-                    </button>
-                    <button
-                      onClick={() => deleteTeacher(teacher._id)}
-                      className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
-                    >
-                      Remove Teacher
-                    </button>
+                  <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700 flex justify-end">
+                    <div className="inline-flex space-x-3">
+                      <button
+                        onClick={() => suspendTeacher(teacher._id)}
+                        className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg transition-colors"
+                      >
+                        {teacher.suspended ? "Unsuspend" : "Suspend"}
+                      </button>
+                      <button
+                        onClick={() => deleteTeacher(teacher._id)}
+                        className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
+                      >
+                        Remove Teacher
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
@@ -19,6 +19,37 @@ interface StepCardProps {
 
 const LandingPage = () => {
   const [searchValue, setSearchValue] = useState("");
+  const [course, setCourse] = useState<any | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    const fetchCourse = async () => {
+      if (searchValue.trim().length === 0) {
+        setCourse(null);
+        return;
+      }
+
+      setLoading(true);
+      setError("");
+      try {
+        const res = await fetch(`/api/courses/${searchValue.trim()}`);
+        if (!res.ok) throw new Error("Course not found");
+        const data = await res.json();
+        setCourse(data);
+      } catch (err) {
+        setCourse(null);
+        setError("Course not found");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const delayDebounce = setTimeout(() => {
+      fetchCourse();
+    }, 600); // debounce
+
+    return () => clearTimeout(delayDebounce);
+  }, [searchValue]);
 
   // Animation variants
   const fadeInUp = {
@@ -104,34 +135,54 @@ const LandingPage = () => {
             </p>
           </motion.div>
 
-          {/* Search box with improved layout */}
-          <motion.div className="max-w-lg mx-auto mb-12" variants={fadeInUp}>
-            <div className="flex items-center gap-3 bg-card rounded-xl shadow-lg p-2 md:p-4 border border-card-border">
-              <div className="relative flex-shrink-0">
+          {/* Search box */}
+          <motion.div
+            className="w-full max-w-xl px-4 mx-auto mb-10"
+            variants={fadeInUp}
+          >
+            <div className="flex flex-col sm:flex-row items-stretch gap-3 bg-card rounded-xl shadow-lg p-4 border border-card-border">
+              <div className="flex items-center gap-2 w-full">
                 <FaSearch className="text-primary text-xl" />
+                <input
+                  type="text"
+                  value={searchValue}
+                  onChange={(e) => setSearchValue(e.target.value)}
+                  placeholder="Enter course code to join..."
+                  className="w-full outline-none bg-transparent text-text placeholder-muted"
+                  aria-label="Course code"
+                />
               </div>
-
-              <input
-                type="text"
-                value={searchValue}
-                onChange={(e) => setSearchValue(e.target.value)}
-                placeholder="Enter course code to join..."
-                className="flex-1 outline-none bg-transparent text-text placeholder-muted"
-                aria-label="Course code"
-              />
-
-              <motion.button
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                className="bg-gradient-to-r from-primary to-secondary text-button-text px-2 md:px-5 py- md:py-2.5 rounded-lg shadow-md transition-all
-                whitespace-nowrap font-medium flex items-center gap-2"
-                aria-label="Join now"
-              >
-                Join Now
-                <FaArrowRight className="text-sm" />
-              </motion.button>
             </div>
           </motion.div>
+
+          {/* Status */}
+          {loading && (
+            <p className="text-center text-muted mt-4">Searching...</p>
+          )}
+          {error && <p className="text-center text-red-500 mt-2">{error}</p>}
+
+          {/* Course card */}
+          {course && (
+            <motion.div
+              className="bg-card p-6 rounded-xl shadow-md border border-card-border mt-6 w-full max-w-xl mx-auto"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+            >
+              <h3 className="text-xl md:text-2xl font-bold text-text mb-2">
+                {course.title}
+              </h3>
+              <p className="text-muted mb-6 text-sm md:text-base">
+                {course.description}
+              </p>
+              <Link
+                to={`/signup?role=student&courseCode=${course.code}`}
+                className="inline-block bg-primary hover:bg-secondary text-white px-5 py-2 rounded-lg font-medium transition-all"
+              >
+                Join this Course
+              </Link>
+            </motion.div>
+          )}
 
           {/* CTA Buttons with consistent styling */}
           <motion.div

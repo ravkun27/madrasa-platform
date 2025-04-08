@@ -10,9 +10,17 @@ import {
   File,
   Circle,
 } from "lucide-react";
+import { putFetch } from "../../utils/apiCall";
 
-export const LessonContent = ({ lesson }: { lesson: any }) => {
+export const LessonContent = ({
+  lesson,
+  courseId,
+}: {
+  lesson: any;
+  courseId: string;
+}) => {
   const [isCompleted, setIsCompleted] = useState(lesson?.completed || false);
+  const [isToggling, setIsToggling] = useState(false);
 
   if (!lesson) return null;
 
@@ -29,7 +37,20 @@ export const LessonContent = ({ lesson }: { lesson: any }) => {
         return <File className="w-6 h-6" />;
     }
   };
-
+  const toggleLessonCompletion = async () => {
+    setIsToggling(true);
+    try {
+      await putFetch(
+        `/user/student/course/lesson/completionToggle?courseId=${courseId}&lessonId=${lesson._id}`,
+        {}
+      );
+      setIsCompleted((prev: any) => !prev);
+    } catch (error) {
+      console.error("Error toggling completion:", error);
+    } finally {
+      setIsToggling(false);
+    }
+  };
   return (
     <div className="space-y-6">
       <div className="flex items-start justify-between">
@@ -41,7 +62,8 @@ export const LessonContent = ({ lesson }: { lesson: any }) => {
           <h1 className="text-2xl font-heading font-bold">{lesson.title}</h1>
         </div>
         <button
-          onClick={() => setIsCompleted(!isCompleted)}
+          onClick={toggleLessonCompletion}
+          disabled={isToggling}
           className={`p-2 rounded-md transition-colors ${
             isCompleted
               ? "bg-green-100 text-green-600"

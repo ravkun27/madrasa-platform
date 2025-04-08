@@ -228,7 +228,9 @@ export const NotesSection = ({
         toast.success("Note deleted successfully");
 
         // Remove the note from local state
-        setLocalNotes((prev) => prev.filter((note) => note._id !== contentId));
+        setLocalNotes((prev) =>
+          prev.filter((note) => note && note._id !== contentId)
+        );
       } else {
         throw new Error("Failed to delete note");
       }
@@ -244,14 +246,14 @@ export const NotesSection = ({
   if (!lesson) return null;
 
   return (
-    <div className="bg-white rounded-xl p-4 md:p-6 shadow-md transition-all">
+    <div className="bg-color-background rounded-xl p-4 md:p-6 shadow-md transition-all">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-bold text-gray-800">Notes</h2>
+        <h2 className="text-xl font-bold text-text">Notes</h2>
       </div>
 
       {isLoading ? (
         <div className="flex justify-center items-center py-8">
-          <FiLoader className="animate-spin text-2xl text-blue-600" />
+          <FiLoader className="animate-spin text-2xl text-color-secondary" />
         </div>
       ) : (
         <>
@@ -262,7 +264,7 @@ export const NotesSection = ({
                   content && (
                     <div
                       key={content._id}
-                      className={`border border-gray-200 rounded-lg p-4 relative hover:shadow-md transition-all ${
+                      className={`border border-color-card-border rounded-lg p-4 relative hover:shadow-md transition-all ${
                         content.isNew ? "animate-fade-in" : ""
                       } ${
                         deletingNoteIds.includes(content._id)
@@ -280,7 +282,7 @@ export const NotesSection = ({
                       <div className="absolute top-2 right-2">
                         <button
                           onClick={() =>
-                            handleDeleteNote(lesson.note._id, content._id)
+                            handleDeleteNote(lesson?.note?._id, content?._id)
                           }
                           className="p-1.5 bg-white rounded-full shadow-sm text-red-500 hover:text-red-700 hover:bg-red-50 transition-colors"
                           aria-label="Delete note"
@@ -291,13 +293,13 @@ export const NotesSection = ({
                       </div>
 
                       {content?.title && (
-                        <h3 className="font-semibold mb-2 pr-8 text-gray-800">
+                        <h3 className="font-semibold mb-2 pr-8 text-color-text">
                           {content.title}
                         </h3>
                       )}
 
                       {content?.description && (
-                        <p className="text-gray-600 mb-3 text-sm">
+                        <p className="text-color-muted mb-3 text-sm">
                           {content.description}
                         </p>
                       )}
@@ -312,6 +314,14 @@ export const NotesSection = ({
                               e.currentTarget.style.display = "none";
                             }}
                           />
+                          <button
+                            onClick={() =>
+                              window.open(noteUrls[content._id], "_blank")
+                            }
+                            className="mt-2 text-sm text-blue-600 hover:underline"
+                          >
+                            View Full Image
+                          </button>
                         </div>
                       ) : null}
                     </div>
@@ -319,8 +329,10 @@ export const NotesSection = ({
               )}
             </div>
           ) : (
-            <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg mb-6">
-              <p>No notes yet. Add your first note below.</p>
+            <div className="text-center py-8 text-color-muted bg-background rounded-lg mb-6">
+              <p className="text-text">
+                No notes yet. Add your first note below.
+              </p>
             </div>
           )}
 
@@ -329,7 +341,7 @@ export const NotesSection = ({
               <div>
                 <label
                   htmlFor="noteTitle"
-                  className="block text-sm font-medium text-gray-700 mb-1"
+                  className="block text-sm font-medium text-color-text mb-1"
                 >
                   Title <span className="text-red-500">*</span>
                 </label>
@@ -337,7 +349,7 @@ export const NotesSection = ({
                   id="noteTitle"
                   type="text"
                   placeholder="Note title"
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  className="w-full p-3 border border-color-card-border rounded-lg focus:ring-2 focus:ring-color-secondary focus:border-color-secondary transition-all text-black"
                   value={newNote.title}
                   onChange={(e) =>
                     setNewNote({ ...newNote, title: e.target.value })
@@ -348,14 +360,14 @@ export const NotesSection = ({
               <div>
                 <label
                   htmlFor="noteDescription"
-                  className="block text-sm font-medium text-gray-700 mb-1"
+                  className="block text-sm font-medium text-color-text mb-1"
                 >
                   Description (optional)
                 </label>
                 <textarea
                   id="noteDescription"
                   placeholder="Add details about this note..."
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  className="w-full p-3 border border-card-border rounded-lg focus:ring-2 focus:ring-secondary focus:border-secondary transition-all text-black"
                   rows={3}
                   value={newNote.description}
                   onChange={(e) =>
@@ -365,7 +377,7 @@ export const NotesSection = ({
                 <div className="flex space-x-2">
                   <button
                     onClick={() => document.getElementById("noteFile")?.click()}
-                    className="p-4 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2 text-lg"
+                    className="p-4 text-text hover:bg-muted rounded-lg transition-colors flex items-center gap-2 text-lg"
                     disabled={currentImageCount >= 5 || isAdding}
                     title={
                       currentImageCount >= 5
@@ -373,7 +385,7 @@ export const NotesSection = ({
                         : "Add image"
                     }
                   >
-                    <FiImage className="text-blue-600" />
+                    <FiImage className="text-color-secondary" />
                     <span className="hidden sm:inline">Add Image</span>
                   </button>
                 </div>
@@ -381,7 +393,7 @@ export const NotesSection = ({
 
               {previewImage && (
                 <div className="relative bg-gray-50 p-2 rounded-lg">
-                  <div className="text-sm text-gray-500 mb-2">
+                  <div className="text-sm text-color-muted mb-2">
                     Image preview:
                   </div>
                   <img
@@ -421,7 +433,7 @@ export const NotesSection = ({
                 className={`w-full py-3 rounded-lg transition-all flex items-center justify-center gap-2 ${
                   !newNote.title || isAdding
                     ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    : "bg-blue-600 hover:bg-blue-700 text-white shadow-sm hover:shadow"
+                    : "bg-secondary text-white shadow-sm hover:shadow"
                 }`}
               >
                 {isAdding ? (

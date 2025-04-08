@@ -12,26 +12,33 @@
 
 :root {
   /* Light mode colors */
-  --color-primary: #f97316; /* Orange 500 */
+  --color-primary: #e87921; /* Richer Orange */
   --color-secondary: #0ea5e9; /* Blue 500 */
-  --color-accent: #14b8a6; /* Teal 500 - complementary accent */
-  --color-background: #f8fafc; /* Slate 50 */
+  --color-accent: #10b981; /* Emerald 500 - Strong, fresh accent */
+  --color-background: #f0f4f8; /* Light Gray - Softer than pure white */
   --color-text: #1e293b; /* Slate 800 */
-  --color-card: #ffffff;
-  --color-card-border: #e2e8f0; /* Slate 200 */
-  --color-button: #f97316; /* Orange 500 */
+  --color-card: #ffffff; /* White - For clean backgrounds */
+  --color-card-border: #d1d5db; /* Slate 300 - Improved for subtle contrast */
+  --color-muted: #797b7e; /* Slate 500 */
+
+  /* Inputs */
+  --color-input-bg: #f3f4f6; /* Slate 100 */
+  --color-input-border: #d1d5db; /* Slate 300 */
+  --color-input-text: #374151; /* Slate 700 */
+  --color-input-placeholder: #9ca3af; /* Slate 400 */
+  --color-input-focus: #0ea5e9; /* Blue 500 - Matches secondary color */
+
+  /* Buttons */
+  --color-button: var(--color-primary);
   --color-button-text: #ffffff;
-  --color-muted: #64748b; /* Slate 500 */
+  --color-button-hover: #d97706; /* Darker orange for hover state */
+  --color-button-focus: #0ea5e9; /* Blue for clear focus indication */
 
-  /* Gradient and supporting colors */
-  --color-orange-light: #fdba74; /* Orange 300 */
-  --color-orange-dark: #ea580c; /* Orange 600 */
-  --color-blue-light: #7dd3fc; /* Blue 300 */
-  --color-blue-dark: #0369a1; /* Blue 700 */
+  /* Gradients */
+  --color-gradient-orange: linear-gradient(45deg, #f97316, #ea580c);
+  --color-gradient-blue: linear-gradient(45deg, #0ea5e9, #0369a1);
 
-  /* Other variables */
-  --header-height: 64px;
-  --sidebar-width: 300px;
+  /* Shadows & Borders */
   --border-radius: 8px;
   --box-shadow:
     0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
@@ -39,22 +46,31 @@
 
 .dark {
   /* Dark mode colors */
-  --color-primary: #fb923c; /* Orange 400 */
+  --color-primary: #fb923c; /* Brighter Orange for better contrast */
   --color-secondary: #38bdf8; /* Blue 400 */
-  --color-accent: #2dd4bf; /* Teal 400 - complementary accent */
-  --color-background: #0f172a; /* Slate 900 */
-  --color-text: #f1f5f9; /* Slate 100 */
-  --color-card: #1e293b; /* Slate 800 */
-  --color-card-border: #334155; /* Slate 700 */
-  --color-button: #fb923c; /* Orange 400 */
-  --color-button-text: #0f172a; /* Slate 900 */
-  --color-muted: #94a3b8; /* Slate 400 */
+  --color-accent: #34d399; /* Emerald 400 */
+  --color-background: #111827; /* Slate 900 - Darker for stronger contrast */
+  --color-text: #f3f4f6; /* Slate 100 */
+  --color-card: #1f2937; /* Slate 800 */
+  --color-card-border: #374151; /* Slate 700 */
+  --color-muted: #9ca3af; /* Slate 400 */
 
-  /* Gradient and supporting colors */
-  --color-orange-light: #fb923c; /* Orange 400 */
-  --color-orange-dark: #c2410c; /* Orange 700 */
-  --color-blue-light: #7dd3fc; /* Blue 300 */
-  --color-blue-dark: #075985; /* Blue 800 */
+  /* Inputs */
+  --color-input-bg: #1e293b; /* Darker input background */
+  --color-input-border: #4b5563; /* Slate 600 */
+  --color-input-text: #e5e7eb; /* Slate 200 */
+  --color-input-placeholder: #9ca3af; /* Slate 400 */
+  --color-input-focus: #38bdf8; /* Blue 400 - Matches secondary color */
+
+  /* Buttons */
+  --color-button: var(--color-primary);
+  --color-button-text: #111827; /* Dark background for contrast */
+  --color-button-hover: #f97316; /* Darker orange for hover state */
+  --color-button-focus: #38bdf8; /* Blue for clear focus indication */
+
+  /* Gradients */
+  --color-gradient-orange: linear-gradient(45deg, #fb923c, #ea580c);
+  --color-gradient-blue: linear-gradient(45deg, #38bdf8, #075985);
 }
 
 body {
