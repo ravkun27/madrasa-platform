@@ -131,44 +131,45 @@ const ManageCoursesPage = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="z-50 fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4"
+            className="z-50 fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4"
           >
             <motion.div
               initial={{ scale: 0.95, y: 20 }}
               animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0, y: 20 }}
+              exit={{ scale: 0.95, y: 20 }}
               transition={{ type: "spring", stiffness: 300, damping: 20 }}
-              className="bg-background rounded-2xl p-6 w-full max-w-md shadow-xl"
+              className="bg-card rounded-2xl p-6 sm:p-8 w-full max-w-xl shadow-xl overflow-y-auto max-h-[90vh]"
             >
-              <h2 className="text-2xl font-bold mb-6 text-text">New Course</h2>
+              <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-text text-center">
+                Create New Course
+              </h2>
+
               <div className="space-y-4">
                 <input
                   type="text"
                   placeholder="Course Title"
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg
-                     focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-black bg-input-bg"
+                  className="w-full px-4 py-3 border border-card-border rounded-lg focus:ring-2 focus:ring-primary focus:outline-none text-text bg-input-bg"
                   onChange={(e) =>
                     setNewCourse({ ...newCourse, title: e.target.value })
                   }
                 />
+
                 <textarea
                   placeholder="Description"
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg
-                     focus:ring-2 focus:ring-indigo-500 focus:border-transparent h-32 text-black bg-input-bg"
+                  className="w-full px-4 py-3 border border-card-border rounded-lg focus:ring-2 focus:ring-primary focus:outline-none text-text bg-input-bg h-32 resize-none"
                   onChange={(e) =>
                     setNewCourse({ ...newCourse, description: e.target.value })
                   }
                 />
+
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-text">
                     Banner Image
                   </label>
                   <input
                     type="file"
                     accept="image/*"
-                    className="w-full file:mr-4 file:py-2 file:px-4 file:rounded-lg
-                     file:border-0 file:text-sm file:font-medium file:bg-indigo-50
-                     file:text-indigo-700 hover:file:bg-indigo-100"
+                    className="w-full file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary/10 file:text-primary hover:file:bg-primary/20 text-text"
                     onChange={(e) =>
                       setNewCourse({
                         ...newCourse,
@@ -177,71 +178,81 @@ const ManageCoursesPage = () => {
                     }
                   />
                 </div>
-                {/* Category Selector */}
-                <select
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-black bg-input-bg"
-                  onChange={(e) =>
-                    setNewCourse({ ...newCourse, category: e.target.value })
-                  }
-                >
-                  <option value="">Select Category</option>
-                  <option value="Science">Science</option>
-                  <option value="Math">Math</option>
-                  <option value="Technology">Technology</option>
-                  <option value="Arts">Arts</option>
-                  <option value="Business">Business</option>
-                </select>
 
-                {/* Tags Input */}
-                <div className="space-y-2 mt-4">
-                  <label className="block text-sm font-medium text-gray-700">
-                    Tags (Related to the topic or category)
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      value={tagInput}
-                      onChange={(e) => setTagInput(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && handleAddTag()}
-                      placeholder="Add a tag and press Enter"
-                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-black bg-input-bg"
-                    />
-                    <button
-                      type="button"
-                      onClick={handleAddTag}
-                      className="p-2 bg-indigo-500 text-white rounded-full hover:bg-indigo-600 transition"
+                <div className="flex flex-col md:flex-row gap-4">
+                  {/* Category Selector */}
+                  <div className="w-full md:w-1/2 space-y-2">
+                    <label className="block text-sm font-medium text-text">
+                      Course Category
+                    </label>
+                    <select
+                      className="w-full px-4 py-3 border border-card-border rounded-lg focus:ring-2 focus:ring-primary focus:outline-none text-text bg-input-bg"
+                      onChange={(e) =>
+                        setNewCourse({ ...newCourse, category: e.target.value })
+                      }
                     >
-                      <FiPlus />
-                    </button>
+                      <option value="">Select Category</option>
+                      <option value="Science">Science</option>
+                      <option value="Math">Math</option>
+                      <option value="Technology">Technology</option>
+                      <option value="Arts">Arts</option>
+                      <option value="Business">Business</option>
+                    </select>
                   </div>
 
-                  {/* Tags Display */}
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {tags.map((tag, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center gap-1 bg-blue-100 text-blue-700 px-3 py-1 rounded-full"
+                  {/* Tags Input */}
+                  <div className="w-full md:w-1/2 space-y-2">
+                    <label className="block text-sm font-medium text-text">
+                      Tags (related to topic/category)
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={tagInput}
+                        onChange={(e) => setTagInput(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && handleAddTag()}
+                        placeholder="Add a tag and press Enter"
+                        className="flex-1 px-4 py-2 border border-card-border rounded-lg focus:ring-2 focus:ring-primary focus:outline-none text-text bg-input-bg"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddTag}
+                        className="p-2 bg-primary text-white rounded-full hover:bg-primary/90 transition"
                       >
-                        <span className="text-xs">{tag}</span>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveTag(tag)}
-                          className="text-red-500 hover:text-red-700"
-                        >
-                          <FiX />
-                        </button>
+                        <FiPlus />
+                      </button>
+                    </div>
+
+                    {/* Tags Display */}
+                    {tags.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        {tags.map((tag, index) => (
+                          <div
+                            key={index}
+                            className="flex items-center gap-1 bg-primary/10 text-primary px-3 py-1 rounded-full text-sm"
+                          >
+                            <span>{tag}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveTag(tag)}
+                              className="text-red-500 hover:text-red-600"
+                            >
+                              <FiX />
+                            </button>
+                          </div>
+                        ))}
                       </div>
-                    ))}
+                    )}
                   </div>
                 </div>
               </div>
 
-              <div className="flex justify-center gap-3 p-6">
+              {/* Buttons */}
+              <div className="flex justify-center gap-4 mt-8 flex-wrap">
                 <button
                   onClick={createCourse}
                   disabled={isCreating}
-                  className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 
-                     disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                  className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
                 >
                   {isCreating && (
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -250,7 +261,7 @@ const ManageCoursesPage = () => {
                 </button>
                 <button
                   onClick={() => setShowCourseForm(false)}
-                  className="px-6 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
+                  className="px-6 py-2 text-text hover:bg-muted rounded-lg transition-colors"
                 >
                   Cancel
                 </button>
@@ -259,6 +270,7 @@ const ManageCoursesPage = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
       <LayoutGroup>
         <div className="flex flex-col gap-4 items-center justify-center">
           <div className="max-w-3xl">

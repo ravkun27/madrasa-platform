@@ -25,14 +25,11 @@ const AboutUs = () => {
   const [aboutData, setAboutData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const aboutUsId = "67d83512b863fa67647e98bd";
 
   useEffect(() => {
     const fetchAboutData = async () => {
       try {
-        const response: any = await getFetch(
-          `/public/aboutUs?aboutUsId=${aboutUsId}`
-        );
+        const response: any = await getFetch(`/public/siteContent/aboutUs`);
         if (response.data?.aboutUs) {
           setAboutData(response.data.aboutUs);
         } else {

@@ -1,87 +1,68 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { getFetch } from "../utils/apiCall"; // adjust path as needed
+
+interface Section {
+  _id: string;
+  subheader: string;
+  paragraph: string;
+}
+
+interface PolicyData {
+  date: string;
+  header: string;
+  content: Section[];
+}
 
 const PrivacyPolicy: React.FC = () => {
+  const [policy, setPolicy] = useState<PolicyData | null>(null);
+
+  useEffect(() => {
+    const fetchPolicy = async () => {
+      try {
+        const response: any = await getFetch(
+          "/public/siteContent/privacyPolicy"
+        );
+        if (response?.success && response?.data) {
+          setPolicy(response.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch privacy policy", err);
+      }
+    };
+
+    fetchPolicy();
+  }, []);
+
+  if (!policy) {
+    return (
+      <div className="text-center mt-20 text-gray-600 dark:text-gray-300">
+        Loading privacy policy...
+      </div>
+    );
+  }
+  const formattedDate = new Date(policy.date).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "2-digit",
+  });
+
   return (
     <div className="max-w-4xl mx-auto my-2 md:my-6 p-6 bg-white dark:bg-gray-800 rounded-lg shadow space-y-6">
       <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-4">
-        Privacy Policy
+        {policy.header || "Privacy Policy"}
       </h1>
       <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-        Last Updated: April 04, 2025
+        Last Updated: {formattedDate || "N/A"}
       </p>
 
-      <section>
-        <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-2">
-          1. Information We Collect
-        </h2>
-        <p className="text-gray-700 dark:text-gray-300 mb-2">
-          <strong>Personal Information:</strong> Name, email, and account
-          activity.
-        </p>
-        <p className="text-gray-700 dark:text-gray-300">
-          <strong>Usage Data:</strong> Course progress, interactions, and
-          uploaded content.
-        </p>
-      </section>
-
-      <section>
-        <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-2">
-          2. How We Use Your Information
-        </h2>
-        <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-1">
-          <li>To provide and improve our services.</li>
-          <li>To enforce platform security and prevent unauthorized use.</li>
-        </ul>
-      </section>
-
-      <section>
-        <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-2">
-          3. Data Sharing
-        </h2>
-        <p className="text-gray-700 dark:text-gray-300">
-          We do not sell your data.
-        </p>
-      </section>
-
-      <section>
-        <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-2">
-          4. Security
-        </h2>
-        <p className="text-gray-700 dark:text-gray-300 mb-2">
-          We implement security measures to protect user data. However, no
-          system is completely secure, and we cannot guarantee absolute
-          protection.
-        </p>
-      </section>
-
-      <section>
-        <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-2">
-          5. Your Rights
-        </h2>
-        <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-1">
-          <li>You may request access to or deletion of your personal data.</li>
-          <li>Some data may be retained for legal or operational reasons.</li>
-        </ul>
-      </section>
-
-      <section>
-        <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-2">
-          6. Cookies and Tracking
-        </h2>
-        <p className="text-gray-700 dark:text-gray-300 mb-2">
-          We use cookies to enhance user experience and track interactions. You
-          may disable cookies in your browser settings.
-        </p>
-      </section>
-
-      <section>
-        <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-2">
-          7. Changes to This Policy
-        </h2>
-        <p className="text-gray-700 dark:text-gray-300">
-          We may update this policy periodically.
-        </p>
-      </section>
+      {policy.content.map(({ _id, subheader, paragraph }, index) => (
+        <section key={_id || index}>
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-2">
+            {index + 1}. {subheader}
+          </h2>
+          <p className="text-gray-700 dark:text-gray-300">{paragraph}</p>
+        </section>
+      ))}
     </div>
   );
 };

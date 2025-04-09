@@ -28,7 +28,11 @@ export const NotesSection = ({
       const filteredNotes = Array.isArray(lesson.note.content)
         ? lesson.note.content.filter((item: any) => item !== null)
         : [];
-      setLocalNotes(filteredNotes);
+      setLocalNotes(
+        filteredNotes.filter(
+          (note: any) => note?.title || note?.description || note?.url
+        )
+      );
     } else {
       setLocalNotes([]);
     }
@@ -72,14 +76,18 @@ export const NotesSection = ({
   }, [lesson, localNotes]);
 
   const handleAddNote = async () => {
-    if (!newNote || !newNote.title) {
-      // Check if newNote exists and has a title
-      toast.error("Title is required");
+    if (!newNote || !newNote.title || !newNote.description) {
+      toast.error("Title and description are required");
       return;
     }
 
-    if (previewImage && currentImageCount >= 5) {
-      toast.error("Maximum 5 images allowed");
+    if (!previewImage) {
+      toast.error("Image is required");
+      return;
+    }
+
+    if (currentImageCount >= 5) {
+      toast.error("Maximum of 5 image notes allowed");
       return;
     }
 
@@ -116,6 +124,12 @@ export const NotesSection = ({
         });
 
         if (!uploadResponse.ok) throw new Error("Image upload failed");
+        const viewLinkRes: any = await getFetch(
+          `/user/student/course/getViewableLink?filename=${uploadUrlRes.data.fileKey}`
+        );
+        if (!viewLinkRes?.success || !viewLinkRes?.data?.signedUrl) {
+          throw new Error("Image not properly uploaded or not accessible");
+        }
 
         const noteRes: any = await postFetch(
           `/user/student/course/note?courseId=${courseId}&lessonId=${lesson._id}`,
@@ -362,7 +376,7 @@ export const NotesSection = ({
                   htmlFor="noteDescription"
                   className="block text-sm font-medium text-color-text mb-1"
                 >
-                  Description (optional)
+                  Description <span className="text-red-500">*</span>
                 </label>
                 <textarea
                   id="noteDescription"
@@ -378,7 +392,9 @@ export const NotesSection = ({
                   <button
                     onClick={() => document.getElementById("noteFile")?.click()}
                     className="p-4 text-text hover:bg-muted rounded-lg transition-colors flex items-center gap-2 text-lg"
-                    disabled={currentImageCount >= 5 || isAdding}
+                    disabled={
+                      !newNote.title || currentImageCount >= 5 || isAdding
+                    }
                     title={
                       currentImageCount >= 5
                         ? "Maximum 5 images reached"
@@ -389,6 +405,11 @@ export const NotesSection = ({
                     <span className="hidden sm:inline">Add Image</span>
                   </button>
                 </div>
+                {currentImageCount >= 5 && (
+                  <p className="text-sm text-red-500 text-center mt-2">
+                    You’ve reached the maximum of 5 image notes.
+                  </p>
+                )}
               </div>
 
               {previewImage && (

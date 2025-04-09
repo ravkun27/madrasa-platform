@@ -29,6 +29,13 @@ import ReactCrop from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 import { Crop } from "react-image-crop";
 // import { format, parseISO, isBefore, isAfter } from "date-fns";
+interface Student {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phoneNumber: string;
+}
 
 export const Courses = ({ course }: { course: any }) => {
   const { setCourseList } = useCourseActions();
@@ -49,14 +56,13 @@ export const Courses = ({ course }: { course: any }) => {
   const [isEnrollable, setIsEnrollable] = useState(course?.enrollable || false);
   const [showStudents, setShowStudents] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [showKickConfirm, setShowKickConfirm] = useState(false);
-  const [studentToKick, setStudentToKick] = useState<string | null>(null);
+
   const [addSectionToggle, setAddSectionToggle] = useState(false);
   const [crop, setCrop] = useState<Crop>();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [cropping, setCropping] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [students, setStudents] = useState([]);
+  const [students, setStudents] = useState<Student[]>([]);
 
   const [showMeetingForm, setShowMeetingForm] = useState(false);
 
@@ -72,7 +78,7 @@ export const Courses = ({ course }: { course: any }) => {
       console.log("Students List:", response);
 
       if (Array.isArray(response?.data?.students)) {
-        setStudents(response.data.student); // list of students
+        setStudents(response.data.students); // list of students
       } else {
         console.error("Unexpected response format:", response);
         return [];
@@ -84,9 +90,7 @@ export const Courses = ({ course }: { course: any }) => {
   };
 
   useEffect(() => {
-    if (showStudents) {
-      fetchStudentsForCourse(course._id);
-    }
+    fetchStudentsForCourse(course._id);
   }, [showStudents, course._id]);
 
   useEffect(() => {
@@ -250,22 +254,6 @@ export const Courses = ({ course }: { course: any }) => {
       console.error("Error deleting meeting:", error);
     }
   };
-
-  // const kickStudent = async () => {
-  // setShowKickConfirm(true);
-  // try {
-  //   const result: any = await deleteFetch(
-  //     `/user/teacher/course/student?courseId=${course._id}&studentId=${studentId}`
-  //   );
-  //   if (result.success) {
-  // setCourseList();
-  // toast.success("Student removed successfully");
-  //   }
-  // } catch (error) {
-  //   toast.error("Failed to remove student");
-  //   console.error("Error removing student:", error);
-  // }
-  // };
 
   const handleBannerChange = async () => {
     if (!newBanner) return;
@@ -478,17 +466,6 @@ export const Courses = ({ course }: { course: any }) => {
             setShowDeleteConfirm(false);
           }}
           onCancel={() => setShowDeleteConfirm(false)}
-        />
-      )}
-
-      {showKickConfirm && studentToKick && (
-        <ConfirmationModal
-          message="Are you sure you want to remove this student?"
-          onConfirm={() => {
-            // kickStudent(studentToKick);
-            setShowKickConfirm(false);
-          }}
-          onCancel={() => setShowKickConfirm(false)}
         />
       )}
 
@@ -786,27 +763,24 @@ export const Courses = ({ course }: { course: any }) => {
                 </div>
 
                 {showStudents && (
-                  <div className="py-3">
-                    {students.sort().map((student) => (
-                      <div
-                        key={student}
-                        className="flex items-center justify-between p-3"
-                      >
-                        <span className="text-gray-600 dark:text-gray-300">
-                          {student}
-                        </span>
-                        <button
-                          onClick={() => {
-                            setStudentToKick(student);
-                            setShowKickConfirm(true);
-                          }}
-                          className="text-red-500 hover:text-red-600 text-sm flex items-center gap-2"
+                  <div className="py-3 space-y-2">
+                    {students.length > 0 ? (
+                      students.map((student) => (
+                        <div
+                          key={student?._id}
+                          className="flex items-center justify-between bg-white dark:bg-gray-800 p-3 rounded-md shadow-sm"
                         >
-                          <FiTrash2 size={16} />
-                          Remove
-                        </button>
+                          <span className="text-gray-600 dark:text-gray-300 text-sm">
+                            {student?.firstName} {student?.lastName} —{" "}
+                            {student?.phoneNumber}
+                          </span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-6 text-gray-500 dark:text-gray-400 text-sm">
+                        No students enrolled in this course yet.
                       </div>
-                    ))}
+                    )}
                   </div>
                 )}
               </div>

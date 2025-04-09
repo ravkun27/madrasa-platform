@@ -15,6 +15,7 @@ export const CoursePage = () => {
   const [selectedLesson, setSelectedLesson] = useState<null>(null);
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  
 
   useEffect(() => {
     const fetchCourseData = async () => {
