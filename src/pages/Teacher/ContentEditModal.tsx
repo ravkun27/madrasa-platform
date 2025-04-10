@@ -87,11 +87,11 @@ const ContentEditModal = ({
           animate={{ scale: 1, y: 0 }}
           exit={{ scale: 0, y: 20 }}
           transition={{ type: "spring", stiffness: 300 }}
-          className="bg-background rounded-xl shadow-xl w-full max-w-md"
+          className="bg-card text-text rounded-xl shadow-xl w-full max-w-md"
         >
           <div className="p-6">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold text-gray-800">
+              <h2 className="text-xl font-semibold text-text">
                 Add {addingContent?.type}
               </h2>
               <button
@@ -110,7 +110,7 @@ const ContentEditModal = ({
                 <input
                   type="text"
                   placeholder="Enter content name"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border bg-input-bg text-text border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   value={contentDetails.name}
                   onChange={(e) =>
                     setContentDetails({
@@ -127,7 +127,7 @@ const ContentEditModal = ({
                 </label>
                 <textarea
                   placeholder="Enter description"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent h-24"
+                  className="w-full px-4 py-2 bg-input-bg text-text border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent h-24"
                   value={contentDetails.description}
                   onChange={(e) =>
                     setContentDetails({
@@ -169,10 +169,10 @@ const ContentEditModal = ({
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 space-y-4">
+            <div className="flex justify-end items-center gap-3 space-y-4">
               <button
                 onClick={() => setIsAddingContent(false)}
-                className="md:px-6 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
+                className="mt-4 md:px-6 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
               >
                 Cancel
               </button>

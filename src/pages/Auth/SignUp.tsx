@@ -239,6 +239,7 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
         role: formData.role,
         otp: formData.otp,
         TelegramOrWhatsapp: formData.TelegramOrWhatsapp,
+        country: country.country,
       });
 
       if (result.success && result.data) {

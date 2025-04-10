@@ -7,7 +7,6 @@ import {
   FaLinkedin,
   FaYoutube,
   FaGlobe,
-  FaRegClock,
 } from "react-icons/fa";
 import { FiAlertTriangle } from "react-icons/fi";
 import LoadingScreen from "../components/LoadingScreen";
@@ -30,8 +29,9 @@ const AboutUs = () => {
     const fetchAboutData = async () => {
       try {
         const response: any = await getFetch(`/public/siteContent/aboutUs`);
-        if (response.data?.aboutUs) {
-          setAboutData(response.data.aboutUs);
+        if (response?.data) {
+          console.log(response);
+          setAboutData(response.data);
         } else {
           setError("No content found");
         }
@@ -102,15 +102,6 @@ const AboutUs = () => {
             </div>
           </div>
         )}
-
-        <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
-          <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
-            <FaRegClock className="text-lg" />
-            <span>
-              Last updated: {new Date(aboutData.updatedAt).toLocaleDateString()}
-            </span>
-          </div>
-        </div>
       </div>
     </div>
   );

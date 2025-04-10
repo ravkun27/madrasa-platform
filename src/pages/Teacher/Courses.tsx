@@ -156,7 +156,7 @@ export const Courses = ({ course }: { course: any }) => {
     const [localMeeting, setLocalMeeting] = useState(meetingDetails);
 
     return (
-      <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mt-4">
+      <div className="bg-card rounded-lg mt-4">
         <h3 className="text-lg font-semibold mb-4">
           {Object.keys(meetingDetails).length ? "Edit" : "Create"} Meeting
         </h3>
@@ -177,7 +177,7 @@ export const Courses = ({ course }: { course: any }) => {
                 title: e.target.value,
               }))
             }
-            className="w-full p-2 border rounded"
+            className="w-full p-2 border rounded text-text bg-input-bg"
             required
           />
           <textarea
@@ -189,7 +189,7 @@ export const Courses = ({ course }: { course: any }) => {
                 description: e.target.value,
               }))
             }
-            className="w-full p-2 border rounded"
+            className="w-full p-2 border rounded text-text bg-input-bg"
             required
           />
           {/* <input
@@ -214,14 +214,14 @@ export const Courses = ({ course }: { course: any }) => {
                 link: e.target.value,
               }))
             }
-            className="w-full p-2 border rounded"
+            className="w-full p-2 border rounded text-text bg-input-bg"
             required
           />
           <div className="flex gap-6 justify-end">
             <button
               type="button"
               onClick={() => setShowMeetingForm(false)}
-              className="btn-secondary"
+              className="bg-gray-200 text-gray-600 px-4 py-2 rounded-xl hover:bg-gray-300"
             >
               Cancel
             </button>
@@ -242,7 +242,7 @@ export const Courses = ({ course }: { course: any }) => {
     try {
       const result: any = await putFetch(
         `/user/teacher/course?courseId=${course._id}`,
-        { meetingDetails: { title: null, link: null, description: null } }
+        { meetingDetails: null }
       );
 
       if (result.success) {
@@ -701,20 +701,11 @@ export const Courses = ({ course }: { course: any }) => {
                   </motion.div>
                 </div>
                 {showMeetingForm && <MeetingForm />}
-                {meetingDetails?.title && !showMeetingForm && (
+                {meetingDetails && !showMeetingForm && (
                   <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
                     <div className="flex justify-between items-start">
                       <div>
                         <h4 className="font-medium">{meetingDetails.title}</h4>
-                        {/* <p className="text-sm text-gray-600 dark:text-gray-300">
-                          {meetingDetails?.startTime
-                            ? format(
-                                parseISO(meetingDetails.startTime),
-                                "MMM dd, yyyy h:mm aa"
-                              )
-                            : "No start time available"}
-                        </p> */}
-
                         <a
                           target="_blank"
                           href={meetingDetails.link}

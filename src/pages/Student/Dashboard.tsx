@@ -66,8 +66,8 @@ const StudentDashboard = () => {
           ))}
         </div>
       ) : courses.length === 0 ? (
-        <div className="text-center py-12 bg-gray-50 rounded-xl">
-          <FiCheckCircle className="mx-auto text-gray-400 text-4xl mb-4" />
+        <div className="text-center py-12 bg-background rounded-xl">
+          <FiCheckCircle className="mx-auto text-text text-4xl mb-4" />
           <p className="text-gray-500 text-lg">
             No enrolled courses yet. Search above to join a course!
           </p>

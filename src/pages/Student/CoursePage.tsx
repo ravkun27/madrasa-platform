@@ -15,7 +15,6 @@ export const CoursePage = () => {
   const [selectedLesson, setSelectedLesson] = useState<null>(null);
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  
 
   useEffect(() => {
     const fetchCourseData = async () => {
@@ -85,6 +84,8 @@ export const CoursePage = () => {
     );
   }
 
+  console.log(course?.meetingDetails);
+
   return (
     <div className="min-h-screen bg-background">
       {/* Top navigation bar for mobile */}
@@ -130,16 +131,22 @@ export const CoursePage = () => {
         {/* Main content */}
         <div className="flex-1 transition-all duration-300 ease-in-out md:ml-0">
           <div className="max-w-5xl mx-auto px-4 py-6 md:px-8 md:py-10">
-            {course?.meetingDetails && (
-              <div className="mb-8">
-                <MeetingSection meeting={course.meetingDetails} />
-              </div>
-            )}
+            {course?.meetingDetails &&
+              (course.meetingDetails.title ||
+                course.meetingDetails.description ||
+                course.meetingDetails.link) && (
+                <div className="mb-8">
+                  <MeetingSection meeting={course.meetingDetails} />
+                </div>
+              )}
 
             {selectedLesson ? (
               <div className="space-y-8">
                 <div className="bg-card rounded-xl shadow-sm p-6 border border-cardBorder">
-                  <LessonContent lesson={selectedLesson} courseId={courseId ?? ""} />
+                  <LessonContent
+                    lesson={selectedLesson}
+                    courseId={courseId ?? ""}
+                  />
                 </div>
 
                 <div className="bg-card rounded-xl shadow-sm p-6 border border-cardBorder">

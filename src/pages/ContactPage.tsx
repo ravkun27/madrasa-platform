@@ -29,8 +29,8 @@ const ContactPage: React.FC = () => {
     const fetchLinks = async () => {
       try {
         const response: any = await getFetch("/public/siteContent/socialLinks");
-        if (Array.isArray(response?.socialLinks)) {
-          setSocialLinks(response.socialLinks);
+        if (Array.isArray(response?.data)) {
+          setSocialLinks(response.data);
         }
       } catch (error) {
         console.error("Failed to load social links", error);

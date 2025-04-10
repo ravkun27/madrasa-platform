@@ -94,4 +94,5 @@ export interface MeetingDetails {
   title: string;
   description: string;
   link: string;
+  scheduledTime: Date;
 }

@@ -5,10 +5,12 @@ export const MeetingSection = ({
 }: {
   meeting: MeetingDetails | null;
 }) => {
-  if (!meeting) return null;
+  console.log("MeetingSection", meeting);
+
+  if (meeting === null) return null;
 
   return (
-    <div className="mb-8 p-4 bg-blue-50 rounded-lg border border-blue-100">
+    <div className="mb-8 p-4 bg-background rounded-lg border border-blue-100">
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-bold text-blue-800">
@@ -30,11 +32,11 @@ export const MeetingSection = ({
           Join Now
         </a>
       </div>
-      {/* {meeting.scheduledTime && (
+      {meeting.scheduledTime && (
         <div className="mt-2 text-sm text-blue-500">
           Scheduled: {new Date(meeting.scheduledTime).toLocaleString()}
         </div>
-      )} */}
+      )}
     </div>
   );
 };

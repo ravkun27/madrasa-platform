@@ -61,7 +61,8 @@ const UserSettingsPage = ({
     otpId: "",
     otpCode: "",
     isOTPSent: false,
-    otpMethod: "sms",
+    otpMethod: "whatsapp",
+    passwordVerificationMethod: "email", // New state for password verification method
   });
 
   // Animation variants
@@ -87,36 +88,47 @@ const UserSettingsPage = ({
   };
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      setIsLoading(true);
-      try {
-        const result: any = await getFetch("/user");
-        if (result.success) {
-          setUserData({
-            name: `${result.data.firstName || ""} ${result.data.lastName || ""}`.trim(),
-            email: result.data.email,
-            phone: result.data.phoneNumber,
-            telegram: result.data.telegram,
-            whatsapp: result.data.whatsapp,
-            contactMethod: result.data.TelegramOrWhatsapp || "telegram",
-          });
+    if (user) {
+      const fetchUserData = async () => {
+        setIsLoading(true);
+        try {
+          const result: any = await getFetch("/user");
+          if (result.success) {
+            setUserData({
+              name: `${result.data.firstName || ""} ${result.data.lastName || ""}`.trim(),
+              email: result.data.email,
+              phone: result.data.phoneNumber,
+              telegram: result.data.telegram,
+              whatsapp: result.data.whatsapp,
+              contactMethod: result.data.TelegramOrWhatsapp || "telegram",
+            });
+          }
+        } catch (error) {
+          toast.error("Failed to load user data");
+        } finally {
+          setIsLoading(false);
         }
-      } catch (error) {
-        toast.error("Failed to load user data");
-      } finally {
-        setIsLoading(false);
+      };
+
+      if (isOpen) {
+        document.body.style.overflow = "hidden";
+        fetchUserData();
       }
-    };
 
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-      fetchUserData();
+      return () => {
+        document.body.style.overflow = "auto";
+      };
     }
-
-    return () => {
-      document.body.style.overflow = "auto";
-    };
   }, [isOpen]);
+
+  // Add this function to handle verification method change
+  const handleVerificationMethodChange = (method: string) => {
+    if (editState.field === "password") {
+      setOtpState((prev) => ({ ...prev, passwordVerificationMethod: method }));
+    } else {
+      setOtpState((prev) => ({ ...prev, otpMethod: method }));
+    }
+  };
 
   const handleFieldHover = (field: string) => {
     // Only allow hover state if no field is being edited
@@ -150,7 +162,8 @@ const UserSettingsPage = ({
       otpId: "",
       otpCode: "",
       isOTPSent: false,
-      otpMethod: "sms",
+      otpMethod: "whatsapp",
+      passwordVerificationMethod: "email",
     });
   };
 
@@ -165,95 +178,121 @@ const UserSettingsPage = ({
       otpId: "",
       otpCode: "",
       isOTPSent: false,
-      otpMethod: "sms",
+      otpMethod: "whatsapp",
+      passwordVerificationMethod: "email",
     });
   };
 
+  // Modified handleSendOTP function
   const handleSendOTP = async () => {
-    setIsLoading(true);
     try {
-      let endpoint =
-        "/user/send_OTP_for_updateMailOrPhone?for=updateMailOrPhone";
-      let body: any = {};
+      let endpoint = "";
+      let payload: any = {};
 
-      if (editState.field === "phone") {
-        body.phoneNumber = editState.value;
-        body.method = otpState.otpMethod;
-      } else if (editState.field === "email") {
-        body.email = editState.value;
-      } else if (editState.field === "password") {
+      if (editState.field === "password") {
         endpoint = "/user/sendOTP?for=forgetPassword";
-        if (userData.phone) {
-          body.phoneNumber = userData.phone;
-          body.method = "whatsapp";
-        } else if (userData.email) {
-          body.email = userData.email;
+        const verificationMethod = otpState.passwordVerificationMethod;
+
+        if (verificationMethod === "email" && userData.email) {
+          payload = { email: userData.email };
+        } else if (verificationMethod === "phone" && userData.phone) {
+          payload = {
+            phoneNumber: userData.phone,
+            otpMethod: "sms", // Default to SMS for password reset via phone
+          };
+        } else {
+          toast.error("No valid verification method available");
+          return;
         }
+      } else if (editState.field === "phone") {
+        endpoint = "/user/send_OTP_for_updateMailOrPhone?for=updateMailOrPhone";
+        payload = {
+          phoneNumber: editState.value,
+          method: otpState.otpMethod,
+        };
+      } else if (editState.field === "email") {
+        endpoint = "/user/send_OTP_for_updateMailOrPhone?for=updateMailOrPhone";
+        payload = { email: editState.value };
       }
 
-      const result: any = await postFetch(endpoint, body);
+      const result: any = await postFetch(endpoint, payload);
+
       if (result.success) {
         setOtpState((prev) => ({
           ...prev,
-          otpId: result.data.otpId,
+          otpId: result.otpId || result.data?.otpId,
           isOTPSent: true,
         }));
-        toast.success("OTP sent successfully");
+        toast.success("Verification code sent");
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to send OTP");
-    } finally {
-      setIsLoading(false);
+      toast.error(error.message || "Failed to send verification code");
     }
   };
 
   const handleUpdate = async () => {
-    if (
-      editState.field === "password" &&
-      editState.value !== otpState.otpCode
-    ) {
-      toast.error("Passwords don't match");
-      return;
-    }
-
     setIsLoading(true);
     try {
-      let payload: any = {};
-      let endpoint = "/user";
+      let payload: {
+        phoneNumber?: string;
+        email?: string;
+        password?: string;
+        otp?: string;
+        otpId?: string;
+        [key: string]: any;
+      } = {};
+      let endpoint = "";
       let method = "PATCH";
 
+      // Determine endpoint and payload based on what field is being edited
       switch (editState.field) {
         case "name":
-          payload.firstName = editState.value.split(" ")[0];
-          payload.lastName = editState.value.split(" ")[1] || "";
+          endpoint = "/user";
+          payload = {
+            firstName: editState.value.split(" ")[0],
+            lastName: editState.value.split(" ")[1] || "",
+          };
           break;
 
         case "phone":
-          payload.phoneNumber = editState.value;
-          payload.otpId = otpState.otpId;
-          payload.otp = otpState.otpCode;
-          break;
-
         case "email":
-          payload.email = editState.value;
-          payload.otpId = otpState.otpId;
-          payload.otp = otpState.otpCode;
+          endpoint = "/user/phone_or_email";
+          if (editState.field === "phone" || /^\d+$/.test(editState.value)) {
+            // It's a phone number
+            payload = {
+              phoneNumber: editState.value,
+              otpId: otpState.otpId,
+              otp: otpState.otpCode,
+            };
+          } else {
+            // It's an email
+            payload = {
+              email: editState.value,
+              otp: otpState.otpCode,
+            };
+          }
           break;
 
         case "contactMethod":
-          payload.TelegramOrWhatsapp = editState.value;
+          endpoint = "/user";
+          payload = {
+            TelegramOrWhatsapp: editState.value,
+          };
           break;
 
         case "password":
           endpoint = "/user/password";
-          method = "POST";
+          method = "PATCH";
           payload = {
             password: editState.value,
-            otpId: otpState.otpId,
+            optId: otpState.otpId,
             otp: otpState.otpCode,
           };
-          if (userData.phone) payload.phoneNumber = userData.phone;
-          if (userData.email) payload.email = userData.email;
+          // Add contact info for verification
+          if (otpState.passwordVerificationMethod === "phone")
+            payload.phoneNumber = userData.phone;
+          if (otpState.passwordVerificationMethod === "email")
+            payload.email = userData.email;
           break;
       }
 
@@ -381,7 +420,7 @@ const UserSettingsPage = ({
 
           {isActive ? (
             <div className="flex flex-shrink-0 gap-2 ml-4">
-              {otpState.isOTPSent ? (
+              {otpState.isOTPSent || field === "name" ? (
                 <>
                   <motion.button
                     variants={buttonVariants}
@@ -447,55 +486,112 @@ const UserSettingsPage = ({
           )}
         </div>
 
-        {isActive && otpState.isOTPSent && (
+        {isActive && (otpState.isOTPSent || field === "password") && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             className="mt-4 bg-white dark:bg-gray-800 p-3 rounded-lg border border-blue-200 dark:border-blue-800"
           >
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-              {field === "phone" && (
-                <div className="w-full sm:w-auto">
+            <div className="flex flex-col gap-3">
+              {/* Verification method selector */}
+              {(field === "password" || field === "phone") && (
+                <div className="w-full">
                   <span className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-                    Choose OTP Method
+                    {field === "password" ? "Verify via:" : "Send code via:"}
                   </span>
                   <div className="inline-flex items-center rounded-lg bg-gray-100 dark:bg-gray-800 p-1">
-                    {["sms", "whatsapp"].map((method) => (
-                      <button
-                        key={method}
-                        type="button"
-                        onClick={() =>
-                          setOtpState((prev) => ({
-                            ...prev,
-                            otpMethod: method,
-                          }))
-                        }
-                        className={`px-4 py-2 text-sm font-medium rounded-md transition-all
-                        ${
-                          otpState.otpMethod === method
-                            ? "bg-blue-600 text-white shadow"
-                            : "text-gray-600 dark:text-gray-300"
-                        }`}
-                      >
-                        {method === "sms" ? "SMS" : "WhatsApp"}
-                      </button>
-                    ))}
+                    {field === "password" ? (
+                      <>
+                        {userData.email && (
+                          <button
+                            onClick={() =>
+                              handleVerificationMethodChange("email")
+                            }
+                            className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
+                              otpState.passwordVerificationMethod === "email"
+                                ? "bg-blue-600 text-white shadow"
+                                : "text-gray-600 dark:text-gray-300"
+                            }`}
+                          >
+                            Email
+                          </button>
+                        )}
+                        {userData.phone && (
+                          <button
+                            onClick={() =>
+                              handleVerificationMethodChange("phone")
+                            }
+                            className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
+                              otpState.passwordVerificationMethod === "phone"
+                                ? "bg-blue-600 text-white shadow"
+                                : "text-gray-600 dark:text-gray-300"
+                            }`}
+                          >
+                            Phone
+                          </button>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        {["sms", "whatsapp"].map((method) => (
+                          <button
+                            key={method}
+                            onClick={() =>
+                              handleVerificationMethodChange(method)
+                            }
+                            className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
+                              otpState.otpMethod === method
+                                ? "bg-blue-600 text-white shadow"
+                                : "text-gray-600 dark:text-gray-300"
+                            }`}
+                          >
+                            {method === "sms" ? "SMS" : "WhatsApp"}
+                          </button>
+                        ))}
+                      </>
+                    )}
                   </div>
                 </div>
               )}
-              <input
-                type="text"
-                placeholder="Enter OTP code"
-                value={otpState.otpCode}
-                onChange={(e) =>
-                  setOtpState((prev) => ({ ...prev, otpCode: e.target.value }))
-                }
-                className="flex-1 text-sm p-2 rounded border bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+              {/* OTP Input and Send Button */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                <input
+                  type="text"
+                  placeholder="Enter OTP code"
+                  value={otpState.otpCode}
+                  onChange={(e) =>
+                    setOtpState((prev) => ({
+                      ...prev,
+                      otpCode: e.target.value,
+                    }))
+                  }
+                  className="flex-1 text-sm p-2 rounded border bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                {!otpState.isOTPSent && (
+                  <button
+                    onClick={handleSendOTP}
+                    className="text-sm bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? "Sending..." : "Send OTP"}
+                  </button>
+                )}
+              </div>
+
+              {/* OTP Sent Message */}
+              {otpState.isOTPSent && (
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  OTP sent to{" "}
+                  {field === "email"
+                    ? editState.value
+                    : field === "password"
+                      ? otpState.passwordVerificationMethod === "email"
+                        ? userData.email
+                        : `via ${otpState.otpMethod} to ${userData.phone}`
+                      : `${otpState.otpMethod === "sms" ? "SMS" : "WhatsApp"} to ${editState.value}`}
+                </p>
+              )}
             </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-              OTP sent to {field === "email" ? editState.value : userData.phone}
-            </p>
           </motion.div>
         )}
       </div>
@@ -665,7 +761,6 @@ const UserSettingsPage = ({
                       Account Settings
                     </h1>
                   </div>
-
                   {user && (
                     <Link
                       to={`/${user.role}-dashboard`}
@@ -681,7 +776,7 @@ const UserSettingsPage = ({
                 <div className="flex-1 flex items-end justify-center">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
                 </div>
-              ) : (
+              ) : user ? (
                 <div className="flex-1 p-4 overflow-y-auto">
                   <div className="space-y-6">
                     <section className="bg-gray-50 dark:bg-gray-800 rounded-xl overflow-hidden">
@@ -767,6 +862,46 @@ const UserSettingsPage = ({
                     </section>
                   </div>
                 </div>
+              ) : (
+                <>
+                  <div className="md:hidden absolute top-16 left-0 w-full bg-white dark:bg-gray-900 shadow-lg z-50 px-6 py-4 space-y-4">
+                    <Link
+                      to="/courses"
+                      className="block text-text hover:text-primary transition font-medium"
+                      onClick={onClose}
+                    >
+                      Courses
+                    </Link>
+                    <Link
+                      to="/about"
+                      className="block text-text hover:text-primary transition font-medium"
+                      onClick={onClose}
+                    >
+                      About
+                    </Link>
+                    <Link
+                      to="/contact"
+                      className="block text-text hover:text-primary transition font-medium"
+                      onClick={onClose}
+                    >
+                      Contact
+                    </Link>
+                    <Link
+                      to="/login"
+                      className="block text-text hover:text-primary transition font-medium"
+                      onClick={onClose}
+                    >
+                      Sign In
+                    </Link>
+                    <Link
+                      to="/signup"
+                      className="block bg-primary-gradient text-white px-4 py-2 rounded-lg text-center font-medium"
+                      onClick={onClose}
+                    >
+                      Sign Up
+                    </Link>
+                  </div>
+                </>
               )}
             </motion.div>
           </div>
