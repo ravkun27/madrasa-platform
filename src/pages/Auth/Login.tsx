@@ -48,12 +48,10 @@ const Login = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
         const { token, role } = result.data;
         login(token, role);
         navigate(`/${role.toLowerCase()}-dashboard`);
-      } else {
-        toast.error(result.message || "Invalid credentials");
       }
     } catch (error: any) {
       const errorMessage = error.message || "Something went wrong.";
-      toast.error(errorMessage);
+      console.error(errorMessage);
       return { success: false, message: errorMessage };
     } finally {
       setLoading(false);

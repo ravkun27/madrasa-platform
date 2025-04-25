@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
 import { FiTrash2, FiX, FiImage, FiSave, FiLoader } from "react-icons/fi";
 import { getFetch, postFetch, putFetch } from "../../utils/apiCall";
+import { ConfirmationModal } from "../Modal/ConfiramtionModal";
 
 export const NotesSection = ({
   lesson,
@@ -21,6 +22,10 @@ export const NotesSection = ({
   const [isLoading, setIsLoading] = useState(true);
   const [localNotes, setLocalNotes] = useState<any[]>([]);
   const [deletingNoteIds, setDeletingNoteIds] = useState<string[]>([]);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [noteToDelete, setNoteToDelete] = useState<[string, string] | null>(
+    null
+  );
 
   // Use effect to set local notes when lesson changes
   useEffect(() => {
@@ -94,135 +99,66 @@ export const NotesSection = ({
     setIsAdding(true);
 
     try {
-      // Create a temporary note object to show immediately in the UI
-      const tempNote = {
-        _id: `temp-${Date.now()}`,
-        title: newNote.title,
-        description: newNote.description,
-        isNew: true,
-      };
+      // Get upload URL
+      const uploadUrlRes: any = await getFetch(
+        `/user/student/course/getUpdateLink?filename=${encodeURIComponent(
+          previewImage.name
+        )}&contentType=${previewImage.type}&courseId=${courseId}`
+      );
 
-      // Add to UI immediately for a smooth appearance
-      setLocalNotes((prev) => [...prev, tempNote]);
+      if (!uploadUrlRes?.success) throw new Error("Failed to get upload URL");
 
-      // If there's an image, upload it and update the note
-      if (previewImage) {
-        // Get upload URL
-        const uploadUrlRes: any = await getFetch(
-          `/user/student/course/getUpdateLink?filename=${encodeURIComponent(
-            previewImage.name
-          )}&contentType=${previewImage.type}&courseId=${courseId}`
-        );
+      // Upload the image
+      const uploadResponse = await fetch(uploadUrlRes.data.signedUrl, {
+        method: "PUT",
+        body: previewImage,
+        headers: { "Content-Type": previewImage.type },
+      });
 
-        if (!uploadUrlRes?.success) throw new Error("Failed to get upload URL");
+      if (!uploadResponse.ok) throw new Error("Image upload failed");
 
-        // Upload the image
-        const uploadResponse = await fetch(uploadUrlRes.data.signedUrl, {
-          method: "PUT",
-          body: previewImage,
-          headers: { "Content-Type": previewImage.type },
-        });
-
-        if (!uploadResponse.ok) throw new Error("Image upload failed");
-        const viewLinkRes: any = await getFetch(
-          `/user/student/course/getViewableLink?filename=${uploadUrlRes.data.fileKey}`
-        );
-        if (!viewLinkRes?.success || !viewLinkRes?.data?.signedUrl) {
-          throw new Error("Image not properly uploaded or not accessible");
+      const noteRes: any = await postFetch(
+        `/user/student/course/note?courseId=${courseId}&lessonId=${lesson._id}`,
+        {
+          content: [
+            {
+              title: newNote.title,
+              description: newNote.description,
+              url: uploadUrlRes.data.fileKey,
+            },
+          ],
         }
+      );
 
-        const noteRes: any = await postFetch(
-          `/user/student/course/note?courseId=${courseId}&lessonId=${lesson._id}`,
-          {
-            content: [
-              {
-                title: newNote.title,
-                description: newNote.description,
-                url: uploadUrlRes.data.fileKey,
-              },
-            ],
-          }
-        );
+      if (!noteRes?.success) throw new Error("Failed to create note");
 
-        if (!noteRes?.success)
-          throw new Error("Failed to update note with image");
+      const createdNote = noteRes.data.note.content.find(
+        (n: any) =>
+          n?.title === newNote.title && n?.description === newNote.description
+      );
 
-        // Replace temporary note with actual data
-        if (noteRes?.data?.note?.content) {
-          const newNoteContent = noteRes.data.note.content.find(
-            (n: any) =>
-              n?.title === newNote?.title &&
-              n?.description === newNote.description
-          );
+      if (!createdNote) throw new Error("Note not returned from server");
 
-          if (newNoteContent) {
-            setLocalNotes((prev) =>
-              prev.map((note) =>
-                note._id === tempNote._id
-                  ? { ...newNoteContent, url: uploadUrlRes.data.fileKey }
-                  : note
-              )
-            );
+      // Get viewable URL for image
+      const viewLinkRes: any = await getFetch(
+        `/user/student/course/getViewableLink?filename=${uploadUrlRes.data.fileKey}`
+      );
 
-            // Fetch the image URL for the new note
-            const viewLinkRes: any = await getFetch(
-              `/user/student/course/getViewableLink?filename=${uploadUrlRes.data.fileKey}`
-            );
-
-            if (viewLinkRes?.success && viewLinkRes?.data?.signedUrl) {
-              setNoteUrls((prev) => ({
-                ...prev,
-                [newNoteContent._id]: viewLinkRes.data.signedUrl,
-              }));
-            }
-          }
-        }
-      } else {
-        // Just create a text note
-        const noteRes: any = await postFetch(
-          `/user/student/course/note?courseId=${courseId}&lessonId=${lesson._id}`,
-          {
-            content: [
-              {
-                title: newNote.title,
-                description: newNote.description,
-              },
-            ],
-          }
-        );
-
-        if (!noteRes?.success) throw new Error("Failed to create note");
-
-        // Replace temporary note with actual data
-        if (noteRes?.data?.note?.content) {
-          const newNoteContent = noteRes.data.note.content.find(
-            (n: any) =>
-              n.title === newNote.title && n.description === newNote.description
-          );
-
-          if (newNoteContent) {
-            setLocalNotes((prev) =>
-              prev.map((note) =>
-                note._id === tempNote._id ? newNoteContent : note
-              )
-            );
-          }
-        }
+      if (!viewLinkRes?.success || !viewLinkRes?.data?.signedUrl) {
+        throw new Error("Image not accessible");
       }
 
-      toast.success("Note added successfully");
-      setNewNote({ title: "", description: "" });
-      setPreviewImage(null);
-    } catch (error) {
-      console.error("Error in note addition process:", error);
-      toast.error(
-        error instanceof Error ? error.message : "Failed to add note"
-      );
+      // ✅ Only update UI here after all succeeds
+      setLocalNotes((prev) => [...prev, createdNote]);
+      setNoteUrls((prev) => ({
+        ...prev,
+        [createdNote._id]: viewLinkRes.data.signedUrl,
+      }));
 
-      // Remove the temporary note on failure
-      setLocalNotes((prev) =>
-        prev.filter((note) => note._id !== `temp-${Date.now()}`)
-      );
+      toast.success("Note added successfully");
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || "Something went wrong while adding the note");
     } finally {
       setIsAdding(false);
     }
@@ -255,6 +191,20 @@ export const NotesSection = ({
       // Remove from deleting list on failure
       setDeletingNoteIds((prev) => prev.filter((id) => id !== contentId));
     }
+  };
+
+  const handleDeleteClick = (noteId: string, contentId: string) => {
+    setNoteToDelete([noteId, contentId]);
+    setShowDeleteConfirm(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (noteToDelete) {
+      const [noteId, contentId] = noteToDelete;
+      handleDeleteNote(noteId, contentId);
+    }
+    setShowDeleteConfirm(false);
+    setNoteToDelete(null);
   };
 
   if (!lesson) return null;
@@ -295,9 +245,11 @@ export const NotesSection = ({
                     >
                       <div className="absolute top-2 right-2">
                         <button
-                          onClick={() =>
-                            handleDeleteNote(lesson?.note?._id, content?._id)
-                          }
+                          onClick={() => {
+                            if (lesson?.note?._id && content?._id) {
+                              handleDeleteClick(lesson.note._id, content._id);
+                            }
+                          }}
                           className="p-1.5 bg-white rounded-full shadow-sm text-red-500 hover:text-red-700 hover:bg-red-50 transition-colors"
                           aria-label="Delete note"
                           disabled={deletingNoteIds.includes(content._id)}
@@ -388,10 +340,10 @@ export const NotesSection = ({
                     setNewNote({ ...newNote, description: e.target.value })
                   }
                 />
-                <div className="flex space-x-2">
+                <div className="flex justify-between items-center mt-2">
                   <button
                     onClick={() => document.getElementById("noteFile")?.click()}
-                    className="p-4 text-text hover:bg-muted rounded-lg transition-colors flex items-center gap-2 text-lg"
+                    className="p-4 text-text hover:bg-white/10 rounded-lg transition-colors flex items-center gap-2 text-lg"
                     disabled={
                       !newNote.title || currentImageCount >= 5 || isAdding
                     }
@@ -465,13 +417,20 @@ export const NotesSection = ({
                 ) : (
                   <>
                     <FiSave />
-                    <span>Add Note</span>
+                    <span>Add Note ({5 - currentImageCount} left)</span>
                   </>
                 )}
               </button>
             </div>
           </div>
         </>
+      )}
+      {showDeleteConfirm && (
+        <ConfirmationModal
+          message="Are you sure you want to delete this note?"
+          onConfirm={handleConfirmDelete}
+          onCancel={() => setShowDeleteConfirm(false)}
+        />
       )}
     </div>
   );

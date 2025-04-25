@@ -198,7 +198,7 @@ const UserSettingsPage = ({
         } else if (verificationMethod === "phone" && userData.phone) {
           payload = {
             phoneNumber: userData.phone,
-            otpMethod: "sms", // Default to SMS for password reset via phone
+            otpMethod: "whatsapp", // Default to SMS for password reset via phone
           };
         } else {
           toast.error("No valid verification method available");
@@ -588,7 +588,7 @@ const UserSettingsPage = ({
                       ? otpState.passwordVerificationMethod === "email"
                         ? userData.email
                         : `via ${otpState.otpMethod} to ${userData.phone}`
-                      : `${otpState.otpMethod === "sms" ? "SMS" : "WhatsApp"} to ${editState.value}`}
+                      : `${"WhatsApp"} to ${editState.value}`}
                 </p>
               )}
             </div>

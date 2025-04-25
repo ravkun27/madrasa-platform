@@ -9,6 +9,7 @@ import {
   FaUsers,
   FaArrowRight,
 } from "react-icons/fa";
+import { useLanguage } from "../context/LanguageContext";
 
 interface StepCardProps {
   icon: React.ElementType;
@@ -22,6 +23,153 @@ const LandingPage = () => {
   const [course, setCourse] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const { language } = useLanguage();
+
+  // Content translations
+  const translations = {
+    en: {
+      heroTagline: "Revolutionize Your Learning Experience",
+      heroTitle1: "Learning is Easier with",
+      heroTitle2: "Madrasa Platform",
+      heroDescription:
+        "Join thousands of educators and students to create, share and access interactive learning materials all in one place.",
+      searchPlaceholder: "Enter course code to join...",
+      searching: "Searching...",
+      joinCourse: "Join this Course",
+      createCourses: "Create Courses",
+      joinAsStudent: "Join as Student",
+      features: "FEATURES",
+      platformFeatures: "Platform Features",
+      forTeachers: {
+        title: "For Teachers",
+        description:
+          "Create interactive courses, track student progress, and manage assignments with our intuitive tools.",
+      },
+      forStudents: {
+        title: "For Students",
+        description:
+          "Access course materials, submit assignments, and track your progress seamlessly from any device.",
+      },
+      collaborativeLearning: {
+        title: "Collaborative Learning",
+        description:
+          "Engage in discussions, participate in group activities, and learn together in real-time.",
+      },
+      learnMore: "Learn more",
+      process: "PROCESS",
+      howItWorks: "How It Works",
+      teacherSteps: [
+        "Create your personalized course with our easy-to-use tools",
+        "Receive a unique course code to share with your students",
+        "Monitor student progress and engagement in real-time",
+      ],
+      studentSteps: [
+        "Sign up for free with just a few simple steps",
+        "Enter the course code shared by your teacher",
+        "Access materials and start learning at your own pace",
+      ],
+      ctaTitle: "Ready to Transform Your Education?",
+      ctaDescription:
+        "Join thousands of educators and students already using our platform to enhance learning experiences",
+      startTeaching: "Start Teaching",
+      startLearning: "Start Learning",
+      testimonials: "TESTIMONIALS",
+      whatUsersSay: "What Our Users Say",
+      testimonialData: [
+        {
+          quote:
+            "Madrasa Platform has completely transformed how I teach. My students are more engaged than ever!",
+          name: "Sarah Johnson",
+          role: "High School Teacher",
+        },
+        {
+          quote:
+            "The interactive lessons make learning fun and accessible. I can study at my own pace and track my progress.",
+          name: "Ahmed Ali",
+          role: "University Student",
+        },
+        {
+          quote:
+            "As a school administrator, I've seen tremendous improvements in both teaching quality and student outcomes.",
+          name: "Michael Chen",
+          role: "School Principal",
+        },
+      ],
+    },
+    ar: {
+      heroTagline: "ثورة في تجربة التعلم الخاصة بك",
+      heroTitle1: "التعلم أسهل مع",
+      heroTitle2: "منصة مدرسة",
+      heroDescription:
+        "انضم إلى آلاف المعلمين والطلاب لإنشاء ومشاركة والوصول إلى مواد تعليمية تفاعلية في مكان واحد.",
+      searchPlaceholder: "أدخل رمز الدورة للانضمام...",
+      searching: "جاري البحث...",
+      joinCourse: "انضم إلى هذه الدورة",
+      createCourses: "إنشاء دورات",
+      joinAsStudent: "انضم كطالب",
+      features: "المميزات",
+      platformFeatures: "ميزات المنصة",
+      forTeachers: {
+        title: "للمعلمين",
+        description:
+          "إنشاء دورات تفاعلية، تتبع تقدم الطلاب، وإدارة الواجبات باستخدام أدواتنا البديهية.",
+      },
+      forStudents: {
+        title: "للطلاب",
+        description:
+          "الوصول إلى مواد الدورة، تقديم الواجبات، وتتبع تقدمك بسلاسة من أي جهاز.",
+      },
+      collaborativeLearning: {
+        title: "التعلم التعاوني",
+        description:
+          "المشاركة في المناقشات، والمشاركة في الأنشطة الجماعية، والتعلم معًا في الوقت الفعلي.",
+      },
+      learnMore: "تعلم المزيد",
+      process: "العملية",
+      howItWorks: "كيف تعمل",
+      teacherSteps: [
+        "أنشئ دورتك الشخصية باستخدام أدواتنا سهلة الاستخدام",
+        "احصل على رمز دورة فريد لمشاركته مع طلابك",
+        "مراقبة تقدم الطلاب والمشاركة في الوقت الفعلي",
+      ],
+      studentSteps: [
+        "سجل مجانًا بخطوات بسيطة",
+        "أدخل رمز الدورة الذي شاركه معلمك",
+        "الوصول إلى المواد وبدء التعلم بالوتيرة الخاصة بك",
+      ],
+      ctaTitle: "هل أنت مستعد لتحويل تعليمك؟",
+      ctaDescription:
+        "انضم إلى آلاف المعلمين والطلاب الذين يستخدمون منصتنا بالفعل لتعزيز تجارب التعلم",
+      startTeaching: "ابدأ التدريس",
+      startLearning: "ابدأ التعلم",
+      testimonials: "الشهادات",
+      whatUsersSay: "ماذا يقول مستخدمونا",
+      testimonialData: [
+        {
+          quote:
+            "لقد غيرت منصة مدرسة تمامًا طريقة تدريسي. طلابي أكثر تفاعلاً من أي وقت مضى!",
+          name: "سارة جونسون",
+          role: "معلمة مدرسة ثانوية",
+        },
+        {
+          quote:
+            "الدروس التفاعلية تجعل التعلم ممتعًا وسهل الوصول. يمكنني الدراسة بالوتيرة الخاصة بي وتتبع تقدمي.",
+          name: "أحمد علي",
+          role: "طالب جامعي",
+        },
+        {
+          quote:
+            "كمدير مدرسة، شهدت تحسينات هائلة في كل من جودة التدريس ونتائج الطلاب.",
+          name: "مايكل تشن",
+          role: "مدير مدرسة",
+        },
+      ],
+    },
+  };
+
+  // Current language content
+  const t = translations[language as keyof typeof translations];
+
   useEffect(() => {
     const fetchCourse = async () => {
       if (searchValue.trim().length === 0) {
@@ -32,13 +180,16 @@ const LandingPage = () => {
       setLoading(true);
       setError("");
       try {
-        const res = await fetch(`/api/courses/${searchValue.trim()}`);
+        // Consider adding language parameter to API request if needed
+        const res = await fetch(
+          `/api/courses/${searchValue.trim()}?lang=${language}`
+        );
         if (!res.ok) throw new Error("Course not found");
         const data = await res.json();
         setCourse(data);
       } catch (err) {
         setCourse(null);
-        setError("Course not found");
+        setError(language === "en" ? "Course not found" : "الدورة غير موجودة");
       } finally {
         setLoading(false);
       }
@@ -49,7 +200,7 @@ const LandingPage = () => {
     }, 600); // debounce
 
     return () => clearTimeout(delayDebounce);
-  }, [searchValue]);
+  }, [searchValue, language]);
 
   // Animation variants
   const fadeInUp = {
@@ -67,8 +218,11 @@ const LandingPage = () => {
     },
   };
 
+  // Set text direction based on language
+  const textDirection = language === "ar" ? "rtl" : "ltr";
+
   return (
-    <div className={`min-h-screen bg-background`}>
+    <div className={`min-h-screen bg-background`} dir={textDirection}>
       {/* Hero Section */}
       <motion.section
         className="relative pt-16 md:pt-24 pb-20 md:pb-32 px-4 overflow-hidden"
@@ -109,12 +263,12 @@ const LandingPage = () => {
           {/* Hero content with improved typography hierarchy */}
           <motion.div className="text-center mb-12" variants={fadeInUp}>
             <span className="text-lg md:text-xl font-medium text-secondary mb-3 block">
-              Revolutionize Your Learning Experience
+              {t.heroTagline}
             </span>
 
             <h1 className="text-3xl sm:text-5xl md:text-7xl font-extrabold mb-6 leading-tight">
               <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                Learning is Easier with
+                {t.heroTitle1}
               </span>
               <br />
               <span className="relative inline-block">
@@ -124,14 +278,13 @@ const LandingPage = () => {
                   whileHover={{ scale: 1.02 }}
                   transition={{ type: "spring", stiffness: 300 }}
                 >
-                  Madrasa Platform
+                  {t.heroTitle2}
                 </motion.span>
               </span>
             </h1>
 
             <p className="text-muted max-w-2xl mx-auto text-lg">
-              Join thousands of educators and students to create, share and
-              access interactive learning materials all in one place.
+              {t.heroDescription}
             </p>
           </motion.div>
 
@@ -147,7 +300,7 @@ const LandingPage = () => {
                   type="text"
                   value={searchValue}
                   onChange={(e) => setSearchValue(e.target.value)}
-                  placeholder="Enter course code to join..."
+                  placeholder={t.searchPlaceholder}
                   className="w-full outline-none bg-transparent text-text placeholder-muted"
                   aria-label="Course code"
                 />
@@ -157,7 +310,7 @@ const LandingPage = () => {
 
           {/* Status */}
           {loading && (
-            <p className="text-center text-muted mt-4">Searching...</p>
+            <p className="text-center text-muted mt-4">{t.searching}</p>
           )}
           {error && <p className="text-center text-red-500 mt-2">{error}</p>}
 
@@ -179,7 +332,7 @@ const LandingPage = () => {
                 to={`/signup?role=student&courseCode=${course.code}`}
                 className="inline-block bg-primary hover:bg-secondary text-white px-5 py-2 rounded-lg font-medium transition-all"
               >
-                Join this Course
+                {t.joinCourse}
               </Link>
             </motion.div>
           )}
@@ -198,7 +351,7 @@ const LandingPage = () => {
                 to="/signup?role=teacher"
                 className="block w-full text-center bg-secondary text-white px-8 py-3.5 rounded-xl text-lg font-semibold hover:shadow-xl transition-all"
               >
-                Create Courses
+                {t.createCourses}
               </Link>
             </motion.div>
 
@@ -211,7 +364,7 @@ const LandingPage = () => {
                 to="/signup?role=student"
                 className="block w-full text-center bg-primary text-white px-8 py-3.5 rounded-xl text-lg font-semibold hover:shadow-xl transition-all"
               >
-                Join as Student
+                {t.joinAsStudent}
               </Link>
             </motion.div>
           </motion.div>
@@ -229,10 +382,10 @@ const LandingPage = () => {
         <div className="max-w-6xl mx-auto px-4">
           <motion.div className="text-center mb-16" variants={fadeInUp}>
             <span className="text-primary font-semibold block mb-2">
-              FEATURES
+              {t.features}
             </span>
             <h2 className="text-3xl md:text-4xl font-bold text-text">
-              Platform Features
+              {t.platformFeatures}
             </h2>
           </motion.div>
 
@@ -243,23 +396,20 @@ const LandingPage = () => {
             {[
               {
                 icon: FaChalkboardTeacher,
-                title: "For Teachers",
-                description:
-                  "Create interactive courses, track student progress, and manage assignments with our intuitive tools.",
+                title: t.forTeachers.title,
+                description: t.forTeachers.description,
                 colorClass: "text-primary",
               },
               {
                 icon: FaUserGraduate,
-                title: "For Students",
-                description:
-                  "Access course materials, submit assignments, and track your progress seamlessly from any device.",
+                title: t.forStudents.title,
+                description: t.forStudents.description,
                 colorClass: "text-secondary",
               },
               {
                 icon: FaUsers,
-                title: "Collaborative Learning",
-                description:
-                  "Engage in discussions, participate in group activities, and learn together in real-time.",
+                title: t.collaborativeLearning.title,
+                description: t.collaborativeLearning.description,
                 colorClass: "text-accent",
               },
             ].map((feature, index) => (
@@ -283,10 +433,13 @@ const LandingPage = () => {
                 </h3>
                 <p className="text-muted flex-grow">{feature.description}</p>
                 <Link
-                  to={`/learn-more/${feature.title.toLowerCase()}`}
-                  className={`${feature.colorClass} mt-4 flex items-center font-medium`}
+                  to={`/learn-more/${encodeURIComponent(feature.title.toLowerCase())}`}
+                  className={`${feature.colorClass} mt-4 flex items-center font-medium ${language === "ar" ? "flex-row-reverse" : ""}`}
                 >
-                  Learn more <FaArrowRight className="ml-2 text-xs" />
+                  {t.learnMore}
+                  <FaArrowRight
+                    className={`${language === "ar" ? "mr-2 rotate-180" : "ml-2"} text-xs`}
+                  />
                 </Link>
               </motion.div>
             ))}
@@ -304,32 +457,24 @@ const LandingPage = () => {
             viewport={{ once: true }}
           >
             <span className="text-secondary font-semibold block mb-2">
-              PROCESS
+              {t.process}
             </span>
             <h2 className="text-3xl md:text-4xl font-bold text-text">
-              How It Works
+              {t.howItWorks}
             </h2>
           </motion.div>
 
           <div className="grid md:grid-cols-2 gap-8 md:gap-12">
             <StepCard
               icon={FaKey}
-              title="For Teachers"
-              steps={[
-                "Create your personalized course with our easy-to-use tools",
-                "Receive a unique course code to share with your students",
-                "Monitor student progress and engagement in real-time",
-              ]}
+              title={t.forTeachers.title}
+              steps={t.teacherSteps}
               color="primary"
             />
             <StepCard
               icon={FaUsers}
-              title="For Students"
-              steps={[
-                "Sign up for free with just a few simple steps",
-                "Enter the course code shared by your teacher",
-                "Access materials and start learning at your own pace",
-              ]}
+              title={t.forStudents.title}
+              steps={t.studentSteps}
               color="secondary"
             />
           </div>
@@ -349,15 +494,14 @@ const LandingPage = () => {
             className="text-3xl md:text-5xl font-bold text-white mb-6"
             variants={fadeInUp}
           >
-            Ready to Transform Your Education?
+            {t.ctaTitle}
           </motion.h2>
 
           <motion.p
             className="text-xl text-white/90 mb-10 max-w-2xl mx-auto"
             variants={fadeInUp}
           >
-            Join thousands of educators and students already using our platform
-            to enhance learning experiences
+            {t.ctaDescription}
           </motion.p>
 
           <motion.div
@@ -368,14 +512,14 @@ const LandingPage = () => {
               to="/signup?role=teacher"
               className="block text-center px-8 py-4 rounded-xl text-lg font-semibold transition-all bg-white text-primary hover:bg-white/90 shadow-lg"
             >
-              Start Teaching
+              {t.startTeaching}
             </Link>
 
             <Link
               to="/signup?role=student"
               className="block text-center px-8 py-4 rounded-xl text-lg font-semibold transition-all bg-white/20 backdrop-blur-sm text-white border border-white/30 hover:bg-white/30 shadow-lg"
             >
-              Start Learning
+              {t.startLearning}
             </Link>
           </motion.div>
         </div>
@@ -391,37 +535,15 @@ const LandingPage = () => {
             viewport={{ once: true }}
           >
             <span className="text-accent font-semibold block mb-2">
-              TESTIMONIALS
+              {t.testimonials}
             </span>
             <h2 className="text-3xl md:text-4xl font-bold text-text">
-              What Our Users Say
+              {t.whatUsersSay}
             </h2>
           </motion.div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              {
-                quote:
-                  "Madrasa Platform has completely transformed how I teach. My students are more engaged than ever!",
-                name: "Sarah Johnson",
-                role: "High School Teacher",
-                color: "primary",
-              },
-              {
-                quote:
-                  "The interactive lessons make learning fun and accessible. I can study at my own pace and track my progress.",
-                name: "Ahmed Ali",
-                role: "University Student",
-                color: "secondary",
-              },
-              {
-                quote:
-                  "As a school administrator, I've seen tremendous improvements in both teaching quality and student outcomes.",
-                name: "Michael Chen",
-                role: "School Principal",
-                color: "accent",
-              },
-            ].map((testimonial, index) => (
+            {t.testimonialData.map((testimonial, index) => (
               <motion.div
                 key={index}
                 className="bg-card rounded-xl p-6 shadow-lg border border-card-border"
@@ -433,9 +555,7 @@ const LandingPage = () => {
                 }}
                 viewport={{ once: true }}
               >
-                <div className={`text-${testimonial.color} mb-4`}>
-                  {"★".repeat(5)}
-                </div>
+                <div className="text-primary mb-4">{"★".repeat(5)}</div>
                 <p className="text-text mb-6 italic">"{testimonial.quote}"</p>
                 <div>
                   <p className="font-semibold text-text">{testimonial.name}</p>
@@ -451,6 +571,9 @@ const LandingPage = () => {
 };
 
 const StepCard = ({ icon: Icon, title, steps, color }: StepCardProps) => {
+  const { language } = useLanguage();
+  const isRTL = language === "ar";
+
   return (
     <motion.div
       className="bg-card rounded-xl p-8 shadow-lg border border-card-border"
@@ -459,17 +582,24 @@ const StepCard = ({ icon: Icon, title, steps, color }: StepCardProps) => {
       viewport={{ once: true }}
       whileHover={{ y: -5 }}
     >
-      <div className="flex items-center mb-6">
-        <div className={`bg-${color}/10 p-3 rounded-lg mr-4`}>
+      <div
+        className={`flex items-center mb-6 ${isRTL ? "flex-row-reverse" : ""}`}
+      >
+        <div
+          className={`bg-${color}/10 p-3 rounded-lg ${isRTL ? "ml-4" : "mr-4"}`}
+        >
           <Icon className={`text-${color}`} size={28} />
         </div>
         <h3 className="text-2xl font-bold text-text">{title}</h3>
       </div>
       <ul className="space-y-4">
         {steps.map((step, index) => (
-          <li key={index} className="flex items-start">
+          <li
+            key={index}
+            className={`flex items-start ${isRTL ? "flex-row-reverse text-right" : ""}`}
+          >
             <span
-              className={`bg-${color} text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-medium mr-3 flex-shrink-0 mt-0.5`}
+              className={`bg-${color} text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-medium ${isRTL ? "ml-3" : "mr-3"} flex-shrink-0 mt-0.5`}
             >
               {index + 1}
             </span>

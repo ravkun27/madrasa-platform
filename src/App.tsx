@@ -2,6 +2,7 @@ import { useEffect, useState, Suspense } from "react";
 import { RouterProvider } from "react-router-dom";
 import LoadingScreen from "./components/LoadingScreen";
 import { ThemeProvider } from "./context/ThemeContext";
+import { LanguageProvider } from "./context/LanguageContext"; // ✅ Add this
 import router from "./routes/Router";
 import "./App.css";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -23,10 +24,14 @@ const App: React.FC = () => {
   return (
     <ErrorBoundary>
       <ThemeProvider>
-        <Suspense fallback={<LoadingScreen />}>
-          <Toaster position="top-center" toastOptions={{ duration: 5000 }} />
-          <RouterProvider router={router} />
-        </Suspense>
+        <LanguageProvider>
+          {" "}
+          {/* ✅ Wrap the app with LanguageProvider */}
+          <Suspense fallback={<LoadingScreen />}>
+            <Toaster position="top-center" toastOptions={{ duration: 1500 }} />
+            <RouterProvider router={router} />
+          </Suspense>
+        </LanguageProvider>
       </ThemeProvider>
     </ErrorBoundary>
   );

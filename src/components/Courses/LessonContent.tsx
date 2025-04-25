@@ -1,26 +1,20 @@
-import { useState } from "react";
 import { MediaModal } from "../Modal/MediaModal";
 import {
-  Check,
+  
   Download,
   FileText,
   Link,
   FileAudio,
   FileVideo,
   File,
-  Circle,
 } from "lucide-react";
-import { putFetch } from "../../utils/apiCall";
 
 export const LessonContent = ({
   lesson,
-  courseId,
 }: {
   lesson: any;
-  courseId: string;
 }) => {
-  const [isCompleted, setIsCompleted] = useState(lesson?.completed || false);
-  const [isToggling, setIsToggling] = useState(false);
+
 
   if (!lesson) return null;
 
@@ -37,20 +31,7 @@ export const LessonContent = ({
         return <File className="w-6 h-6" />;
     }
   };
-  const toggleLessonCompletion = async () => {
-    setIsToggling(true);
-    try {
-      await putFetch(
-        `/user/student/course/lesson/completionToggle?courseId=${courseId}&lessonId=${lesson._id}`,
-        {}
-      );
-      setIsCompleted((prev: any) => !prev);
-    } catch (error) {
-      console.error("Error toggling completion:", error);
-    } finally {
-      setIsToggling(false);
-    }
-  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-start justify-between">
@@ -61,21 +42,7 @@ export const LessonContent = ({
 
           <h1 className="text-2xl font-heading font-bold">{lesson.title}</h1>
         </div>
-        <button
-          onClick={toggleLessonCompletion}
-          disabled={isToggling}
-          className={`p-2 rounded-md transition-colors ${
-            isCompleted
-              ? "bg-green-100 text-green-600"
-              : "bg-background text-muted hover:text-text"
-          }`}
-        >
-          {isCompleted ? (
-            <Check className="w-6 h-6" />
-          ) : (
-            <Circle className="w-6 h-6" />
-          )}
-        </button>
+        
       </div>
 
       <p className="text-muted">{lesson.description}</p>
@@ -91,23 +58,26 @@ export const LessonContent = ({
       <div className="border-t border-cardBorder pt-4 mt-6">
         <h3 className="text-lg font-medium mb-3">Resources</h3>
         <div className="space-y-2">
-          <a
-            href={lesson.filePath}
-            download
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center p-3 border border-cardBorder rounded-lg hover:bg-background transition-colors"
-          >
-            <span className="p-2 bg-background rounded-md mr-3 text-primary">
-              {getFileTypeIcon(lesson.fileType)}
-            </span>
-            <div className="flex-1">
-              <div className="font-medium">{lesson.title}</div>
-              <div className="text-sm text-muted">Download lesson material</div>
-            </div>
-            <Download className="w-5 h-5 text-muted" />
-          </a>
-
+          {lesson.fileType?.startsWith("video") ? null : (
+            <a
+              href={lesson.filePath}
+              download
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center p-3 border border-cardBorder rounded-lg hover:bg-background transition-colors"
+            >
+              <span className="p-2 bg-background rounded-md mr-3 text-primary">
+                {getFileTypeIcon(lesson.fileType)}
+              </span>
+              <div className="flex-1">
+                <div className="font-medium">{lesson.title}</div>
+                <div className="text-sm text-muted">
+                  Download lesson material
+                </div>
+              </div>
+              <Download className="w-5 h-5 text-muted" />
+            </a>
+          )}
           {lesson?.additionalResources?.map((resource: any, index: number) => (
             <a
               key={index}

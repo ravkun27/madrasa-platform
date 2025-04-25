@@ -1,6 +1,13 @@
 import { deleteFetch, getFetch, putFetch } from "../../utils/apiCall";
 import { motion, AnimatePresence } from "framer-motion";
-import { LuPencil, LuCheck, LuTrash2, LuX } from "react-icons/lu";
+import {
+  LuPencil,
+  LuCheck,
+  LuTrash2,
+  LuX,
+  LuExternalLink,
+  LuCopy,
+} from "react-icons/lu";
 
 import { useEffect, useState } from "react";
 import { useCourseActions } from "../../hooks/useCourseActions";
@@ -89,6 +96,17 @@ export const Content = ({
     getContent();
   }, [courses]);
 
+  const handleCopyLink = () => {
+    if (content?.filePath) {
+      navigator.clipboard.writeText(content.filePath);
+      toast.success("Link copied to clipboard!");
+    }
+  };
+
+  // Check if the content is a link type
+  const isLink = content?.fileType === "link";
+  console.log(content);
+
   return (
     <>
       {showDeleteConfirm && (
@@ -118,14 +136,47 @@ export const Content = ({
             transition={{ duration: 0.1 }}
             className="group bg-white dark:bg-gray-800 md:p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm transition-all mt-2"
           >
-            <MediaModal
-              url={content?.filePath}
-              contentType={content?.fileType}
-              title={content?.title}
-            />
-            {/* Top Section: Icon, Title & Actions */}
+            {/* Top Section: Content Preview */}
+            {isLink ? (
+              <div className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg mb-4">
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+                  <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 max-w-full">
+                    <LuExternalLink size={20} />
+                    <p className="text-sm md:text-base font-medium truncate max-w-xs md:max-w-md lg:max-w-lg">
+                      {content.link}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 self-end md:self-auto">
+                    <button
+                      onClick={handleCopyLink}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-sm transition-colors"
+                    >
+                      <LuCopy size={16} />
+                      Copy
+                    </button>
+                    <a
+                      href={content.filePath}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-blue-600 hover:bg-blue-700 text-white text-sm transition-colors"
+                    >
+                      <LuExternalLink size={16} />
+                      Open
+                    </a>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <MediaModal
+                url={content?.filePath}
+                contentType={content?.fileType}
+                title={content?.title}
+              />
+            )}
+
+            {/* Content Details Section */}
             <div className="flex flex-wrap items-start justify-between gap-4 p-2">
-              {/* Left: Icon + Title */}
+              {/* Left: Title & Description */}
               <div className="flex items-start gap-4 flex-1 min-w-0">
                 {/* Editable Mode */}
                 <div className="flex-1">

@@ -75,7 +75,6 @@ export const Courses = ({ course }: { course: any }) => {
       const response: any = await getFetch(
         `/user/teacher/course/students?courseId=${courseId}`
       );
-      console.log("Students List:", response);
 
       if (Array.isArray(response?.data?.students)) {
         setStudents(response.data.students); // list of students
@@ -86,6 +85,21 @@ export const Courses = ({ course }: { course: any }) => {
     } catch (error) {
       console.error("Error fetching students:", error);
       return [];
+    }
+  };
+
+  const kickStudent = async (courseId: string, studentId: string) => {
+    try {
+      const result: any = await deleteFetch(
+        `/user/teacher/course/student?courseId=${courseId}&studentId=${studentId}`
+      );
+      if (result.success) {
+        setStudents((prev) =>
+          prev.filter((student) => student._id !== studentId)
+        );
+      }
+    } catch (error) {
+      console.error("Error removing student:", error);
     }
   };
 
@@ -765,6 +779,14 @@ export const Courses = ({ course }: { course: any }) => {
                             {student?.firstName} {student?.lastName} —{" "}
                             {student?.phoneNumber}
                           </span>
+                          <button
+                            onClick={() =>
+                              kickStudent(course._id, student?._id)
+                            }
+                            className="text-red-500 hover:text-red-600 p-2"
+                          >
+                            <FiTrash2 size={18} />
+                          </button>
                         </div>
                       ))
                     ) : (

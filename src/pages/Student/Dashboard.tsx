@@ -49,8 +49,7 @@ const StudentDashboard = () => {
 
   return (
     <div className="p-6 min-h-screen max-w-7xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-4">Enroll in New Course</h1>
+      <div className="my-8">
         <CourseSearch user={user} onEnrollSuccess={fetchEnrolledCourses} />
       </div>
 

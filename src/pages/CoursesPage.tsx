@@ -86,7 +86,7 @@ const CoursesPage = () => {
   });
 
   return (
-    <div className="p-3 md:p-6 max-w-5xl mx-auto">
+    <div className="p-3 md:p-6 max-w-3xl mx-auto">
       {/* Search Section */}
       <div className="bg-white dark:bg-gray-800 p-4 md:p-6 rounded-xl shadow-sm mb-6">
         <h2 className="text-xl md:text-2xl font-bold mb-4">Explore Courses</h2>
@@ -120,7 +120,7 @@ const CoursesPage = () => {
                   <img
                     src={course.banner}
                     alt={course.title}
-                    className="w-full h-32 md:h-40 object-cover rounded-md mb-3 md:mb-4"
+                    className="w-full h-32 md:h-64 object-cover rounded-md mb-3 md:mb-4"
                   />
                 )}
 

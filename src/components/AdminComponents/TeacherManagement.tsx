@@ -6,9 +6,10 @@ import {
   FiChevronDown,
 } from "react-icons/fi";
 import { getFetch, deleteFetch, patchFetch } from "../../utils/apiCall";
-import toast from "react-hot-toast";
 import { throttle } from "../../utils/utilsMethod/Throttle";
 import CoursesTable from "./CourseTable";
+import toast from "react-hot-toast";
+import { ConfirmationModal } from "../Modal/ConfiramtionModal";
 
 const TeacherManagement = () => {
   const [teachers, setTeachers] = useState<any[]>([]);
@@ -19,28 +20,69 @@ const TeacherManagement = () => {
   const [deletedCoursesMap, setDeletedCoursesMap] = useState<
     Record<string, any[]>
   >({});
+  const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
+  const [teacherToDelete, setTeacherToDelete] = useState<string | null>(null);
 
   // Fetch deleted courses when teacher expands
   useEffect(() => {
-    const fetchDeletedCourses = async (teacherId: string) => {
+    const fetchCoursesForTeacher = async (teacherId: string) => {
       try {
-        const response: any = await getFetch(
+        const teacher = teachers.find((t) => t._id === teacherId);
+        if (!teacher) return;
+
+        // Fetch active courses
+        const courseIds = teacher.courseIds || [];
+        const activeCourses = await Promise.all(
+          courseIds.map(async (courseId: string) => {
+            try {
+              const courseRes: any = await getFetch(
+                `/admin/auth/course?courseId=${courseId}`
+              );
+              return courseRes.data?.course || null;
+            } catch (err) {
+              console.error("Error fetching course:", err);
+              return null;
+            }
+          })
+        );
+
+        // Fetch deleted courses
+        const deletedRes: any = await getFetch(
           `/admin/auth/course/deleted/${teacherId}`
         );
+
+        const combinedCourses = [
+          ...activeCourses.filter(Boolean).map((c) => ({ ...c, active: true })),
+          ...(deletedRes.data?.deletedCourses || []).map((c: any) => ({
+            ...c,
+            active: false,
+          })),
+        ];
+
+        // Update teacher in state
+        setTeachers((prev) =>
+          prev.map((t) =>
+            t._id === teacherId ? { ...t, courses: combinedCourses } : t
+          )
+        );
+
+        // Optional: store deleted separately if still needed
         setDeletedCoursesMap((prev) => ({
           ...prev,
-          [teacherId]: response.data.deletedCourses,
+          [teacherId]: deletedRes.data.deletedCourses,
         }));
       } catch (error) {
-        console.error("Error fetching deleted courses:", error);
-        toast.error("Failed to load deleted courses");
+        console.error("Error fetching courses for teacher:", error);
       }
     };
 
-    if (expandedTeacher && !deletedCoursesMap[expandedTeacher]) {
-      fetchDeletedCourses(expandedTeacher);
+    if (expandedTeacher) {
+      const teacher = teachers.find((t) => t._id === expandedTeacher);
+      if (teacher && !teacher.courses) {
+        fetchCoursesForTeacher(expandedTeacher);
+      }
     }
-  }, [expandedTeacher]);
+  }, [expandedTeacher, teachers]);
 
   // Combine courses function
   const getCombinedCourses = (teacher: any) => {
@@ -57,21 +99,20 @@ const TeacherManagement = () => {
     ];
   };
 
+  const fetchTeachers = async () => {
+    try {
+      setLoading(true);
+      const teachersRes = await getFetch<{ data: { teacherList: any[] } }>(
+        "/admin/auth/teacher/list"
+      );
+      setTeachers(teachersRes.data.teacherList); // just store basic teacher info
+    } catch (error) {
+      console.error("Error fetching teachers:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
   useEffect(() => {
-    const fetchTeachers = async () => {
-      try {
-        const teachersRes: any = await getFetch("/admin/auth/teacher/list");
-        const teachersWithCourses = await getTeachersCourses(
-          teachersRes.data.teacherList
-        );
-        setTeachers(teachersWithCourses);
-      } catch (error) {
-        console.error("Error fetching teachers:", error);
-        toast.error("Failed to load teachers");
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchTeachers();
   }, []);
 
@@ -86,7 +127,6 @@ const TeacherManagement = () => {
       );
     } catch (error) {
       console.error("Approval failed:", error);
-      toast.error("Approval failed");
     }
   };
 
@@ -94,10 +134,8 @@ const TeacherManagement = () => {
     try {
       await patchFetch("/admin/auth/teacher/approve/all", {});
       setTeachers(teachers.map((t) => ({ ...t, approved: true })));
-      toast.success("All teachers approved successfully");
     } catch (error) {
       console.error("Bulk approval failed:", error);
-      toast.error("Bulk approval failed");
     }
   };
 
@@ -116,40 +154,20 @@ const TeacherManagement = () => {
           t._id === userID ? { ...t, suspended: !t.suspended } : t
         )
       );
+      toast.success(
+        `Teacher ${teacher.suspended ? "unsuspended" : "suspended"} successfully!`
+      );
     } catch (error) {
       console.error("Suspension failed:", error);
-      toast.error("Suspension failed");
     }
   };
 
   const deleteTeacher = async (teacherId: string) => {
-    if (!window.confirm("Are you sure you want to delete this teacher?"))
-      return;
-
     try {
       await deleteFetch(`/admin/auth/teacher?teacherId=${teacherId}`);
       setTeachers(teachers.filter((t) => t._id !== teacherId));
-      toast.success("Teacher deleted successfully");
     } catch (error) {
       console.error("Deletion failed:", error);
-      toast.error("Deletion failed");
-    }
-  };
-  const fetchTeachers = async () => {
-    try {
-      setLoading(true);
-      const teachersRes = await getFetch<{ data: { teacherList: any[] } }>(
-        "/admin/auth/teacher/list"
-      );
-      const teachersWithCourses = await getTeachersCourses(
-        teachersRes.data.teacherList
-      );
-      setTeachers(teachersWithCourses);
-    } catch (error) {
-      console.error("Error fetching teachers:", error);
-      toast.error("Failed to load teachers");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -175,7 +193,6 @@ const TeacherManagement = () => {
       setTeachers(teachersWithCourses);
     } catch (error) {
       console.error("Search failed:", error);
-      toast.error("No Teacher found");
     }
   };
 
@@ -225,6 +242,18 @@ const TeacherManagement = () => {
         }
       })
     );
+  };
+  const handleRemoveClick = (id: string) => {
+    setTeacherToDelete(id);
+    setShowRemoveConfirm(true);
+  };
+
+  const handleConfirmRemove = () => {
+    if (teacherToDelete) {
+      deleteTeacher(teacherToDelete);
+    }
+    setShowRemoveConfirm(false);
+    setTeacherToDelete(null);
   };
 
   if (loading)
@@ -408,7 +437,7 @@ const TeacherManagement = () => {
                         {teacher.suspended ? "Unsuspend" : "Suspend"}
                       </button>
                       <button
-                        onClick={() => deleteTeacher(teacher._id)}
+                        onClick={() => handleRemoveClick(teacher._id)}
                         className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
                       >
                         Remove Teacher
@@ -420,6 +449,13 @@ const TeacherManagement = () => {
             </div>
           ))}
         </div>
+      )}
+      {showRemoveConfirm && (
+        <ConfirmationModal
+          message="Are you sure you want to delete this admin?"
+          onConfirm={handleConfirmRemove}
+          onCancel={() => setShowRemoveConfirm(false)}
+        />
       )}
     </div>
   );

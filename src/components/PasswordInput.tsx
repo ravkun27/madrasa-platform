@@ -19,7 +19,7 @@ export const PasswordInput = ({
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary pr-12"
+        className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary pr-12 text-black"
       />
       <button
         type="button"

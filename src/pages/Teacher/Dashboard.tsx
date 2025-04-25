@@ -13,7 +13,19 @@ import { motion } from "framer-motion";
 const Dashboard = () => {
   const [teacherCourses, setTeacherCourses] = useState<any[]>([]);
   const [isApproved, setIsApproved] = useState(false);
+  const [isSuspended, setIsSuspended] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  const checkSuspended = async () => {
+    try {
+      const response: any = await getFetch("/user");
+      if (response?.success) {
+        setIsSuspended(response.data.suspended);
+      }
+    } catch (error) {
+      console.error("Error fetching suspended status:", error);
+    }
+  };
 
   const fetchTeacherStatus = async () => {
     try {
@@ -29,7 +41,6 @@ const Dashboard = () => {
               (course: any) => course.published.value
             ) || [];
           setTeacherCourses(publishedCourses);
-          console.log(publishedCourses);
         }
       }
     } catch (error) {
@@ -40,6 +51,7 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
+    checkSuspended();
     fetchTeacherStatus();
   }, []);
 
@@ -67,11 +79,28 @@ const Dashboard = () => {
     return (
       <div className="min-h-screen text-center flex flex-col justify-center items-center">
         <h2 className="text-2xl font-bold mb-4">Account Pending Approval</h2>
+        <p className="text-gray-600 dark:text-gray-400 mb-2">
+          Your account is currently under review. Please wait for admin
+          approval.
+        </p>
         <p className="text-gray-600 dark:text-gray-400">
-          Your account is under review. Please wait for admin approval.
+          You will be contacted by our team via email, Telegram, or WhatsApp
+          once a decision has been made.
         </p>
       </div>
     );
+
+  if (isSuspended) {
+    return (
+      <div className="min-h-screen text-center flex flex-col justify-center items-center">
+        <h2 className="text-2xl font-bold mb-4">Account Suspended</h2>
+        <p className="text-gray-600 dark:text-gray-400">
+          Your account has been suspended. Please contact support for more
+          information.
+        </p>
+      </div>
+    );
+  }
 
   const CourseCard = ({ course }: { course: any }) => (
     <motion.div

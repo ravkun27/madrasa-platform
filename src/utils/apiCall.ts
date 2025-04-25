@@ -1,8 +1,10 @@
+import toast from "react-hot-toast";
 import { apiUrl } from "../config";
 
 if (!apiUrl) {
   throw new Error("API URL is missing. Check your environment variables.");
 }
+const SUCCESS_TOAST_ID = "success-toast";
 
 type ApiMethod = "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
 type ApiResponse<T> = Promise<T>;
@@ -11,7 +13,8 @@ type ApiBody = Record<string, any> | FormData;
 async function apiCall<T = any>(
   path: string,
   body: ApiBody = {},
-  method: ApiMethod = "GET"
+  method: ApiMethod = "GET",
+  language?: string // pass in the language here
 ): ApiResponse<T> {
   const url = `${apiUrl}${path}`;
 
@@ -19,7 +22,9 @@ async function apiCall<T = any>(
   const options: RequestInit = {
     method,
     credentials: "include",
-    headers: {} as Record<string, string>,
+    headers: {
+      ...(language && { language }),
+    } as Record<string, string>,
   };
 
   if (method !== "GET") {
@@ -47,12 +52,16 @@ async function apiCall<T = any>(
 
     // Handle 204 No Content responses safely
     if (res.status === 204) {
+      toast.success("Request completed successfully (no content)", {
+        id: SUCCESS_TOAST_ID,
+      });
       console.log("Received 204 No Content");
       return {} as T;
     }
 
     const result = await res.json().catch((err) => {
       console.error("Failed to parse JSON response:", err);
+      toast.error("Failed to parse server response.");
       return null;
     });
 
@@ -65,9 +74,16 @@ async function apiCall<T = any>(
       throw new Error(errorMessage);
     }
 
+    const raw = result?.message || "Success";
+    const formatted = raw.charAt(0).toUpperCase() + raw.slice(1);
+
+    toast.success(formatted, { id: SUCCESS_TOAST_ID });
     return result;
-  } catch (error) {
+  } catch (error: any) {
+    const errorMessage =
+      error?.message || "An error occurred. Please try again later.";
     console.error("Network or API Error:", error);
+    toast.error(errorMessage);
     throw error;
   }
 }

@@ -94,7 +94,7 @@ const CourseSearch = ({ onEnrollSuccess, user }: Props) => {
     <div className="max-w-lg mx-auto mb-12">
       {/* Search box */}
       <motion.div
-        className="flex items-center gap-3 bg-card rounded-xl shadow-lg p-2 md:p-4 border border-card-border"
+        className="flex items-center gap-3 bg-card rounded-xl shadow-lg p-4 border border-card-border"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
       >
@@ -111,7 +111,7 @@ const CourseSearch = ({ onEnrollSuccess, user }: Props) => {
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.97 }}
           onClick={handleSearch}
-          className="bg-gradient-to-r from-primary to-secondary text-button-text px-2 md:px-5 py- md:py-2.5 rounded-lg shadow-md transition-all whitespace-nowrap font-medium flex items-center gap-2"
+          className="bg-gradient-to-r from-primary to-secondary text-button-text px-5 py-2.5 rounded-lg shadow-md transition-all whitespace-nowrap font-medium flex items-center gap-2"
         >
           Search
         </motion.button>

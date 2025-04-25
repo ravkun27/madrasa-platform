@@ -7,33 +7,42 @@ import {
   FiX,
 } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
+import { useLanguage } from "../../context/LanguageContext";
+import { putFetch } from "../../utils/apiCall";
+import { Check, Circle } from "lucide-react";
 
 export const CourseSidebar = ({
   course,
   lessons,
   selectedLesson,
   onLessonSelect,
+  courseId,
+  isMobileOpen,
+  onMobileClose,
 }: {
   course: any;
   lessons: any;
   selectedLesson: any;
   onLessonSelect: (lesson: any) => void;
+  courseId: string;
+  isMobileOpen: boolean;
+  onMobileClose: () => void;
 }) => {
+  const { language } = useLanguage();
+  const isRTL = language === "ar";
   const [expandedSections, setExpandedSections] = useState<string[]>([]);
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [localLessons, setLocalLessons] = useState(lessons);
 
   useEffect(() => {
-    // Auto-expand section containing the selected lesson
+    setLocalLessons(lessons);
+  }, [lessons]);
+
+  useEffect(() => {
     if (
       selectedLesson &&
       !expandedSections.includes(selectedLesson.sectionId)
     ) {
       setExpandedSections((prev) => [...prev, selectedLesson.sectionId]);
-    }
-
-    // Close mobile sidebar when a lesson is selected
-    if (selectedLesson && isMobileSidebarOpen) {
-      setIsMobileSidebarOpen(false);
     }
   }, [selectedLesson]);
 
@@ -45,150 +54,178 @@ export const CourseSidebar = ({
     );
   };
 
-  if (!course) return null;
+  const toggleLessonCompletion = async (lessonId: string) => {
+    if (!courseId) return;
 
-  // Group lessons by section for easier rendering
-  const lessonsBySection = course.sectionIds.map((section: any) => ({
-    section,
-    lessons: lessons.filter((lesson: any) => lesson.sectionId === section._id),
-  }));
+    setLocalLessons((prevLessons: any) =>
+      prevLessons.map((lesson: any) =>
+        lesson._id === lessonId
+          ? { ...lesson, completed: !lesson.completed }
+          : lesson
+      )
+    );
+
+    try {
+      await putFetch(
+        `/user/student/course/lesson/completionToggle?courseId=${courseId}&lessonId=${lessonId}`,
+        {}
+      );
+    } catch (error) {
+      setLocalLessons(lessons); // Revert on error
+      console.error("Error toggling completion:", error);
+    }
+  };
+
   const calculateProgress = (sectionId: string): number => {
     const section = course?.sectionIds.find((s: any) => s._id === sectionId);
-    if (!section || section.totalLessons === 0) return 0;
-    return Math.round((section.completedLessons / section.totalLessons) * 100);
+    if (!section) return 0;
+
+    const completed = localLessons.filter(
+      (lesson: any) => lesson.sectionId === sectionId && lesson.completed
+    ).length;
+
+    return Math.round((completed / section.lessonIds.length) * 100);
   };
+
+  if (!course) return null;
+
+  const lessonsBySection = course.sectionIds.map((section: any) => ({
+    section,
+    lessons: localLessons.filter(
+      (lesson: any) => lesson.sectionId === section._id
+    ),
+  }));
 
   return (
     <>
-      {/* Mobile sidebar toggle button */}
-      <div className="md:hidden fixed bottom-4 right-4 z-20">
-        <button
-          onClick={() => setIsMobileSidebarOpen(true)}
-          className="bg-color-secondary text-white p-4 rounded-full shadow-lg hover:bg-blue-700 transition-colors"
-          aria-label="Open course navigation"
-        >
-          <FiMenu size={24} />
-        </button>
-      </div>
+      {/* Mobile toggle button */}
+      <button
+        onClick={() => onMobileClose()}
+        className={`md:hidden fixed bottom-4 ${isRTL ? "left-4" : "right-4"} z-40 bg-primary text-white p-3 rounded-full shadow-lg hover:bg-primary-dark transition-transform`}
+      >
+        <FiMenu size={24} />
+      </button>
 
-      {/* Mobile sidebar overlay */}
-      <AnimatePresence>
-        {isMobileSidebarOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"
-            onClick={() => setIsMobileSidebarOpen(false)}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* Sidebar - responsive for mobile and desktop */}
-      <AnimatePresence>
-        {(isMobileSidebarOpen || true) && (
-          <motion.div
-            initial={{ x: "-100%" }}
-            animate={{ x: isMobileSidebarOpen ? 0 : 0 }}
-            exit={{ x: "-100%" }}
-            transition={{ type: "tween", duration: 0.3 }}
-            className={`bg-background border-r flex flex-col z-40 ${
-              isMobileSidebarOpen
-                ? "fixed inset-y-0 left-0 w-4/5 max-w-xs"
-                : "hidden md:flex w-full md:w-80"
-            }`}
+      {/* Sidebar */}
+      <motion.div
+        className={`bg-background border-r flex flex-col z-40 fixed md:relative md:flex inset-y-0 ${
+          isRTL ? "right-0 border-l" : "left-0 border-r"
+        } w-80 max-w-full transform transition-transform duration-300 ease-in-out ${
+          isMobileOpen
+            ? "translate-x-0"
+            : isRTL
+              ? "translate-x-full"
+              : "-translate-x-full md:translate-x-0"
+        }`}
+        dir={language}
+      >
+        {/* Header */}
+        <div className="p-4 border-b flex items-center justify-between bg-background">
+          <div className="flex items-center gap-2">
+            <FiBook className="text-text" />
+            <h2 className="text-lg font-bold truncate">{course.title}</h2>
+          </div>
+          <button
+            onClick={onMobileClose}
+            className="md:hidden p-2 hover:bg-gray-100 rounded-full"
           >
-            {/* Course header */}
-            <div className="p-4 border-b flex items-center justify-between sticky top-0 bg-background z-10">
-              <div className="flex items-center gap-2">
-                <FiBook className="text-text" size={20} />
-                <h2 className="text-lg font-bold truncate text-text">
-                  {course.title}
-                </h2>
-              </div>
+            <FiX className="text-text" />
+          </button>
+        </div>
 
-              {isMobileSidebarOpen && (
-                <button
-                  onClick={() => setIsMobileSidebarOpen(false)}
-                  className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full"
-                  aria-label="Close sidebar"
-                >
-                  <FiX size={20} />
-                </button>
-              )}
-            </div>
-
-            {/* Course content */}
-            <div className="flex-1 overflow-y-auto p-3 space-y-4">
-              {lessonsBySection.map(({ section, lessons }: any) => (
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          {lessonsBySection.map(({ section, lessons }: any) => (
+            <div key={section._id} className="space-y-2">
+              <button
+                onClick={() => toggleSection(section._id)}
+                className={`w-full flex items-center justify-between p-3 bg-card rounded-lg hover:bg-card-hover ${
+                  isRTL ? "flex-row-reverse" : ""
+                }`}
+              >
                 <div
-                  key={section._id}
-                  className="space-y-2 rounded-lg overflow-hidden border border-gray-100 shadow-sm"
+                  className={`flex-1 text-left ${isRTL ? "text-right" : ""}`}
                 >
-                  <button
-                    onClick={() => toggleSection(section._id)}
-                    className="w-full flex items-center justify-between p-3 bg-background transition-colors"
-                  >
-                    <div className="flex flex-col items-start">
-                      <span className="font-medium truncate text-text">
-                        {section.title}
-                      </span>
-                      <div className="flex items-center space-x-2 mt-1">
-                        <div className="w-32 h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-green-500 rounded-full"
-                            style={{
-                              width: `${calculateProgress(section._id)}%`,
-                            }}
-                          />
-                        </div>
-                        <span className="text-xs text-gray-500">
-                          {calculateProgress(section._id)}%
-                        </span>
+                  <div className="font-medium truncate">{section.title}</div>
+                  {section.lessonIds.length > 0 && (
+                    <div
+                      className={`flex items-center ${isRTL ? "flex-row-reverse" : ""}`}
+                    >
+                      <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-green-500 transition-all duration-300"
+                          style={{
+                            width: `${calculateProgress(section._id)}%`,
+                          }}
+                        />
                       </div>
+                      <span className="text-sm text-muted mx-2">
+                        {calculateProgress(section._id)}%
+                      </span>
                     </div>
-                    {expandedSections.includes(section._id) ? (
-                      <FiChevronUp className="text-text shrink-0" />
-                    ) : (
-                      <FiChevronDown className="text-text shrink-0" />
-                    )}
-                  </button>
+                  )}
+                </div>
+                {expandedSections.includes(section._id) ? (
+                  <FiChevronUp className="shrink-0" />
+                ) : (
+                  <FiChevronDown className="shrink-0" />
+                )}
+              </button>
 
-                  <AnimatePresence>
-                    {expandedSections.includes(section._id) && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        exit={{ opacity: 0, height: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="space-y-1 mx-1 mb-2"
-                      >
-                        {lessons.map((lesson: any) => (
+              <AnimatePresence>
+                {expandedSections.includes(section._id) && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="space-y-1 ml-4"
+                  >
+                    {lessons.length === 0 ? (
+                      <p className="text-muted text-sm">No content available</p>
+                    ) : (
+                      lessons.map((lesson: any) => (
+                        <button
+                          key={lesson._id}
+                          onClick={() => {
+                            onLessonSelect(lesson);
+                            onMobileClose();
+                          }}
+                          className={`w-full flex items-center justify-between p-2 rounded-lg ${
+                            selectedLesson?._id === lesson._id
+                              ? "bg-primary/10 text-primary"
+                              : "hover:bg-gray-100"
+                          } ${isRTL ? "flex-row-reverse" : ""}`}
+                        >
+                          <span className="truncate text-sm">
+                            {lesson.title}
+                          </span>
                           <button
-                            key={lesson._id}
-                            onClick={() => onLessonSelect(lesson)}
-                            className={`w-full text-left p-3 rounded-lg transition-all ${
-                              selectedLesson?._id === lesson._id
-                                ? "bg-color-secondary text-white shadow-sm"
-                                : "hover:bg-gray-50 text-gray-700"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleLessonCompletion(lesson._id);
+                            }}
+                            className={`p-1 rounded-full ${
+                              lesson.completed
+                                ? "text-green-500 hover:bg-green-50"
+                                : "text-muted hover:bg-gray-100"
                             }`}
                           >
-                            <div className="flex items-center space-x-2">
-                              <span className="truncate text-sm text-text">
-                                {lesson.title}
-                              </span>
-                            </div>
+                            {lesson.completed ? (
+                              <Check className="w-5 h-5" />
+                            ) : (
+                              <Circle className="w-5 h-5" />
+                            )}
                           </button>
-                        ))}
-                      </motion.div>
+                        </button>
+                      ))
                     )}
-                  </AnimatePresence>
-                </div>
-              ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          ))}
+        </div>
+      </motion.div>
     </>
   );
 };

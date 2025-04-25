@@ -6,6 +6,7 @@ import { useTheme } from "../context/ThemeContext"; // Import useTheme hook
 import { useAuth } from "../context/AuthContext"; // Import Auth Context
 import { FiSun, FiMoon, FiUser } from "react-icons/fi"; // Icons for light/dark mode
 import UserSettingsPage from "../pages/shared/UserSettingsPage";
+import LanguageToggle from "./LanguageToggle";
 
 const Header = () => {
   const { theme, toggleTheme } = useTheme(); // Get theme and toggle function
@@ -34,12 +35,12 @@ const Header = () => {
       animate={{ opacity: 1 }} // Fade in
       transition={{ duration: 0.5, ease: "easeOut", delay: 0.2 }} // Add a slight delay
     >
-      <nav className="container px-4 lg:px-6 py-2">
+      <nav className="px-4 lg:px-6 py-2">
         {/* Main Flex Container */}
         <div className="flex justify-between items-center">
           {/* Logo and Brand Name */}
           <Link
-            to={user ? `/${user.role}-dashboard` : "/"}
+            to="/"
             className="flex items-center space-x-2 md:space-x-4 group flex-shrink-0"
           >
             <motion.div
@@ -120,6 +121,9 @@ const Header = () => {
                 </>
               )}
 
+              {/* Language Toggle Button */}
+              <LanguageToggle />
+
               {/* Theme Toggle Button */}
               <button
                 onClick={toggleTheme}
@@ -146,6 +150,7 @@ const Header = () => {
                 <FiSun className="w-6 h-6" />
               )}
             </button>
+            <LanguageToggle />
 
             {/* Mobile Menu Toggle Button */}
             <button

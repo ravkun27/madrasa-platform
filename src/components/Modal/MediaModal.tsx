@@ -6,7 +6,6 @@ import {
   VolumeX,
   SkipBack,
   SkipForward,
-  Settings,
   PictureInPicture2,
   // Fullscreen,
   Loader2,
@@ -45,6 +44,13 @@ export const MediaModal: React.FC<MediaPlayerProps> = ({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const PlatformLogo = () => (
+    <img
+      src="/favicon.png" // Update this path
+      alt="Platform Logo"
+      className="absolute top-4 right-4 h-6 w-6 opacity-80 z-20 transition-opacity hover:opacity-100"
+    />
+  );
 
   // Detect media type from content type
   useEffect(() => {
@@ -63,14 +69,20 @@ export const MediaModal: React.FC<MediaPlayerProps> = ({
   const toggleFullscreen = useCallback(async () => {
     if (!containerRef.current) return;
 
-    if (!isFullscreen) {
-      await containerRef.current.requestFullscreen();
-      setIsFullscreen(true);
-    } else {
-      await document.exitFullscreen();
-      setIsFullscreen(false);
+    try {
+      if (!document.fullscreenElement) {
+        await containerRef.current.requestFullscreen?.();
+        document.body.style.overflow = "hidden"; // Prevent scrolling
+        setIsFullscreen(true);
+      } else if (document.fullscreenElement && document.hasFocus()) {
+        await document.exitFullscreen?.();
+        document.body.style.overflow = "auto"; // Restore scroll
+        setIsFullscreen(false);
+      }
+    } catch (err) {
+      console.error("Fullscreen toggle failed:", err);
     }
-  }, [isFullscreen]);
+  }, [containerRef, isFullscreen]);
 
   // Video-specific controls
   const togglePlay = useCallback(() => {
@@ -125,7 +137,10 @@ export const MediaModal: React.FC<MediaPlayerProps> = ({
   return (
     <div
       ref={containerRef}
-      className={`relative w-full bg-black aspect-video group rounded-lg mb-2`}
+      // Add this to your main container class
+      className={`relative w-full bg-black aspect-video group rounded-lg mb-2 ${
+        isFullscreen ? "fixed inset-0 z-50 h-screen w-screen" : ""
+      }`}
       onMouseMove={resetControlsTimeout}
       onTouchStart={resetControlsTimeout}
     >
@@ -137,18 +152,21 @@ export const MediaModal: React.FC<MediaPlayerProps> = ({
 
       {/* Media Renderer */}
       {mediaType === "video" && (
-        <video
-          ref={videoRef}
-          src={url}
-          className="w-full h-full object-contain rounded-lg aspect-video"
-          onClick={togglePlay}
-          onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
-          onLoadedMetadata={handleVideoLoaded}
-          onPlay={() => setIsPlaying(true)}
-          onPause={() => setIsPlaying(false)}
-          onError={handleMediaError}
-          playsInline
-        />
+        <>
+          <video
+            ref={videoRef}
+            src={url}
+            className="w-full h-full object-contain rounded-lg aspect-video"
+            onClick={togglePlay}
+            onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
+            onLoadedMetadata={handleVideoLoaded}
+            onPlay={() => setIsPlaying(true)}
+            onPause={() => setIsPlaying(false)}
+            onError={handleMediaError}
+            playsInline
+          />
+          <PlatformLogo />
+        </>
       )}
 
       {mediaType === "image" && (
@@ -179,23 +197,7 @@ export const MediaModal: React.FC<MediaPlayerProps> = ({
           }`}
         >
           {/* Top bar */}
-          <div className="absolute top-0 left-0 right-0 p-2 bg-gradient-to-b from-black/50 to-transparent flex justify-between items-center rounded-xl">
-            <h3 className="text-white font-medium truncate text-sm sm:text-base">
-              {title}
-            </h3>
-            <div className="flex gap-2">
-              <button
-                onClick={toggleFullscreen}
-                className="text-white p-1 sm:p-2 hover:bg-white/10 rounded-xl"
-              >
-                {isFullscreen ? (
-                  <Minimize className="w-5 h-5" />
-                ) : (
-                  <Maximize className="w-5 h-5" />
-                )}
-              </button>
-            </div>
-          </div>
+          <div className="absolute top-0 left-0 right-0 p-2 bg-gradient-to-b from-black/50 to-transparent flex justify-between items-center rounded-xl"></div>
 
           <>
             <div className="absolute inset-0 flex items-center justify-center md:gap-4 rounded-xl">
@@ -228,22 +230,32 @@ export const MediaModal: React.FC<MediaPlayerProps> = ({
             </div>
 
             <div className="absolute bottom-0 left-0 right-0 md:p-2 bg-gradient-to-t from-black/50 to-transparent md:space-y-3 rounded-xl">
-              <div className="w-full flex items-center justify-center gap-2">
+              <div className="w-full flex flex-col md:flex-row items-center justify-center gap-2">
                 <input
                   type="range"
                   min="0"
                   max={duration || 0}
+                  step="0.01"
                   value={currentTime}
                   onChange={(e) => {
                     const time = parseFloat(e.target.value);
                     if (videoRef.current) videoRef.current.currentTime = time;
                   }}
                   style={{
-                    background: `linear-gradient(to right, #6366f1 ${(currentTime / duration) * 100}%, #4b5563 ${(currentTime / duration) * 100}%)`,
+                    backgroundSize: `${(currentTime / duration) * 100}% 100%`,
+                    backgroundImage:
+                      "linear-gradient(to right, #6366f1, #6366f1), linear-gradient(to right, #4b5563, #4b5563)",
+                    backgroundRepeat: "no-repeat",
                   }}
-                  className="w-[80%] h-1 md:h-2 rounded-xl appearance-none cursor-pointer 
-  [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 
-  [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white"
+                  className="w-[90%] h-1 md:h-2 rounded-xl appearance-none cursor-pointer
+    bg-gray-600
+    [&::-webkit-slider-thumb]:appearance-none
+    [&::-webkit-slider-thumb]:w-4
+    [&::-webkit-slider-thumb]:h-4
+    [&::-webkit-slider-thumb]:rounded-full
+    [&::-webkit-slider-thumb]:bg-white
+    [&::-webkit-slider-thumb]:shadow-md
+    focus:outline-none"
                 />
 
                 <span className="text-white text-[8px] md:text-sm font-mono">
@@ -251,7 +263,7 @@ export const MediaModal: React.FC<MediaPlayerProps> = ({
                 </span>
               </div>
 
-              <div className="flex items-center md:justify-between">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <button
                     onClick={togglePlay}
@@ -289,7 +301,9 @@ export const MediaModal: React.FC<MediaPlayerProps> = ({
                       if (videoRef.current) videoRef.current.volume = vol;
                     }}
                     style={{
-                      background: `linear-gradient(to right, #6366f1 ${volume * 100}%, #4b5563 ${volume * 100}%)`,
+                      background: isMuted
+                        ? "#9CA3AF" // Muted: Grey background (Tailwind's gray-400)
+                        : `linear-gradient(to right, #6366f1 ${volume * 100}%, #4b5563 ${volume * 100}%)`,
                     }}
                     className="w-24 h-2 rounded-lg appearance-none cursor-pointer 
   [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 
@@ -321,9 +335,18 @@ export const MediaModal: React.FC<MediaPlayerProps> = ({
                   >
                     <PictureInPicture2 className="w-5 h-5" />
                   </button>
-                  <button className="text-white p-2 hover:bg-white/10 rounded-lg">
-                    <Settings className="w-5 h-5" />
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={toggleFullscreen}
+                      className="text-white p-1 sm:p-2 hover:bg-white/10 rounded-xl cursor-pointer z-10"
+                    >
+                      {isFullscreen ? (
+                        <Minimize className="w-5 h-5" />
+                      ) : (
+                        <Maximize className="w-5 h-5" />
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

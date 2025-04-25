@@ -3,7 +3,7 @@ import { getFetch, postFetch } from "../../utils/apiCall";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { useCourseActions } from "../../hooks/useCourseActions";
-import { FiX, FiUploadCloud } from "react-icons/fi";
+import { FiX, FiUploadCloud, FiLink } from "react-icons/fi";
 import toast from "react-hot-toast";
 
 const ContentEditModal = ({
@@ -20,8 +20,11 @@ const ContentEditModal = ({
     name: "",
     description: "",
     file: null as File | null,
+    link: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [contentType, setContentType] = useState<"file" | "link">("file");
+  const isQuiz = addingContent?.type?.toLowerCase() === "quiz";
 
   const handleAddContent = async () => {
     if (!addingContent || !contentDetails.name.trim()) {
@@ -29,13 +32,34 @@ const ContentEditModal = ({
       return;
     }
 
+    const isLinkType = contentType === "link";
+    const isFileType = contentType === "file";
+
+    if (isLinkType && !contentDetails.link.trim()) {
+      toast.error("Please provide a valid link");
+      return;
+    }
+
+    if (isFileType && !contentDetails.file) {
+      toast.error("Please upload a file");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       let filePath = null;
+      let fileType = null;
 
-      if (contentDetails.file) {
+      // === Handle Quiz Link or Any Link-Based Content ===
+      if (isLinkType) {
+        filePath = contentDetails.link.trim(); // use raw link directly
+        fileType = "link";
+      }
+
+      // === Handle File Uploads Only ===
+      if (isFileType && contentDetails.file) {
         const uploadUrlResult: any = await getFetch(
-          `/user/teacher/course/getUpdateLink?filename=hello&contentType=image/jpeg&courseId=${addingContent.courseId}`
+          `/user/teacher/course/getUpdateLink?filename=${contentDetails.file.name}&contentType=${contentDetails.file.type}&courseId=${addingContent.courseId}`
         );
 
         if (uploadUrlResult?.success) {
@@ -44,27 +68,39 @@ const ContentEditModal = ({
             body: contentDetails.file,
           });
 
-          if (uploadResponse.ok) {
-            filePath = uploadUrlResult.data.fileKey;
-            const result: any = await postFetch(
-              `/user/teacher/course/lesson?sectionId=${addingContent.sectionId}&courseId=${addingContent.courseId}`,
-              {
-                title: contentDetails.name,
-                description: contentDetails.description,
-                filePath: filePath,
-                fileType: contentDetails.file.type,
-              }
-            );
-
-            if (result.success) {
-              toast.success(`${addingContent.type} added successfully`);
-              setAddingContent(null);
-              setIsAddingContent(false);
-              setContentDetails({ name: "", description: "", file: null });
-              setCourseList();
-            }
+          if (!uploadResponse.ok) {
+            throw new Error("File upload failed");
           }
+
+          filePath = uploadUrlResult.data.fileKey;
+          fileType = contentDetails.file.type;
+        } else {
+          throw new Error("Failed to get signed upload URL");
         }
+      }
+
+      const requestData = {
+        title: contentDetails.name,
+        description: contentDetails.description,
+        filePath,
+        fileType,
+      };
+
+      console.log("🚀 Sending content data:", requestData);
+
+      const result: any = await postFetch(
+        `/user/teacher/course/lesson?sectionId=${addingContent.sectionId}&courseId=${addingContent.courseId}`,
+        requestData
+      );
+
+      if (result.success) {
+        toast.success(`${addingContent.type} added successfully`);
+        setAddingContent(null);
+        setIsAddingContent(false);
+        setContentDetails({ name: "", description: "", file: null, link: "" });
+        setCourseList(); // refetch or refresh course
+      } else {
+        throw new Error(result.message || "Failed to add content");
       }
     } catch (error) {
       toast.error("Failed to add content");
@@ -138,48 +174,107 @@ const ContentEditModal = ({
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Upload File
-                </label>
-                <label className="flex flex-col items-center justify-center w-full p-6 border-2 border-dashed border-gray-300 rounded-lg hover:border-indigo-500 cursor-pointer transition-colors">
-                  <FiUploadCloud className="w-8 h-8 text-gray-400 mb-2" />
-                  <span className="text-sm text-gray-600 text-center">
-                    {contentDetails.file
-                      ? contentDetails.file.name
-                      : `Click to upload ${addingContent?.type} file`}
-                  </span>
-                  <input
-                    type="file"
-                    accept={
-                      addingContent?.type === "video"
-                        ? "video/*"
-                        : "image/*, application/pdf"
-                    }
-                    className="hidden"
-                    onChange={(e) =>
-                      setContentDetails({
-                        ...contentDetails,
-                        file: e.target.files?.[0] || null,
-                      })
-                    }
-                    required
-                  />
-                </label>
-              </div>
+              {/* Type selection for Quiz content */}
+              {isQuiz && (
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Content Type
+                  </label>
+                  <div className="flex gap-4">
+                    <button
+                      type="button"
+                      onClick={() => setContentType("file")}
+                      className={`flex-1 py-2 px-4 rounded-lg flex items-center justify-center gap-2 ${
+                        contentType === "file"
+                          ? "bg-indigo-100 text-indigo-700 border border-indigo-300"
+                          : "bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200"
+                      }`}
+                    >
+                      <FiUploadCloud size={18} />
+                      <span>Upload File</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setContentType("link")}
+                      className={`flex-1 py-2 px-4 rounded-lg flex items-center justify-center gap-2 ${
+                        contentType === "link"
+                          ? "bg-indigo-100 text-indigo-700 border border-indigo-300"
+                          : "bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200"
+                      }`}
+                    >
+                      <FiLink size={18} />
+                      <span>Add Link</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Show file upload or link input based on content type */}
+              {contentType === "file" ? (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Upload File
+                  </label>
+                  <label className="flex flex-col items-center justify-center w-full p-6 border-2 border-dashed border-gray-300 rounded-lg hover:border-indigo-500 cursor-pointer transition-colors">
+                    <FiUploadCloud className="w-8 h-8 text-gray-400 mb-2" />
+                    <span className="text-sm text-gray-600 text-center">
+                      {contentDetails.file
+                        ? contentDetails.file.name
+                        : `Click to upload ${addingContent?.type} file`}
+                    </span>
+                    <input
+                      type="file"
+                      accept={
+                        addingContent?.type === "video"
+                          ? "video/*"
+                          : "image/*, application/pdf"
+                      }
+                      className="hidden"
+                      onChange={(e) =>
+                        setContentDetails({
+                          ...contentDetails,
+                          file: e.target.files?.[0] || null,
+                        })
+                      }
+                      required
+                    />
+                  </label>
+                </div>
+              ) : isQuiz ? (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Quiz Link
+                  </label>
+                  <div className="flex items-center w-full px-4 py-2 border bg-input-bg text-text border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-transparent">
+                    <FiLink className="text-gray-400 mr-2" size={18} />
+                    <input
+                      type="url"
+                      placeholder="https://example.com/quiz"
+                      className="w-full bg-transparent focus:outline-none"
+                      value={contentDetails.link}
+                      onChange={(e) =>
+                        setContentDetails({
+                          ...contentDetails,
+                          link: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                </div>
+              ) : null}
             </div>
 
-            <div className="flex justify-end items-center gap-3 space-y-4">
+            <div className="flex justify-end items-center gap-3 mt-6">
               <button
                 onClick={() => setIsAddingContent(false)}
-                className="mt-4 md:px-6 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
+                className="px-6 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleAddContent}
                 disabled={isSubmitting}
-                className="md:px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
                 {isSubmitting && (
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

@@ -49,10 +49,10 @@ const AdminLogin = () => {
         login(token, role);
         navigate(`/admin/dashboard`);
       } else {
-        toast.error(result.message || "Invalid credentials");
+        // toast.error(result.message || "Invalid credentials");
       }
     } catch (error) {
-      toast.error("Something went wrong. Please try again.");
+      // toast.error("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }

@@ -42,27 +42,29 @@ export const EmailVerification = ({
           <FaCheck className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500" />
         )}
       </div>
-      <button
-        type="button"
-        onClick={onSendOtp}
-        disabled={countdown > 0 || isOtpVerified}
-        className={`w-full sm:w-32 px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 ${
-          countdown > 0 || isSendingOtp || isOtpVerified
-            ? "bg-gray-300 cursor-not-allowed"
-            : "bg-primary hover:bg-primary/90 text-white"
-        }`}
-      >
-        {isSendingOtp ? (
-          <>
-            <FaSpinner className="animate-spin" />
-            Sending...
-          </>
-        ) : countdown > 0 ? (
-          `${countdown}s`
-        ) : (
-          "Send OTP"
-        )}
-      </button>
+      {!isOtpVerified && (
+        <button
+          type="button"
+          onClick={onSendOtp}
+          disabled={countdown > 0 || isOtpVerified}
+          className={`w-full sm:w-32 px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 ${
+            countdown > 0 || isSendingOtp || isOtpVerified
+              ? "bg-gray-300 cursor-not-allowed"
+              : "bg-primary hover:bg-primary/90 text-white"
+          }`}
+        >
+          {isSendingOtp ? (
+            <>
+              <FaSpinner className="animate-spin" />
+              Sending...
+            </>
+          ) : countdown > 0 ? (
+            `${countdown}s`
+          ) : (
+            "Send OTP"
+          )}
+        </button>
+      )}
     </div>
 
     {isOtpSent && !isOtpVerified && (

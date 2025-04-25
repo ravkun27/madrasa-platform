@@ -32,10 +32,10 @@ export const OtpInput = ({
       type="button"
       onClick={onVerify}
       disabled={isVerifying || isVerified}
-      className={`w-full sm:w-32 px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 ${
+      className={`w-full sm:w-32 px-4 py-4 rounded-lg transition-colors flex items-center justify-center gap-2 ${
         isVerifying || isVerified
           ? "bg-gray-300 cursor-not-allowed"
-          : "bg-blue-500 hover:bg-blue-600 text-white"
+          : "bg-primary hover:bg-blue-600 text-white"
       }`}
     >
       {isVerifying ? (

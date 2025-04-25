@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { FiUserPlus, FiTrash } from "react-icons/fi";
 import { getFetch, postFetch, deleteFetch } from "../../utils/apiCall";
 import toast from "react-hot-toast";
+import { ConfirmationModal } from "../Modal/ConfiramtionModal";
 
 const AdminManagement = () => {
   const [admins, setAdmins] = useState<any[]>([]);
@@ -13,18 +14,18 @@ const AdminManagement = () => {
     password: "",
   });
   const [loading, setLoading] = useState(true);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [adminToDelete, setAdminToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchAdmins = async () => {
       try {
         const adminsRes: any = await getFetch("/admin/auth/general/all");
-        console.log("API Response:", adminsRes); // Debugging
         setAdmins(
           Array.isArray(adminsRes.data.admins) ? adminsRes.data.admins : []
         );
       } catch (error) {
         console.error("Error fetching admins:", error);
-        toast.error("Failed to fetch admins.");
         setAdmins([]);
       } finally {
         setLoading(false);
@@ -64,7 +65,6 @@ const AdminManagement = () => {
     try {
       const res: any = await postFetch("/admin/auth/general", newAdmin);
       if (res.success) {
-        toast.success("Admin created successfully.");
         setAdmins([...admins, res.data]);
         setNewAdmin({
           firstName: "",
@@ -73,8 +73,7 @@ const AdminManagement = () => {
           phoneNumber: "",
           password: "",
         });
-      } else {
-        toast.error("Failed to create admin.");
+        toast.success("Admin created successfully.");
       }
     } catch (error) {
       console.error("Error creating admin:", error);
@@ -82,16 +81,26 @@ const AdminManagement = () => {
     }
   };
 
-  const deleteAdmin = async (adminId: string) => {
-    if (window.confirm("Are you sure you want to delete this admin?")) {
-      try {
-        await deleteFetch(`/admin/auth/admin/${adminId}`);
-        setAdmins(admins.filter((a) => a._id !== adminId));
-        toast.success("Admin deleted successfully.");
-      } catch (error) {
-        toast.error("Error deleting admin.");
-      }
+  const deleteAdmin = async (userId: string) => {
+    try {
+      await deleteFetch("/admin/auth/general", { userId: adminToDelete });
+      setAdmins((prev) => prev.filter((a) => a._id !== userId));
+    } catch (error) {
+      console.error("Error deleting admin:", error);
     }
+  };
+
+  const handleDeleteClick = (id: string) => {
+    setAdminToDelete(id);
+    setShowDeleteConfirm(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (adminToDelete) {
+      deleteAdmin(adminToDelete);
+    }
+    setShowDeleteConfirm(false);
+    setAdminToDelete(null);
   };
 
   if (loading) return <div className="text-center py-8">Loading admins...</div>;
@@ -101,6 +110,8 @@ const AdminManagement = () => {
       <h2 className="text-2xl font-bold mb-6 text-gray-800 dark:text-gray-200">
         Admin Management
       </h2>
+
+      {/* Create New Admin Form */}
       <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border dark:border-gray-700 mb-6">
         <h3 className="text-lg font-bold mb-4">Create New Admin</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -158,6 +169,7 @@ const AdminManagement = () => {
         </div>
       </div>
 
+      {/* Existing Admins List */}
       <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border dark:border-gray-700">
         <h3 className="text-lg font-bold mb-4">Existing Admins</h3>
         <div className="grid gap-4">
@@ -175,7 +187,7 @@ const AdminManagement = () => {
                 </p>
               </div>
               <button
-                onClick={() => deleteAdmin(admin._id)}
+                onClick={() => handleDeleteClick(admin._id)}
                 className="p-2 text-red-500 hover:text-red-600"
               >
                 <FiTrash />
@@ -184,6 +196,15 @@ const AdminManagement = () => {
           ))}
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      {showDeleteConfirm && (
+        <ConfirmationModal
+          message="Are you sure you want to delete this admin?"
+          onConfirm={handleConfirmDelete}
+          onCancel={() => setShowDeleteConfirm(false)}
+        />
+      )}
     </div>
   );
 };
