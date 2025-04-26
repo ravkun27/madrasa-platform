@@ -125,8 +125,6 @@ const UserSettingsPage = ({
   const handleVerificationMethodChange = (method: string) => {
     if (editState.field === "password") {
       setOtpState((prev) => ({ ...prev, passwordVerificationMethod: method }));
-    } else {
-      setOtpState((prev) => ({ ...prev, otpMethod: method }));
     }
   };
 
@@ -497,10 +495,12 @@ const UserSettingsPage = ({
               {(field === "password" || field === "phone") && (
                 <div className="w-full">
                   <span className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-                    {field === "password" ? "Verify via:" : "Send code via:"}
+                    {field === "password"
+                      ? "Verify via:"
+                      : "Please Check your WhatsApp"}
                   </span>
                   <div className="inline-flex items-center rounded-lg bg-gray-100 dark:bg-gray-800 p-1">
-                    {field === "password" ? (
+                    {field === "password" && (
                       <>
                         {userData.email && (
                           <button
@@ -530,24 +530,6 @@ const UserSettingsPage = ({
                             Phone
                           </button>
                         )}
-                      </>
-                    ) : (
-                      <>
-                        {["sms", "whatsapp"].map((method) => (
-                          <button
-                            key={method}
-                            onClick={() =>
-                              handleVerificationMethodChange(method)
-                            }
-                            className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
-                              otpState.otpMethod === method
-                                ? "bg-blue-600 text-white shadow"
-                                : "text-gray-600 dark:text-gray-300"
-                            }`}
-                          >
-                            {method === "sms" ? "SMS" : "WhatsApp"}
-                          </button>
-                        ))}
                       </>
                     )}
                   </div>
@@ -743,33 +725,63 @@ const UserSettingsPage = ({
               exit="exit"
               className="w-full sm:w-96 md:w-[32rem] bg-white dark:bg-gray-900 shadow-xl overflow-y-auto flex flex-col h-full"
             >
+              {/* Top Sticky Header */}
               <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 shadow-sm">
-                <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-800">
-                  <div className="flex items-end gap-3">
-                    <motion.button
-                      variants={buttonVariants}
-                      whileHover="hover"
-                      whileTap="tap"
-                      onClick={onClose}
-                      className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
-                      aria-label="Close"
-                    >
-                      <FiChevronLeft className="w-5 h-5" />
-                    </motion.button>
-                    <h1 className="text-lg font-semibold flex items-center gap-2">
-                      <FiSettings className="w-5 h-5" />
-                      Account Settings
-                    </h1>
-                  </div>
+                <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
+                  {/* Close Button */}
+                  <motion.button
+                    variants={buttonVariants}
+                    whileHover="hover"
+                    whileTap="tap"
+                    onClick={onClose}
+                    className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+                    aria-label="Close"
+                  >
+                    <FiChevronLeft className="w-6 h-6" />
+                  </motion.button>
+
+                  {/* Account Settings (only if logged in) */}
                   {user && (
-                    <Link
-                      to={`/${user.role}-dashboard`}
-                      className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
-                    >
-                      Dashboard
-                    </Link>
+                    <div className="flex justify-center gap-12">
+                      <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300 text-base font-semibold">
+                        <FiSettings className="w-5 h-5" />
+                        <span>Account Settings</span>
+                      </div>
+                      <Link
+                        to={`/${user.role}-dashboard`}
+                        className="mt-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors text-center"
+                        onClick={onClose}
+                      >
+                        Go to Dashboard
+                      </Link>
+                    </div>
                   )}
                 </div>
+              </div>
+
+              {/* Nav Links (centered, only on mobile) */}
+              <div className="flex-1 flex flex-col justify-center items-center gap-8 px-8 md:hidden">
+                <Link
+                  to="/courses"
+                  className="text-text text-2xl font-semibold hover:text-primary transition"
+                  onClick={onClose}
+                >
+                  Courses
+                </Link>
+                <Link
+                  to="/about"
+                  className="text-text text-2xl font-semibold hover:text-primary transition"
+                  onClick={onClose}
+                >
+                  About
+                </Link>
+                <Link
+                  to="/contact"
+                  className="text-text text-2xl font-semibold hover:text-primary transition"
+                  onClick={onClose}
+                >
+                  Contact
+                </Link>
               </div>
 
               {isLoading && !editState.isEditing ? (
@@ -866,29 +878,8 @@ const UserSettingsPage = ({
                 <>
                   <div className="md:hidden absolute top-16 left-0 w-full bg-white dark:bg-gray-900 shadow-lg z-50 px-6 py-4 space-y-4">
                     <Link
-                      to="/courses"
-                      className="block text-text hover:text-primary transition font-medium"
-                      onClick={onClose}
-                    >
-                      Courses
-                    </Link>
-                    <Link
-                      to="/about"
-                      className="block text-text hover:text-primary transition font-medium"
-                      onClick={onClose}
-                    >
-                      About
-                    </Link>
-                    <Link
-                      to="/contact"
-                      className="block text-text hover:text-primary transition font-medium"
-                      onClick={onClose}
-                    >
-                      Contact
-                    </Link>
-                    <Link
                       to="/login"
-                      className="block text-text hover:text-primary transition font-medium"
+                      className="block bg-secondary text-white px-4 py-2 rounded-lg text-center font-medium"
                       onClick={onClose}
                     >
                       Sign In

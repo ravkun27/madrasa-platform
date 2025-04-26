@@ -168,7 +168,7 @@ const Dashboard = () => {
         <div className="max-w-6xl w-full">
           {/* Header with Refresh Button */}
           <div className="flex justify-between items-center mb-6">
-            <h3 className="text-2xl font-bold flex items-center gap-3 text-gray-900 dark:text-white">
+            <h3 className="text-sm md:text-2xl font-bold flex items-center gap-3 text-gray-900 dark:text-white">
               <FiBookOpen className="text-blue-600 dark:text-blue-400 text-3xl" />
               Your Published Courses
             </h3>
