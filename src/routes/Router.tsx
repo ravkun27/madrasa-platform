@@ -24,6 +24,7 @@ import { CoursePage } from "../pages/Student/CoursePage";
 import PrivacyPolicy from "../pages/PrivacyPolicy";
 import TermsOfUse from "../pages/TermsOfUse";
 import ContactPage from "../pages/ContactPage";
+import TeacherCoursesPage from "../pages/TeacherCoursesPage";
 // RootLayout wraps the entire app with AuthProvider and CourseProvider
 const RootLayout = () => {
   return (
@@ -53,6 +54,7 @@ const publicRoutes = [
     children: [
       { index: true, element: <LandingPage /> },
       { path: "courses", element: <CoursesPage /> },
+      { path: "/teachers/:teacherId", element: <TeacherCoursesPage /> }, 
       { path: "about", element: <AboutUs /> },
       { path: "privacy", element: <PrivacyPolicy /> },
       { path: "terms", element: <TermsOfUse /> },

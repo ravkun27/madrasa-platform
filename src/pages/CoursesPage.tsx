@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { getFetch } from "../utils/apiCall";
-import { FiArrowRight, FiSearch, FiMail } from "react-icons/fi";
-import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "../context/LanguageContext";
 
+// TypeScript interfaces
 interface Teacher {
   _id: string;
   firstName: string;
@@ -24,43 +25,36 @@ interface Course {
 const CoursesPage = () => {
   const { language } = useLanguage();
   const isRTL = language === "ar";
-  const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const [allCourses, setAllCourses] = useState<Course[]>([]);
-  const [teacherCourses, setTeacherCourses] = useState<Course[]>([]);
-  const [expandedTeacherId, setExpandedTeacherId] = useState<string | null>(
-    null
-  );
-  const [loadingAll, setLoadingAll] = useState(true);
-  const [loadingTeacherCourses, setLoadingTeacherCourses] = useState(false);
+  const [loading, setLoading] = useState<boolean>(true);
 
   // Translations object
   const translations = {
     en: {
       explore: "Explore Courses",
-      searchPlaceholder: "Search courses by title, teacher, tags or ID...",
+      searchPlaceholder: "Search courses...",
       allCourses: "All Courses",
       loading: "Loading courses...",
       contact: "Contact",
-      moreCourses: "More courses by",
+      viewCourses: "View Courses",
       noCourses: "No courses found matching your search",
-      otherCoursesLoading: "Loading...",
-      noOtherCourses: "No other courses found",
+      noDescription: "No Description",
     },
     ar: {
       explore: "استكشاف الدورات",
-      searchPlaceholder:
-        "ابحث عن دورات حسب العنوان، المعلم، التاجات أو الرمز...",
+      searchPlaceholder: "ابحث عن دورات...",
       allCourses: "جميع الدورات",
       loading: "جاري تحميل الدورات...",
       contact: "اتصل",
-      moreCourses: "المزيد من الدورات لـ",
+      viewCourses: "عرض الدورات",
       noCourses: "لم يتم العثور على دورات تطابق بحثك",
-      otherCoursesLoading: "جاري التحميل...",
-      noOtherCourses: "لا توجد دورات أخرى",
+      noDescription: "",
     },
   };
 
-  const t = translations[language as keyof typeof translations];
+  const t = translations[language === "ar" ? "ar" : "en"];
 
   useEffect(() => {
     const fetchAllCourses = async () => {
@@ -72,35 +66,12 @@ const CoursesPage = () => {
       } catch (error) {
         console.error("Error fetching courses:", error);
       } finally {
-        setLoadingAll(false);
+        setLoading(false);
       }
     };
 
     fetchAllCourses();
   }, []);
-
-  const handleTeacherExpand = async (teacherId: any) => {
-    if (expandedTeacherId === teacherId) {
-      setExpandedTeacherId(null);
-      return;
-    }
-
-    setExpandedTeacherId(teacherId);
-
-    try {
-      setLoadingTeacherCourses(true);
-      const response: any = await getFetch(
-        `/public/course/byTeacher/${teacherId}`
-      );
-      if (response?.success) {
-        setTeacherCourses(response.data);
-      }
-    } catch (error) {
-      console.error("Error fetching teacher courses:", error);
-    } finally {
-      setLoadingTeacherCourses(false);
-    }
-  };
 
   const filteredCourses = allCourses.filter((course) => {
     const query = searchQuery.trim().toLowerCase();
@@ -111,157 +82,162 @@ const CoursesPage = () => {
     }`.toLowerCase();
 
     return (
-      course?._id?.toString().includes(query) ||
       course.title?.toLowerCase().includes(query) ||
       teacherName.includes(query) ||
       course.tags?.some((tag) => tag.toLowerCase().includes(query))
     );
   });
 
+  const handleViewTeacherCourses = (teacherId: string) => {
+    navigate(`/teachers/${teacherId}`);
+  };
+
+  // Shimmer effect for loading
+  const ShimmerCard = () => (
+    <div className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-md h-96">
+      <div className="h-48 w-full relative overflow-hidden">
+        <div className="absolute inset-0 shimmer-effect"></div>
+      </div>
+      <div className="p-5 space-y-4">
+        <div className="h-6 w-3/4 shimmer-effect rounded"></div>
+        <div className="h-4 w-full shimmer-effect rounded"></div>
+        <div className="h-4 w-5/6 shimmer-effect rounded"></div>
+        <div className="flex items-center gap-3 mt-6">
+          <div className="w-10 h-10 rounded-full shimmer-effect"></div>
+          <div className="space-y-2">
+            <div className="h-3 w-24 shimmer-effect rounded"></div>
+            <div className="h-2 w-32 shimmer-effect rounded"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div
-      className={`p-3 md:p-6 max-w-7xl mx-auto ${isRTL ? "rtl" : ""}`}
+      className={`py-8 px-4 max-w-6xl mx-auto ${isRTL ? "rtl" : ""}`}
       dir={language}
     >
-      {/* Search Section */}
-      <div className="bg-white dark:bg-gray-800 p-4 md:p-6 rounded-xl shadow-sm mb-6">
-        <h2 className="text-xl md:text-2xl font-bold mb-4">{t.explore}</h2>
-        <div className="relative">
-          <FiSearch
-            className={`absolute ${isRTL ? "right-3" : "left-3"} top-3 md:top-4 text-gray-400`}
-          />
+      {/* Header Section */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mb-10 text-center"
+      >
+        <h1 className="text-3xl font-bold mb-2 text-gray-800 dark:text-white">
+          {t.explore}
+        </h1>
+        <div className="w-full max-w-xl mx-auto mt-6 relative">
           <input
             type="text"
             placeholder={t.searchPlaceholder}
-            className={`w-full ${isRTL ? "pr-10 pl-4" : "pl-10 pr-4"} py-2 md:py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600`}
+            className="w-full px-5 py-3 rounded-full border-2 border-gray-200 focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 transition-all dark:bg-gray-800 dark:border-gray-700 dark:text-white shadow-sm"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
+          <svg
+            className={`w-5 h-5 absolute ${isRTL ? "left-4" : "right-4"} top-1/2 transform -translate-y-1/2 text-gray-400`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
+          </svg>
         </div>
-      </div>
+      </motion.div>
 
       {/* Courses Grid */}
-      <h3 className="text-lg md:text-xl font-bold mb-4 md:mb-6">
+      <h2 className="text-xl font-bold mb-6 text-gray-700 dark:text-gray-200">
         {t.allCourses}
-      </h3>
+      </h2>
 
-      {loadingAll ? (
-        <div className="text-center py-8">{t.loading}</div>
-      ) : filteredCourses.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-          {filteredCourses.map((course) => (
-            <div
-              key={course._id}
-              className="p-3 md:p-4 border rounded-lg shadow-md bg-white dark:bg-gray-900 relative overflow-hidden flex flex-col h-full"
+      {loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(6)].map((_, index) => (
+            <motion.div
+              key={`shimmer-${index}`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
             >
-              <div>
-                {course.banner && (
+              <ShimmerCard />
+            </motion.div>
+          ))}
+        </div>
+      ) : filteredCourses.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredCourses.map((course) => (
+            <motion.div
+              key={course._id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+              className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow"
+            >
+              <div className="h-48 overflow-hidden relative">
+                {course.banner ? (
                   <img
                     src={course.banner}
                     alt={course.title}
-                    className="w-full h-48 object-cover rounded-md mb-3 md:mb-4"
+                    className="w-full h-full object-cover"
                   />
-                )}
-
-                <h4 className="text-base md:text-lg font-semibold">
-                  {course.title}
-                </h4>
-                <p className="text-xs md:text-sm text-gray-500 mt-2 line-clamp-2">
-                  {course.description || "No description available."}
-                </p>
-
-                {/* Teacher Info */}
-                <div className="mt-3 md:mt-4 space-y-1">
-                  <div className="flex items-center gap-2 text-xs md:text-sm">
-                    <FiMail className="text-gray-500" />
-                    <span>
-                      {course.teacherId?.firstName} {course.teacherId?.lastName}
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center">
+                    <span className="text-white text-lg font-medium">
+                      {course.title}
                     </span>
                   </div>
-
-                  <div className="text-xs md:text-sm text-gray-500">
-                    {t.contact}: {course.teacherId?.phoneNumber} (
-                    {course.teacherId?.TelegramOrWhatsapp})
-                  </div>
-                </div>
-
-                {/* Expand Button */}
-                <div className="mt-3 md:mt-4 flex justify-end">
-                  <motion.div
-                    animate={{
-                      rotate:
-                        expandedTeacherId === course.teacherId?._id
-                          ? 90
-                          : isRTL
-                            ? -90
-                            : 0,
-                    }}
-                    transition={{ duration: 0.3 }}
-                    className="cursor-pointer p-1"
-                    onClick={() => handleTeacherExpand(course.teacherId?._id)}
-                  >
-                    <FiArrowRight className="text-gray-500 hover:text-indigo-500" />
-                  </motion.div>
-                </div>
+                )}
               </div>
 
-              {/* Expanded Courses */}
-              <AnimatePresence>
-                {expandedTeacherId === course.teacherId?._id && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="mt-3 md:mt-4 pt-3 md:pt-4 border-t border-gray-200"
-                  >
-                    <h5 className="text-sm md:text-base font-medium mb-2">
-                      {t.moreCourses} {course.teacherId?.firstName}{" "}
-                      {course.teacherId?.lastName}:
-                    </h5>
-                    {loadingTeacherCourses ? (
-                      <div className="text-xs md:text-sm text-gray-500 py-2">
-                        {t.otherCoursesLoading}
-                      </div>
-                    ) : teacherCourses.length > 0 ? (
-                      <div className="space-y-3">
-                        {teacherCourses.map((teacherCourse) => (
-                          <div
-                            key={teacherCourse?._id}
-                            className="flex items-start gap-3"
-                          >
-                            {teacherCourse.banner && (
-                              <img
-                                src={teacherCourse.banner}
-                                alt={teacherCourse.title}
-                                className="w-14 md:w-16 h-10 md:h-12 object-cover rounded flex-shrink-0"
-                              />
-                            )}
-                            <div>
-                              <p className="text-xs md:text-sm font-medium">
-                                {teacherCourse.title}
-                              </p>
-                              <p className="text-xs text-gray-500 line-clamp-2">
-                                {teacherCourse.description}
-                              </p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-xs md:text-sm text-gray-500 py-2">
-                        {t.noOtherCourses}
-                      </div>
-                    )}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+              <div className="p-5">
+                <h3 className="font-bold text-lg mb-2 text-gray-800 dark:text-white">
+                  {course.title}
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-3 mb-4">
+                  {course.description || t.noDescription}
+                </p>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                      <span className="text-gray-500 dark:text-gray-300">
+                        {course.teacherId?.firstName?.[0] || "T"}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm dark:text-white">
+                        {course.teacherId?.firstName}{" "}
+                        {course.teacherId?.lastName}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        {course.teacherId?.TelegramOrWhatsapp || t.contact}
+                      </p>
+                    </div>
+                  </div>
+
+                  {course.teacherId?._id && (
+                    <button
+                      onClick={() =>
+                        handleViewTeacherCourses(course.teacherId!._id)
+                      }
+                      className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm font-medium"
+                    >
+                      {t.viewCourses}
+                    </button>
+                  )}
+                </div>
+              </div>
+            </motion.div>
           ))}
         </div>
       ) : (
-        <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-xl text-center">
-          {t.noCourses}
+        <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl">
+          <p className="text-gray-600 dark:text-gray-300">{t.noCourses}</p>
         </div>
       )}
     </div>

@@ -327,58 +327,58 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
                   setOtp={(otp: string) => setFormData({ ...formData, otp })}
                   isVerifyingOtp={isVerifyingOtp}
                 />
-                {/* {isOtpVerified && ( */}
-                <PhoneVerification
-                  phoneNumber={formData.phoneNumber}
-                  setPhoneNumber={(phoneNumber) =>
-                    setFormData({ ...formData, phoneNumber })
-                  }
-                  onCommunicationChange={(method) =>
-                    setFormData({
-                      ...formData,
-                      TelegramOrWhatsapp: method || "whatsapp",
-                    })
-                  }
-                  onVerify={handleVerifyPhoneOtp}
-                  countdown={phoneCountdown}
-                  isVerified={isPhoneOtpVerified}
-                  selectedCountry={country}
-                  setSelectedCountry={setCountry}
-                  onSendOtp={async (payload) => {
-                    return await handleSendOtp(payload);
-                  }}
-                />
-                {/* )} */}
-                {/* {isPhoneOtpVerified && ( */}
-                <>
-                  <div className="space-y-4">
-                    <PasswordInput
-                      value={formData.password}
-                      onChange={(value) =>
-                        setFormData({ ...formData, password: value })
-                      }
-                      placeholder="Password"
-                    />
-                    <PasswordInput
-                      value={formData.confirmPassword}
-                      onChange={(value) =>
-                        setFormData({ ...formData, confirmPassword: value })
-                      }
-                      placeholder="Confirm Password"
-                    />
-                  </div>
-
-                  <CommunicationPreference
-                    value={formData.TelegramOrWhatsapp}
-                    onChange={(method) =>
+                {isOtpVerified && (
+                  <PhoneVerification
+                    phoneNumber={formData.phoneNumber}
+                    setPhoneNumber={(phoneNumber) =>
+                      setFormData({ ...formData, phoneNumber })
+                    }
+                    onCommunicationChange={(method) =>
                       setFormData({
                         ...formData,
-                        TelegramOrWhatsapp: method,
+                        TelegramOrWhatsapp: method || "whatsapp",
                       })
                     }
+                    onVerify={handleVerifyPhoneOtp}
+                    countdown={phoneCountdown}
+                    isVerified={isPhoneOtpVerified}
+                    selectedCountry={country}
+                    setSelectedCountry={setCountry}
+                    onSendOtp={async (payload) => {
+                      return await handleSendOtp(payload);
+                    }}
                   />
-                </>
-                {/* )} */}
+                )}
+                {isPhoneOtpVerified && (
+                  <>
+                    <div className="space-y-4">
+                      <PasswordInput
+                        value={formData.password}
+                        onChange={(value) =>
+                          setFormData({ ...formData, password: value })
+                        }
+                        placeholder="Password"
+                      />
+                      <PasswordInput
+                        value={formData.confirmPassword}
+                        onChange={(value) =>
+                          setFormData({ ...formData, confirmPassword: value })
+                        }
+                        placeholder="Confirm Password"
+                      />
+                    </div>
+
+                    <CommunicationPreference
+                      value={formData.TelegramOrWhatsapp}
+                      onChange={(method) =>
+                        setFormData({
+                          ...formData,
+                          TelegramOrWhatsapp: method,
+                        })
+                      }
+                    />
+                  </>
+                )}
 
                 {isPhoneOtpVerified && (
                   <button
