@@ -47,14 +47,9 @@ const ContentEditModal = ({
 
     setIsSubmitting(true);
     try {
-      let filePath = null;
-      let fileType = null;
-
-      // === Handle Quiz Link or Any Link-Based Content ===
-      if (isLinkType) {
-        filePath = contentDetails.link.trim(); // use raw link directly
-        fileType = "link";
-      }
+      let filePath: string | null = null;
+      let fileType: string | null = null;
+      let link: string | null = null;
 
       // === Handle File Uploads Only ===
       if (isFileType && contentDetails.file) {
@@ -79,14 +74,20 @@ const ContentEditModal = ({
         }
       }
 
+      // === Handle Link Type ===
+      if (isLinkType) {
+        link = contentDetails.link.trim();
+        filePath = "empty";
+        fileType = "link";
+      }
+
       const requestData = {
         title: contentDetails.name,
         description: contentDetails.description,
         filePath,
         fileType,
+        link,
       };
-
-      console.log("🚀 Sending content data:", requestData);
 
       const result: any = await postFetch(
         `/user/teacher/course/lesson?sectionId=${addingContent.sectionId}&courseId=${addingContent.courseId}`,
@@ -94,7 +95,6 @@ const ContentEditModal = ({
       );
 
       if (result.success) {
-        toast.success(`${addingContent.type} added successfully`);
         setAddingContent(null);
         setIsAddingContent(false);
         setContentDetails({ name: "", description: "", file: null, link: "" });

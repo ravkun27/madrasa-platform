@@ -28,6 +28,7 @@ import { ConfirmationModal } from "../../components/Modal/ConfiramtionModal";
 import ReactCrop from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 import { Crop } from "react-image-crop";
+import MeetingForm from "../../components/MeetingForm";
 // import { format, parseISO, isBefore, isAfter } from "date-fns";
 interface Student {
   _id: string;
@@ -144,119 +145,12 @@ export const Courses = ({ course }: { course: any }) => {
   //     (typeof meetingDetails.endTime === "string" &&
   //       isAfter(parseISO(meetingDetails.endTime), new Date())));
 
-  // Fixed meeting form handler
-  const handleMeetingSubmit = async (e: React.FormEvent, meetingData: any) => {
-    e.preventDefault();
-    try {
-      const result: any = await putFetch(
-        `/user/teacher/course?courseId=${course._id}`,
-        { meetingDetails: meetingData } // Use passed data instead of state
-      );
-
-      if (result.success) {
-        setShowMeetingForm(false);
-        setMeetingDetails(meetingData); // Update parent state here
-        toast.success("Meeting details updated successfully");
-        setCourseList(); // Refresh course data
-      }
-    } catch (error) {
-      toast.error("Failed to update meeting details");
-      console.error("Error updating meeting:", error);
-    }
-  };
-  // Meeting form component
-  const MeetingForm = () => {
-    // Create local state copy to prevent cursor jump
-    const [localMeeting, setLocalMeeting] = useState(meetingDetails);
-
-    return (
-      <div className="bg-card rounded-lg mt-4">
-        <h3 className="text-lg font-semibold mb-4">
-          {Object.keys(meetingDetails).length ? "Edit" : "Create"} Meeting
-        </h3>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleMeetingSubmit(e, localMeeting); // Pass localMeeting as argument
-          }}
-          className="space-y-4"
-        >
-          <input
-            type="text"
-            placeholder="Meeting Title"
-            value={localMeeting.title || ""}
-            onChange={(e) =>
-              setLocalMeeting((prev: any) => ({
-                ...prev,
-                title: e.target.value,
-              }))
-            }
-            className="w-full p-2 border rounded text-text bg-input-bg"
-            required
-          />
-          <textarea
-            placeholder="Meeting Description"
-            value={localMeeting.description || ""}
-            onChange={(e) =>
-              setLocalMeeting((prev: any) => ({
-                ...prev,
-                description: e.target.value,
-              }))
-            }
-            className="w-full p-2 border rounded text-text bg-input-bg"
-            required
-          />
-          {/* <input
-            type="datetime-local"
-            value={localMeeting.startTime || ""}
-            onChange={(e) =>
-              setLocalMeeting((prev: any) => ({
-                ...prev,
-                startTime: e.target.value,
-              }))
-            }
-            className="w-full p-2 border rounded"
-            required
-          /> */}
-          <input
-            type="url"
-            placeholder="Meeting Link"
-            value={localMeeting.link || ""}
-            onChange={(e) =>
-              setLocalMeeting((prev: any) => ({
-                ...prev,
-                link: e.target.value,
-              }))
-            }
-            className="w-full p-2 border rounded text-text bg-input-bg"
-            required
-          />
-          <div className="flex gap-6 justify-end">
-            <button
-              type="button"
-              onClick={() => setShowMeetingForm(false)}
-              className="bg-gray-200 text-gray-600 px-4 py-2 rounded-xl hover:bg-gray-300"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 text-white bg-primary rounded-xl"
-            >
-              Save Meeting
-            </button>
-          </div>
-        </form>
-      </div>
-    );
-  };
-
   // Delete meeting handler
   const handleDeleteMeeting = async () => {
     try {
       const result: any = await putFetch(
         `/user/teacher/course?courseId=${course._id}`,
-        { meetingDetails: null }
+        { meetingDetails: null, published: course.published.value }
       );
 
       if (result.success) {
@@ -370,7 +264,10 @@ export const Courses = ({ course }: { course: any }) => {
     try {
       const result: any = await putFetch(
         `/user/teacher/course?courseId=${course._id}`,
-        { ...removeNullAndUndefinedFields(tempCourseData) }
+        {
+          ...removeNullAndUndefinedFields(tempCourseData),
+          published: course.published.value,
+        }
       );
       if (result.success) {
         setCourseList();
@@ -714,29 +611,41 @@ export const Courses = ({ course }: { course: any }) => {
                     <FiChevronDown size={24} />
                   </motion.div>
                 </div>
-                {showMeetingForm && <MeetingForm />}
-                {meetingDetails && !showMeetingForm && (
-                  <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h4 className="font-medium">{meetingDetails.title}</h4>
-                        <a
-                          target="_blank"
-                          href={meetingDetails.link}
-                          className="text-blue-600 hover:underline"
-                        >
-                          Join Meeting
-                        </a>
-                      </div>
-                      <button
-                        onClick={handleDeleteMeeting}
-                        className="text-red-500 hover:text-red-600 p-2"
-                      >
-                        <FiTrash2 size={18} />
-                      </button>
-                    </div>
-                  </div>
+                {showMeetingForm && (
+                  <MeetingForm
+                    meetingDetails={meetingDetails}
+                    courseId={course._id}
+                    setShowMeetingForm={setShowMeetingForm}
+                    setMeetingDetails={setMeetingDetails}
+                    setCourseList={setCourseList}
+                  />
                 )}
+                {meetingDetails?.title &&
+                  meetingDetails?.link &&
+                  !showMeetingForm && (
+                    <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h4 className="font-medium">
+                            {meetingDetails.title}
+                          </h4>
+                          <a
+                            target="_blank"
+                            href={meetingDetails.link}
+                            className="text-blue-600 hover:underline"
+                          >
+                            Join Meeting
+                          </a>
+                        </div>
+                        <button
+                          onClick={handleDeleteMeeting}
+                          className="text-red-500 hover:text-red-600 p-2"
+                        >
+                          <FiTrash2 size={18} />
+                        </button>
+                      </div>
+                    </div>
+                  )}
               </div>
               {/* Students Section */}
               <div className="bg-gray-50 dark:bg-gray-700/30 p-1 md:p-4 rounded-xl">

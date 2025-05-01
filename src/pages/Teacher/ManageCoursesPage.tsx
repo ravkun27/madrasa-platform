@@ -5,8 +5,8 @@ import { Courses } from "./Courses";
 import { Course } from "../../types";
 import { useCourseActions } from "../../hooks/useCourseActions";
 import { useCourses } from "../../context/CourseContext";
-import { FiPlus, FiX } from "react-icons/fi";
 import toast from "react-hot-toast";
+import { Loader2, Plus, X } from "lucide-react";
 
 const shimmerAnimation = {
   initial: { opacity: 0.5 },
@@ -112,146 +112,219 @@ const ManageCoursesPage = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="z-50 fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4 z-50"
           >
             <motion.div
-              initial={{ scale: 0.95, y: 20 }}
+              initial={{ scale: 0.95, y: 10 }}
               animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.95, y: 20 }}
-              transition={{ type: "spring", stiffness: 300, damping: 20 }}
-              className="bg-card rounded-2xl p-6 sm:p-8 w-full max-w-xl shadow-xl overflow-y-auto max-h-[90vh]"
+              exit={{ scale: 0.95, y: 10 }}
+              transition={{ type: "spring", stiffness: 350, damping: 25 }}
+              className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg overflow-hidden"
             >
-              <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-text text-center">
-                Create New Course
-              </h2>
+              {/* Header */}
+              <div className="flex items-center justify-between p-5 border-b border-gray-200 dark:border-gray-700">
+                <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
+                  Create New Course
+                </h2>
+                <button
+                  onClick={() => setShowCourseForm(false)}
+                  className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                >
+                  <X size={20} className="text-gray-500 dark:text-gray-400" />
+                </button>
+              </div>
 
-              <div className="space-y-4">
-                <input
-                  type="text"
-                  placeholder="Course Title"
-                  className="w-full px-4 py-3 border border-card-border rounded-lg focus:ring-2 focus:ring-primary focus:outline-none text-text bg-input-bg"
-                  onChange={(e) =>
-                    setNewCourse({ ...newCourse, title: e.target.value })
-                  }
-                />
-
-                <textarea
-                  placeholder="Description"
-                  className="w-full px-4 py-3 border border-card-border rounded-lg focus:ring-2 focus:ring-primary focus:outline-none text-text bg-input-bg h-32 resize-none"
-                  onChange={(e) =>
-                    setNewCourse({ ...newCourse, description: e.target.value })
-                  }
-                />
-
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-text">
-                    Banner Image
+              {/* Form Content */}
+              <div className="p-5 space-y-4 max-h-[70vh] overflow-y-auto">
+                {/* Title */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Course Title
                   </label>
                   <input
-                    type="file"
-                    accept="image/*"
-                    className="w-full file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary/10 file:text-primary hover:file:bg-primary/20 text-text"
+                    type="text"
+                    placeholder="Enter a descriptive title"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white outline-none transition"
+                    onChange={(e) =>
+                      setNewCourse({ ...newCourse, title: e.target.value })
+                    }
+                  />
+                </div>
+
+                {/* Description */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Description
+                  </label>
+                  <textarea
+                    placeholder="What will students learn in this course?"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white h-24 outline-none resize-none transition"
                     onChange={(e) =>
                       setNewCourse({
                         ...newCourse,
-                        banner: e.target.files?.[0],
+                        description: e.target.value,
                       })
                     }
                   />
                 </div>
 
-                <div className="flex flex-col md:flex-row gap-4">
-                  {/* Category Selector */}
-                  <div className="w-full md:w-1/2 space-y-2">
-                    <label className="block text-sm font-medium text-text">
-                      Course Category
-                    </label>
-                    <select
-                      className="w-full px-4 py-3 border border-card-border rounded-lg focus:ring-2 focus:ring-primary focus:outline-none text-text bg-input-bg"
-                      onChange={(e) =>
-                        setNewCourse({ ...newCourse, category: e.target.value })
-                      }
-                    >
-                      <option value="">Select Category</option>
-                      <option value="Science">Science</option>
+                {/* Category */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Course Category
+                  </label>
+                  <select
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white outline-none transition"
+                    onChange={(e) =>
+                      setNewCourse({ ...newCourse, category: e.target.value })
+                    }
+                  >
+                    <option value="">Select Subject</option>
+                    <optgroup label="Math">
                       <option value="Math">Math</option>
+                    </optgroup>
+                    <optgroup label="Science">
+                      <option value="Physics">Physics</option>
+                      <option value="Chemistry">Chemistry</option>
+                      <option value="Biology">Biology</option>
+                      <option value="Science">Science</option>
+                    </optgroup>
+                    <optgroup label="Languages">
+                      <option value="English">English</option>
+                      <option value="French">French</option>
+                    </optgroup>
+                    <optgroup label="Technology">
+                      <option value="Coding">Coding</option>
                       <option value="Technology">Technology</option>
-                      <option value="Arts">Arts</option>
-                      <option value="Business">Business</option>
-                    </select>
-                  </div>
+                    </optgroup>
+                  </select>
+                </div>
 
-                  {/* Tags Input */}
-                  <div className="w-full md:w-1/2 space-y-2">
-                    <label className="block text-sm font-medium text-text">
-                      Tags (related to topic/category)
-                    </label>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="text"
-                        value={tagInput}
-                        onChange={(e) => setTagInput(e.target.value)}
-                        onKeyDown={(e) => e.key === "Enter" && handleAddTag()}
-                        placeholder="Add a tag and press Enter"
-                        className="flex-1 px-4 py-2 border border-card-border rounded-lg focus:ring-2 focus:ring-primary focus:outline-none text-text bg-input-bg"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleAddTag}
-                        className="p-2 bg-primary text-white rounded-full hover:bg-primary/90 transition"
-                      >
-                        <FiPlus />
-                      </button>
-                    </div>
-
-                    {/* Tags Display */}
-                    {tags.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-1">
-                        {tags.map((tag, index) => (
-                          <div
-                            key={index}
-                            className="flex items-center gap-1 bg-primary/10 text-primary px-3 py-1 rounded-full text-sm"
-                          >
-                            <span>{tag}</span>
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveTag(tag)}
-                              className="text-red-500 hover:text-red-600"
-                            >
-                              <FiX />
-                            </button>
-                          </div>
-                        ))}
+                {/* Banner Image */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Banner Image
+                  </label>
+                  <div className="flex justify-center items-center w-full">
+                    <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer border-gray-300 dark:border-gray-600 hover:border-blue-500 dark:hover:border-blue-400 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                        <svg
+                          className="w-8 h-8 mb-3 text-gray-500 dark:text-gray-400"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                          ></path>
+                        </svg>
+                        <p className="mb-1 text-sm text-gray-500 dark:text-gray-400">
+                          Click to upload
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          SVG, PNG, JPG (MAX. 800x400px)
+                        </p>
+                        {newCourse.banner && (
+                          <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+                            Selected: {newCourse.banner.name}
+                          </p>
+                        )}
                       </div>
-                    )}
+                      <input
+                        type="file"
+                        className="hidden"
+                        accept="image/*"
+                        onChange={(e) =>
+                          setNewCourse({
+                            ...newCourse,
+                            banner: e.target.files?.[0],
+                          })
+                        }
+                      />
+                    </label>
                   </div>
+                </div>
+
+                {/* Tags */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Tags
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={tagInput}
+                      onChange={(e) => setTagInput(e.target.value)}
+                      onKeyDown={(e) =>
+                        e.key === "Enter" &&
+                        (e.preventDefault(), handleAddTag())
+                      }
+                      placeholder="Add a tag and press Enter"
+                      className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white outline-none transition"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddTag}
+                      className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+                    >
+                      <Plus size={16} />
+                    </button>
+                  </div>
+
+                  {/* Tags Display */}
+                  {tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {tags.map((tag, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center gap-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 px-2 py-1 rounded-full text-sm"
+                        >
+                          <span>{tag}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveTag(tag)}
+                            className="text-blue-500 hover:text-blue-700 dark:text-blue-300 dark:hover:text-blue-200"
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 
-              {/* Buttons */}
-              <div className="flex justify-center gap-4 mt-8 flex-wrap">
+              {/* Footer/Buttons */}
+              <div className="border-t border-gray-200 dark:border-gray-700 p-4 flex justify-end gap-2">
+                <button
+                  onClick={() => setShowCourseForm(false)}
+                  className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
                 <button
                   onClick={createCourse}
                   disabled={isCreating}
-                  className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
                 >
-                  {isCreating && (
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  {isCreating ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" />
+                      <span>Creating...</span>
+                    </>
+                  ) : (
+                    <span>Create Course</span>
                   )}
-                  Create
-                </button>
-                <button
-                  onClick={() => setShowCourseForm(false)}
-                  className="px-6 py-2 text-text hover:bg-muted rounded-lg transition-colors"
-                >
-                  Cancel
                 </button>
               </div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
-
       <LayoutGroup>
         <div className="flex flex-col gap-4 items-center justify-center">
           <div className="max-w-3xl">
