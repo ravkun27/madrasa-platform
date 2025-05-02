@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
 import { getFetch } from "../utils/apiCall";
 import { useLanguage } from "../context/LanguageContext";
+import CourseCard from "../components/CourseCard";
 
 const TeacherCoursesPage = () => {
   const { teacherId } = useParams();
@@ -100,30 +100,7 @@ const TeacherCoursesPage = () => {
       {courses.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {courses.map((course) => (
-            <motion.div
-              key={course._id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow"
-            >
-              <div className="h-48 bg-gray-100 dark:bg-gray-700 relative">
-                {course.banner && (
-                  <img
-                    src={course.banner}
-                    alt={course.title}
-                    className="w-full h-full object-cover"
-                  />
-                )}
-              </div>
-              <div className="p-5">
-                <h3 className="font-bold text-lg mb-2 dark:text-white">
-                  {course.title}
-                </h3>
-                <p className="text-gray-600 dark:text-gray-300 line-clamp-3">
-                  {course.description}
-                </p>
-              </div>
-            </motion.div>
+            <CourseCard key={course._id} course={course} />
           ))}
         </div>
       ) : (
