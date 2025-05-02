@@ -91,6 +91,16 @@ const CoursesPage = () => {
   const handleViewTeacherCourses = (teacherId: string) => {
     navigate(`/teachers/${teacherId}`);
   };
+  const teacherCourseCounts = allCourses.reduce(
+    (acc, course) => {
+      const teacherId = course.teacherId?._id;
+      if (teacherId) {
+        acc[teacherId] = (acc[teacherId] || 0) + 1;
+      }
+      return acc;
+    },
+    {} as Record<string, number>
+  );
 
   // Shimmer effect for loading
   const ShimmerCard = () => (
@@ -220,16 +230,17 @@ const CoursesPage = () => {
                     </div>
                   </div>
 
-                  {course.teacherId?._id && (
-                    <button
-                      onClick={() =>
-                        handleViewTeacherCourses(course.teacherId!._id)
-                      }
-                      className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm font-medium"
-                    >
-                      {t.viewCourses}
-                    </button>
-                  )}
+                  {course.teacherId?._id &&
+                    teacherCourseCounts[course.teacherId._id] > 1 && (
+                      <button
+                        onClick={() =>
+                          handleViewTeacherCourses(course.teacherId!._id)
+                        }
+                        className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm font-medium"
+                      >
+                        {t.viewCourses}
+                      </button>
+                    )}
                 </div>
               </div>
             </motion.div>

@@ -106,7 +106,7 @@ export const Courses = ({ course }: { course: any }) => {
 
   useEffect(() => {
     fetchStudentsForCourse(course._id);
-  }, [showStudents, course._id]);
+  }, [showStudents]);
 
   useEffect(() => {
     if (addSectionToggle && !newSection.title && !newSection.description) {

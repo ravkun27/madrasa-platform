@@ -8,9 +8,13 @@ export default defineConfig({
     VitePWA({
       registerType: "autoUpdate",
       devOptions: { enabled: true },
+      workbox: {
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // Increase limit if needed
+        globPatterns: ["**/*.{js,css,html,ico,png,svg}"], // Only include what's needed
+      },
       manifest: {
         name: "Madrasa Platform",
-        short_name: "Madrasa",
+        short_name: "Madrasa Platform",
         theme_color: "#ffffff",
         icons: [
           {
