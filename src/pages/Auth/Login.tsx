@@ -6,6 +6,7 @@ import { useAuth } from "../../context/AuthContext";
 import { FaSpinner } from "react-icons/fa";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
+import { useLanguage } from "../../context/LanguageContext";
 
 type LoginResponse = {
   success: boolean;
@@ -19,10 +20,42 @@ type LoginResponse = {
 const Login = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
   const { theme } = useTheme();
   const { login } = useAuth();
+  const { language } = useLanguage();
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  const translations = {
+    en: {
+      welcomeBack: "Welcome Back! 👋",
+      emailOrPhone: "Email or Phone Number",
+      emailOrPhonePlaceholder: "e.g. john@example.com or 9123456789",
+      password: "Password",
+      passwordPlaceholder: "••••••••",
+      signIn: "Sign In",
+      signingIn: "Signing In...",
+      noAccount: "Don't have an account?",
+      createAccount: "Create account",
+      invalidInput: "Please enter a valid email or phone number",
+      errorOccurred: "Something went wrong.",
+    },
+    ar: {
+      welcomeBack: "مرحبًا بعودتك! 👋",
+      emailOrPhone: "البريد الإلكتروني أو رقم الهاتف",
+      emailOrPhonePlaceholder: "مثال: john@example.com أو 9123456789",
+      password: "كلمة المرور",
+      passwordPlaceholder: "••••••••",
+      signIn: "تسجيل الدخول",
+      signingIn: "جارٍ تسجيل الدخول...",
+      noAccount: "ليس لديك حساب؟",
+      createAccount: "إنشاء حساب",
+      invalidInput: "يرجى إدخال بريد إلكتروني أو رقم هاتف صالح",
+      errorOccurred: "حدث خطأ ما.",
+    },
+  };
+
+  const t = translations[language];
 
   const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -32,7 +65,7 @@ const Login = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
     const isPhone = /^\d{10}$/.test(identifier.replace(/^0/, ""));
 
     if (!isEmail && !isPhone) {
-      toast.error("Please enter a valid email or phone number");
+      toast.error(t.invalidInput);
       setLoading(false);
       return;
     }
@@ -50,15 +83,14 @@ const Login = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
         navigate(`/${role.toLowerCase()}-dashboard`);
       }
     } catch (error: any) {
-      const errorMessage = error.message || "Something went wrong.";
+      const errorMessage = error.message || t.errorOccurred;
       console.error(errorMessage);
-      return { success: false, message: errorMessage };
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
-  // Theme-based styles
   const themeStyles = {
     light: {
       bg: "bg-white",
@@ -86,23 +118,19 @@ const Login = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
         <h1
           className={`text-3xl font-bold mb-8 text-center ${currentTheme.text}`}
         >
-          Welcome Back! 👋
+          {t.welcomeBack}
         </h1>
 
         <form onSubmit={handleLogin} className="space-y-6">
           <div className="space-y-2">
             <label className={`text-sm font-medium ${currentTheme.text}`}>
-              Email or Phone Number
+              {t.emailOrPhone}
             </label>
             <input
               type="text"
-              placeholder="e.g. john@example.com or 9123456789"
+              placeholder={t.emailOrPhonePlaceholder}
               required
-              className={`w-full p-3 rounded-lg border ${
-                currentTheme.border
-              } focus:ring-2 focus:ring-primary focus:border-transparent ${
-                currentTheme.inputBg
-              } transition-all`}
+              className={`w-full p-3 rounded-lg border ${currentTheme.border} focus:ring-2 focus:ring-primary focus:border-transparent ${currentTheme.inputBg} transition-all`}
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
             />
@@ -110,17 +138,13 @@ const Login = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
 
           <div className="space-y-2">
             <label className={`text-sm font-medium ${currentTheme.text}`}>
-              Password
+              {t.password}
             </label>
             <input
               type="password"
-              placeholder="••••••••"
+              placeholder={t.passwordPlaceholder}
               required
-              className={`w-full p-3 rounded-lg border ${
-                currentTheme.border
-              } focus:ring-2 focus:ring-primary focus:border-transparent ${
-                currentTheme.inputBg
-              } transition-all`}
+              className={`w-full p-3 rounded-lg border ${currentTheme.border} focus:ring-2 focus:ring-primary focus:border-transparent ${currentTheme.inputBg} transition-all`}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
@@ -142,16 +166,16 @@ const Login = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
             {loading ? (
               <>
                 <FaSpinner className="animate-spin" />
-                Signing In...
+                {t.signingIn}
               </>
             ) : (
-              "Sign In"
+              t.signIn
             )}
           </motion.button>
 
           <div className="text-center mt-4">
             <span className={`text-sm ${currentTheme.text}`}>
-              Don't have an account?{" "}
+              {t.noAccount}{" "}
               <Link
                 to="/signup"
                 onClick={() => setIsLogin(false)}
@@ -161,7 +185,7 @@ const Login = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
                     : "text-secondary hover:text-secondary/80"
                 } transition-colors`}
               >
-                Create account
+                {t.createAccount}
               </Link>
             </span>
           </div>

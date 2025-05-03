@@ -1,9 +1,32 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { useTheme } from "../context/ThemeContext"; // Adjust the import path as needed
+import { useTheme } from "../context/ThemeContext";
+import { useLanguage } from "../context/LanguageContext";
 
 const Footer = () => {
-  const { theme } = useTheme(); // Get the current theme from context
+  const { theme } = useTheme();
+  const { language } = useLanguage();
+  const translations = {
+    en: {
+      platformName: "Madrasa Platform",
+      slogan: "Empowering education through technology",
+      about: "About",
+      contact: "Contact",
+      privacy: "Privacy",
+      terms: "Terms & Conditions",
+      copyright: "All rights reserved.",
+    },
+    ar: {
+      platformName: "منصة المدرسة",
+      slogan: "تمكين التعليم من خلال التكنولوجيا",
+      about: "حول",
+      contact: "اتصال",
+      privacy: "الخصوصية",
+      terms: "الشروط والأحكام",
+      copyright: "جميع الحقوق محفوظة.",
+    },
+  };
+  const t = translations[language];
 
   return (
     <motion.footer
@@ -25,14 +48,14 @@ const Footer = () => {
                 theme === "light" ? "text-primary-dark" : "text-primary-light"
               }`}
             >
-              Madrasa Platform
+              {t.platformName}
             </h3>
             <p
               className={`mt-2 text-sm ${
                 theme === "light" ? "text-gray-600" : "text-gray-300"
               }`}
             >
-              Empowering education through technology
+              {t.slogan}
             </p>
           </div>
 
@@ -46,7 +69,7 @@ const Footer = () => {
                     theme === "light" ? "text-gray-700" : "text-gray-300"
                   } transition duration-300`}
                 >
-                  About
+                  {t.about}
                 </Link>
               </li>
               <li>
@@ -56,7 +79,7 @@ const Footer = () => {
                     theme === "light" ? "text-gray-700" : "text-gray-300"
                   } transition duration-300`}
                 >
-                  Contact
+                  {t.contact}
                 </Link>
               </li>
               <li>
@@ -66,7 +89,7 @@ const Footer = () => {
                     theme === "light" ? "text-gray-700" : "text-gray-300"
                   } transition duration-300`}
                 >
-                  Privacy
+                  {t.privacy}
                 </Link>
               </li>
               <li>
@@ -76,7 +99,7 @@ const Footer = () => {
                     theme === "light" ? "text-gray-700" : "text-gray-300"
                   } transition duration-300`}
                 >
-                  Terms & Conditions
+                  {t.terms}
                 </Link>
               </li>
             </ul>
@@ -89,8 +112,7 @@ const Footer = () => {
             theme === "light" ? "text-gray-600" : "text-gray-300"
           }`}
         >
-          &copy; {new Date().getFullYear()} Madrasa Platform. All rights
-          reserved.
+          &copy; {new Date().getFullYear()} {t.platformName}. {t.copyright}
         </div>
       </div>
     </motion.footer>

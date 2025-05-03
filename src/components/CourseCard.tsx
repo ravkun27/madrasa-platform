@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
+import { useLanguage } from "../context/LanguageContext";
 
 // TypeScript interfaces
 interface Teacher {
@@ -40,8 +41,7 @@ const CourseCard = ({
   const [imageLoaded, setImageLoaded] = useState(false);
 
   // Change this to "ar" to use Arabic translations
-  const language = "en";
-
+  const { language } = useLanguage();
   const translations = {
     en: {
       contact: "Contact unavailable",
