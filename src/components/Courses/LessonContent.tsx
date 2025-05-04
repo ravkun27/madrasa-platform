@@ -1,24 +1,36 @@
+import { useLanguage } from "../../context/LanguageContext";
 import { MediaModal } from "../Modal/MediaModal";
 import {
-  
   Download,
   FileText,
-  Link,
+  Link as LinkIcon,
   FileAudio,
   FileVideo,
   File,
+  ExternalLink as LuExternalLink,
+  Copy as LuCopy,
 } from "lucide-react";
 
-export const LessonContent = ({
-  lesson,
-}: {
-  lesson: any;
-}) => {
+export const LessonContent = ({ lesson }: { lesson: any }) => {
+  const { language } = useLanguage();
+  const translations = {
+    en: {
+      copy: "Copy",
+      open: "Open",
+      resources: "Resources",
+      downloadMaterial: "Download lesson material",
+    },
+    ar: {
+      copy: "نسخ",
+      open: "فتح",
+      resources: "الموارد",
+      downloadMaterial: "تحميل المادة التعليمية",
+    },
+  };
 
-
+  const t = translations[language];
   if (!lesson) return null;
 
-  // Helper function to determine what icon to show based on file type
   const getFileTypeIcon = (fileType: string) => {
     switch (fileType) {
       case "video/mp4":
@@ -32,6 +44,12 @@ export const LessonContent = ({
     }
   };
 
+  const handleCopyLink = () => {
+    if (lesson.link) {
+      navigator.clipboard.writeText(lesson.link);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-start justify-between">
@@ -39,26 +57,56 @@ export const LessonContent = ({
           <div className="inline-block px-3 py-1 bg-accent bg-opacity-10 text-white rounded-full text-sm mb-3">
             {getFileTypeIcon(lesson.fileType)}
           </div>
-
           <h1 className="text-2xl font-heading font-bold">{lesson.title}</h1>
         </div>
-        
       </div>
 
       <p className="text-muted">{lesson.description}</p>
 
-      <div className="bg-background rounded-lg overflow-hidden">
-        <MediaModal
-          url={lesson.filePath}
-          contentType={lesson.fileType}
-          title={lesson.title}
-        />
-      </div>
+      {lesson.fileType === "link" ? (
+        <div className="p-3 sm:p-4 bg-gray-50 dark:bg-gray-700/50 rounded-md">
+          <div className="flex flex-wrap items-center gap-3 justify-between">
+            <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 max-w-full">
+              <LuExternalLink className="flex-shrink-0" size={18} />
+              <p className="text-sm font-medium truncate max-w-[180px] sm:max-w-[250px] md:max-w-md lg:max-w-lg">
+                {lesson.link}
+              </p>
+            </div>
+            <div className="flex items-center gap-2 ml-auto">
+              <button
+                onClick={handleCopyLink}
+                className="flex items-center gap-1.5 px-2 py-1 rounded bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-xs sm:text-sm transition-colors"
+              >
+                <LuCopy size={14} />
+                <span className="hidden sm:inline">{t.copy}</span>
+              </button>
+              <a
+                href={lesson.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 px-2 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm transition-colors"
+              >
+                <LuExternalLink size={14} />
+                <span className="hidden sm:inline">{t.open}</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="bg-background rounded-lg overflow-hidden">
+          <MediaModal
+            url={lesson.filePath}
+            contentType={lesson.fileType}
+            title={lesson.title}
+          />
+        </div>
+      )}
 
-      <div className="border-t border-cardBorder pt-4 mt-6">
-        <h3 className="text-lg font-medium mb-3">Resources</h3>
-        <div className="space-y-2">
-          {lesson.fileType?.startsWith("video") ? null : (
+      {lesson.fileType?.startsWith("video") ||
+      lesson.fileType === "link" ? null : (
+        <div className="border-t border-cardBorder pt-4 mt-6">
+          <h3 className="text-lg font-medium mb-3">{t.resources}</h3>
+          <div className="space-y-2">
             <a
               href={lesson.filePath}
               download
@@ -71,33 +119,36 @@ export const LessonContent = ({
               </span>
               <div className="flex-1">
                 <div className="font-medium">{lesson.title}</div>
-                <div className="text-sm text-muted">
-                  Download lesson material
-                </div>
+                <div className="text-sm text-muted">{t.downloadMaterial}</div>
               </div>
               <Download className="w-5 h-5 text-muted" />
             </a>
-          )}
-          {lesson?.additionalResources?.map((resource: any, index: number) => (
-            <a
-              key={index}
-              href={resource.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center p-3 border border-cardBorder rounded-lg hover:bg-background transition-colors"
-            >
-              <span className="p-2 bg-background rounded-md mr-3 text-primary">
-                <Link className="w-6 h-6" />
-              </span>
-              <div className="flex-1">
-                <div className="font-medium">{resource.name}</div>
-                <div className="text-sm text-muted">{resource.description}</div>
-              </div>
-              <Download className="w-5 h-5 text-muted" />
-            </a>
-          ))}
+
+            {lesson?.additionalResources?.map(
+              (resource: any, index: number) => (
+                <a
+                  key={index}
+                  href={resource.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center p-3 border border-cardBorder rounded-lg hover:bg-background transition-colors"
+                >
+                  <span className="p-2 bg-background rounded-md mr-3 text-primary">
+                    <LinkIcon className="w-6 h-6" />
+                  </span>
+                  <div className="flex-1">
+                    <div className="font-medium">{resource.name}</div>
+                    <div className="text-sm text-muted">
+                      {resource.description}
+                    </div>
+                  </div>
+                  <Download className="w-5 h-5 text-muted" />
+                </a>
+              )
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

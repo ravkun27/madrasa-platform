@@ -29,7 +29,6 @@ export const CourseSidebar = ({
   onMobileClose: () => void;
 }) => {
   const { language } = useLanguage();
-  const isRTL = language === "ar";
   const [expandedSections, setExpandedSections] = useState<string[]>([]);
   const [localLessons, setLocalLessons] = useState(lessons);
 
@@ -101,22 +100,18 @@ export const CourseSidebar = ({
       {/* Mobile toggle button */}
       <button
         onClick={() => onMobileClose()}
-        className={`md:hidden fixed bottom-4 ${isRTL ? "left-4" : "right-4"} z-40 bg-primary text-white p-3 rounded-full shadow-lg hover:bg-primary-dark transition-transform`}
+        className={`md:hidden fixed bottom-4 right-4 z-40 bg-primary text-white p-3 rounded-full shadow-lg hover:bg-primary transition-transform`}
       >
         <FiMenu size={24} />
       </button>
 
       {/* Sidebar */}
       <motion.div
-        className={`bg-background border-r flex flex-col z-40 fixed md:relative md:flex inset-y-0 ${
-          isRTL ? "right-0 border-l" : "left-0 border-r"
-        } w-80 max-w-full transform transition-transform duration-300 ease-in-out ${
-          isMobileOpen
-            ? "translate-x-0"
-            : isRTL
-              ? "translate-x-full"
-              : "-translate-x-full md:translate-x-0"
-        }`}
+        className={`bg-background border-r flex flex-col z-50 fixed md:relative md:flex inset-y-0 
+        left-0
+         w-80 max-w-full transform transition-transform duration-300 ease-in-out ${
+           isMobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+         }`}
         dir={language}
       >
         {/* Header */}
@@ -127,7 +122,7 @@ export const CourseSidebar = ({
           </div>
           <button
             onClick={onMobileClose}
-            className="md:hidden p-2 hover:bg-gray-100 rounded-full"
+            className="md:hidden p-2 hover:bg-gray-500/30 rounded-full"
           >
             <FiX className="text-text" />
           </button>
@@ -139,18 +134,12 @@ export const CourseSidebar = ({
             <div key={section._id} className="space-y-2">
               <button
                 onClick={() => toggleSection(section._id)}
-                className={`w-full flex items-center justify-between p-3 bg-card rounded-lg hover:bg-card-hover ${
-                  isRTL ? "flex-row-reverse" : ""
-                }`}
+                className={`w-full flex items-center justify-between p-3 bg-card rounded-lg hover:bg-card-hover`}
               >
-                <div
-                  className={`flex-1 text-left ${isRTL ? "text-right" : ""}`}
-                >
+                <div className={`flex-1 text-left `}>
                   <div className="font-medium truncate">{section.title}</div>
                   {section.lessonIds.length > 0 && (
-                    <div
-                      className={`flex items-center ${isRTL ? "flex-row-reverse" : ""}`}
-                    >
+                    <div className={`flex items-center `}>
                       <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
                         <div
                           className="h-full bg-green-500 transition-all duration-300"
@@ -193,8 +182,8 @@ export const CourseSidebar = ({
                           className={`w-full flex items-center justify-between p-2 rounded-lg ${
                             selectedLesson?._id === lesson._id
                               ? "bg-primary/10 text-primary"
-                              : "hover:bg-gray-100"
-                          } ${isRTL ? "flex-row-reverse" : ""}`}
+                              : "hover:bg-white/10"
+                          }`}
                         >
                           <span className="truncate text-sm">
                             {lesson.title}

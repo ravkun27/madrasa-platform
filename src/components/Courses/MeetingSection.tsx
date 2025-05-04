@@ -5,8 +5,6 @@ export const MeetingSection = ({
 }: {
   meeting: MeetingDetails | null;
 }) => {
-  console.log("MeetingSection", meeting);
-
   if (meeting === null) return null;
 
   return (

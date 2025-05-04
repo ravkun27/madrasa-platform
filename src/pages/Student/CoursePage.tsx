@@ -17,7 +17,6 @@ export const CoursePage = () => {
   const [loading, setLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { language } = useLanguage();
-  const isRTL = language === "ar";
 
   useEffect(() => {
     const fetchData = async () => {
@@ -65,7 +64,7 @@ export const CoursePage = () => {
   }
 
   return (
-    <div className={`flex ${isRTL ? "flex-row-reverse" : ""}`}>
+    <div className={`flex`}>
       <CourseSidebar
         course={course}
         lessons={lessons}
