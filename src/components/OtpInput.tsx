@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLanguage } from "../context/LanguageContext";
 
 interface OtpInputProps {
   value: string;
@@ -7,6 +8,29 @@ interface OtpInputProps {
   isVerified: boolean;
   isVerifying: boolean;
 }
+
+const translations = {
+  en: {
+    label: "Verification Code",
+    placeholder: "Enter 4-digit OTP",
+    error: "Please enter a valid 4-digit code",
+    verify: "Verify Code",
+    verifying: "Verifying...",
+    verified: "Verified",
+    resend: "Resend Code",
+    resendIn: (s: number) => `Resend in ${s}s`,
+  },
+  ar: {
+    label: "رمز التحقق",
+    placeholder: "أدخل رمز التحقق المكون من 4 أرقام",
+    error: "يرجى إدخال رمز صحيح مكون من 4 أرقام",
+    verify: "تحقق من الرمز",
+    verifying: "جارٍ التحقق...",
+    verified: "تم التحقق",
+    resend: "إعادة إرسال الرمز",
+    resendIn: (s: number) => `إعادة الإرسال خلال ${s}ث`,
+  },
+};
 
 export default function OtpInput({
   value,
@@ -17,6 +41,8 @@ export default function OtpInput({
 }: OtpInputProps) {
   const [showError, setShowError] = useState(false);
   const [timer, setTimer] = useState(0);
+  const { language } = useLanguage();
+  const t = translations[language];
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target.value.replace(/\D/g, "").slice(0, 4);
@@ -55,14 +81,14 @@ export default function OtpInput({
             htmlFor="otp-input"
             className="text-sm font-medium text-gray-700 dark:text-gray-300"
           >
-            Verification Code
+            {t.label}
           </label>
 
           <div className="relative">
             <input
               id="otp-input"
               type="text"
-              placeholder="Enter 4-digit OTP"
+              placeholder={t.placeholder}
               value={value}
               onChange={handleChange}
               className={`w-full p-4 text-lg text-center tracking-widest border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all
@@ -91,11 +117,7 @@ export default function OtpInput({
             )}
           </div>
 
-          {showError && (
-            <p className="text-sm text-red-500 mt-1">
-              Please enter a valid 4-digit code
-            </p>
-          )}
+          {showError && <p className="text-sm text-red-500 mt-1">{t.error}</p>}
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3">
@@ -132,12 +154,12 @@ export default function OtpInput({
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   ></path>
                 </svg>
-                Verifying...
+                {t.verifying}
               </>
             ) : isVerified ? (
-              "Verified"
+              t.verified
             ) : (
-              "Verify Code"
+              t.verify
             )}
           </button>
 
@@ -152,7 +174,7 @@ export default function OtpInput({
                   : "bg-gray-200 hover:bg-gray-300 text-gray-700 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
               }`}
           >
-            {timer > 0 ? `Resend in ${timer}s` : "Resend Code"}
+            {timer > 0 ? t.resendIn(timer) : t.resend}
           </button>
         </div>
       </div>

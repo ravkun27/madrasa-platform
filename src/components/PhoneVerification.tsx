@@ -5,6 +5,7 @@ import CountryList from "country-list-with-dial-code-and-flag";
 import OtpInput from "./OtpInput";
 import { CheckCircle, Loader, AlertCircle } from "lucide-react";
 import Flag from "react-world-flags";
+import { useLanguage } from "../context/LanguageContext";
 
 const CountryOptions = CountryList.getAll();
 
@@ -41,12 +42,44 @@ export const PhoneVerification = ({
   onCommunicationChange?: (method: "telegram" | "whatsapp") => void;
   countdown: number;
 }) => {
+  const { language } = useLanguage();
   const [otp, setOtp] = useState("");
   const [isSending, setIsSending] = useState(false);
 
+  const translations = {
+    info: {
+      en: "Phone number must have WhatsApp installed to receive OTP.",
+      ar: "يجب أن يكون تطبيق واتساب مثبتًا لتلقي رمز التحقق.",
+    },
+    phonePlaceholder: {
+      en: "Phone Number",
+      ar: "رقم الهاتف",
+    },
+    sendOtp: {
+      en: "Send OTP",
+      ar: "إرسال رمز التحقق",
+    },
+    otpPrompt: {
+      en: "Enter the 4-digit code sent to your phone",
+      ar: "أدخل رمز التحقق المكون من 4 أرقام المُرسل إلى هاتفك",
+    },
+    noCodeHint: {
+      en: "Didn't receive a code? Check your WhatsApp or tap Send OTP again.",
+      ar: "لم يصلك الرمز؟ تحقق من واتساب أو اضغط على 'إرسال رمز التحقق' مرة أخرى.",
+    },
+    invalidPhone: {
+      en: "Please enter a valid phone number",
+      ar: "يرجى إدخال رقم هاتف صحيح",
+    },
+    invalidOtp: {
+      en: "Please enter a valid 4-digit OTP",
+      ar: "يرجى إدخال رمز تحقق مكون من 4 أرقام",
+    },
+  };
+
   const handleSendOtp = async () => {
     if (!phoneNumber || phoneNumber.length < 5) {
-      toast.error("Please enter a valid phone number");
+      toast.error(translations.invalidPhone[language]);
       return;
     }
 
@@ -63,14 +96,12 @@ export const PhoneVerification = ({
     }
   };
 
-  console.log(CountryOptions.map((c) => c.code)); // Log the country codes
-
   return (
     <div className="max-w-lg mx-auto">
       {/* Info Message */}
       <div className="mb-4 flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-blue-700 dark:text-blue-300 text-sm">
         <AlertCircle size={16} className="flex-shrink-0" />
-        <p>Phone number must have WhatsApp installed to receive OTP.</p>
+        <p>{translations.info[language]}</p>
       </div>
 
       {/* Phone Input Section */}
@@ -113,7 +144,7 @@ export const PhoneVerification = ({
             <div className="flex">
               <input
                 type="tel"
-                placeholder="Phone Number"
+                placeholder={translations.phonePlaceholder[language]}
                 value={phoneNumber}
                 disabled={isVerified}
                 onChange={(e) =>
@@ -143,7 +174,9 @@ export const PhoneVerification = ({
                     `${countdown}s`
                   ) : (
                     <>
-                      <span className="hidden sm:inline">Send OTP</span>
+                      <span className="hidden sm:inline">
+                        {translations.sendOtp[language]}
+                      </span>
                     </>
                   )}
                 </motion.button>
@@ -171,7 +204,7 @@ export const PhoneVerification = ({
             className="mt-5"
           >
             <div className="text-center text-sm text-gray-600 dark:text-gray-300 mb-3">
-              Enter the 4-digit code sent to your phone
+              {translations.otpPrompt[language]}
             </div>
             <OtpInput
               value={otp}
@@ -180,7 +213,7 @@ export const PhoneVerification = ({
                 if (otp.length === 4) {
                   onVerify(otp);
                 } else {
-                  toast.error("Please enter a valid 4-digit OTP");
+                  toast.error(translations.invalidOtp[language]);
                 }
               }}
               isVerified={isVerified}
@@ -197,7 +230,7 @@ export const PhoneVerification = ({
           animate={{ opacity: 1 }}
           className="text-center text-sm text-gray-500 dark:text-gray-400 mt-4"
         >
-          Didn't receive a code? Check your WhatsApp or tap Send OTP again.
+          {translations.noCodeHint[language]}
         </motion.p>
       )}
     </div>

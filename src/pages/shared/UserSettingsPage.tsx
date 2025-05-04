@@ -9,6 +9,7 @@ import ProfileSection from "../../components/ProfileSection";
 import SecuritySection from "../../components/SecuritySection";
 import AccountManagementSection from "../../components/AccountManagementSection";
 import { ConfirmationModal } from "../../components/Modal/ConfiramtionModal";
+import { useLanguage } from "../../context/LanguageContext";
 
 // Animation variants
 const slideInVariants = {
@@ -60,7 +61,48 @@ const UserSettingsPage = ({
     phone: "",
     contactMethod: "telegram",
   });
+  const { language } = useLanguage();
 
+  const translations = {
+    en: {
+      settings: {
+        title: "Account Settings",
+        back: "Back",
+        dashboard: "Dashboard",
+        loading: "Loading...",
+        signin_prompt: "Sign in to access your account settings",
+        signin: "Sign In",
+        signup: "Sign Up",
+        logout_success: "Logged out successfully",
+        logout_fail: "Logout failed",
+        delete_account: "Delete Account",
+        delete_confirm_message: "Are you sure you want to delete this admin?",
+        delete_success: "Account deleted successfully",
+        delete_fail: "Account deletion failed",
+        fetch_fail: "Failed to load user data",
+      },
+    },
+    ar: {
+      settings: {
+        title: "إعدادات الحساب",
+        back: "رجوع",
+        dashboard: "لوحة التحكم",
+        loading: "جارٍ التحميل...",
+        signin_prompt: "قم بتسجيل الدخول للوصول إلى إعدادات حسابك",
+        signin: "تسجيل الدخول",
+        signup: "إنشاء حساب",
+        logout_success: "تم تسجيل الخروج بنجاح",
+        logout_fail: "فشل في تسجيل الخروج",
+        delete_account: "حذف الحساب",
+        delete_confirm_message: "هل أنت متأكد أنك تريد حذف هذا المسؤول؟",
+        delete_success: "تم حذف الحساب بنجاح",
+        delete_fail: "فشل في حذف الحساب",
+        fetch_fail: "فشل في تحميل بيانات المستخدم",
+      },
+    },
+  };
+  const t = translations[language];
+  
   useEffect(() => {
     if (user && isOpen) {
       fetchUserData();
@@ -88,7 +130,7 @@ const UserSettingsPage = ({
         });
       }
     } catch (error) {
-      toast.error("Failed to load user data");
+      toast.error(t.settings.fetch_fail);
     } finally {
       setIsLoading(false);
     }
@@ -97,11 +139,11 @@ const UserSettingsPage = ({
   const handleLogout = async () => {
     try {
       await logout();
-      toast.success("Logged out successfully");
+      toast.success(t.settings.logout_success);
       onClose();
       navigate("/login");
     } catch (error) {
-      toast.error("Logout failed");
+      toast.error(t.settings.logout_fail);
     }
   };
 
@@ -116,11 +158,11 @@ const UserSettingsPage = ({
     try {
       await deleteFetch("/user");
       logout();
-      toast.success("Account deleted successfully");
+      toast.success(t.settings.delete_success);
       onClose();
       navigate("/");
     } catch (error) {
-      toast.error("Account deletion failed");
+      toast.error(t.settings.delete_fail);
     } finally {
       setIsLoading(false);
       setShowDeleteConfirm(false);
@@ -140,7 +182,7 @@ const UserSettingsPage = ({
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={onClose}
           />
-
+          
           {/* Sidebar */}
           <div className="absolute inset-y-0 right-0 max-w-full flex pointer-events-none">
             <motion.div
@@ -170,14 +212,14 @@ const UserSettingsPage = ({
                     <div className="flex items-center justify-between flex-1 ml-4">
                       <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300 text-base font-semibold">
                         <FiSettings className="w-5 h-5" />
-                        <span>Account Settings</span>
+                        <span>{t.settings.title}</span>
                       </div>
                       <Link
                         to={`/${user.role}-dashboard`}
                         className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors text-center"
                         onClick={onClose}
                       >
-                        Dashboard
+                        {t.settings.dashboard}
                       </Link>
                     </div>
                   )}
@@ -207,7 +249,7 @@ const UserSettingsPage = ({
               ) : (
                 <div className="flex-1 flex flex-col justify-center items-center gap-6 p-6">
                   <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200">
-                    Sign in to access your account settings
+                    {t.settings.signin_prompt}
                   </h2>
                   <div className="flex flex-col sm:flex-row gap-4 w-full max-w-xs">
                     <Link
@@ -215,23 +257,24 @@ const UserSettingsPage = ({
                       className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg text-center font-medium hover:bg-blue-700 transition-colors"
                       onClick={onClose}
                     >
-                      Sign In
+                      {t.settings.signin}
                     </Link>
                     <Link
                       to="/signup"
                       className="flex-1 bg-gradient-to-r from-indigo-600 to-blue-600 text-white px-6 py-3 rounded-lg text-center font-medium hover:from-indigo-700 hover:to-blue-700 transition-colors"
                       onClick={onClose}
                     >
-                      Sign Up
+                      {t.settings.signup}
                     </Link>
                   </div>
                 </div>
               )}
             </motion.div>
           </div>
+
           {showDeleteConfirm && (
             <ConfirmationModal
-              message="Are you sure you want to delete this admin?"
+              message={t.settings.delete_confirm_message}
               onConfirm={handleConfirmDelete}
               onCancel={() => setShowDeleteConfirm(false)}
             />

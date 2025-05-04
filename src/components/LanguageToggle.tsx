@@ -6,7 +6,7 @@ const LanguageToggle = () => {
 
   return (
     <div className="relative inline-block">
-      <div className="flex items-center gap-1 text-sm cursor-pointer hover:text-primary">
+      <div className="flex items-center gap-1 text-sm cursor-pointer text-primary">
         <Globe size={16} className="text-muted-foreground" />
         <select
           value={language}

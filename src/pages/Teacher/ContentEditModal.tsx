@@ -1,10 +1,10 @@
-// ContentEditModal.tsx
 import { getFetch, postFetch } from "../../utils/apiCall";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { useCourseActions } from "../../hooks/useCourseActions";
 import { FiX, FiUploadCloud, FiLink } from "react-icons/fi";
 import toast from "react-hot-toast";
+import { useLanguage } from "../../context/LanguageContext"; // Import your language context
 
 const ContentEditModal = ({
   addingContent,
@@ -16,6 +16,7 @@ const ContentEditModal = ({
   setIsAddingContent: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   const { setCourseList } = useCourseActions();
+  const { language } = useLanguage(); // Access current language
   const [contentDetails, setContentDetails] = useState({
     name: "",
     description: "",
@@ -28,7 +29,11 @@ const ContentEditModal = ({
 
   const handleAddContent = async () => {
     if (!addingContent || !contentDetails.name.trim()) {
-      toast.error("Please fill all required fields");
+      toast.error(
+        language === "en"
+          ? "Please fill all required fields"
+          : "يرجى ملء جميع الحقول المطلوبة"
+      );
       return;
     }
 
@@ -36,12 +41,16 @@ const ContentEditModal = ({
     const isFileType = contentType === "file";
 
     if (isLinkType && !contentDetails.link.trim()) {
-      toast.error("Please provide a valid link");
+      toast.error(
+        language === "en"
+          ? "Please provide a valid link"
+          : "يرجى تقديم رابط صالح"
+      );
       return;
     }
 
     if (isFileType && !contentDetails.file) {
-      toast.error("Please upload a file");
+      toast.error(language === "en" ? "Please upload a file" : "يرجى رفع ملف");
       return;
     }
 
@@ -103,7 +112,9 @@ const ContentEditModal = ({
         throw new Error(result.message || "Failed to add content");
       }
     } catch (error) {
-      toast.error("Failed to add content");
+      toast.error(
+        language === "en" ? "Failed to add content" : "فشل إضافة المحتوى"
+      );
       console.error("Error adding content:", error);
     } finally {
       setIsSubmitting(false);
@@ -128,7 +139,9 @@ const ContentEditModal = ({
           <div className="p-6">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-semibold text-text">
-                Add {addingContent?.type}
+                {language === "en"
+                  ? `Add ${addingContent?.type}`
+                  : `إضافة ${addingContent?.type}`}
               </h2>
               <button
                 onClick={() => setIsAddingContent(false)}
@@ -141,11 +154,15 @@ const ContentEditModal = ({
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Content Name
+                  {language === "en" ? "Content Name" : "اسم المحتوى"}
                 </label>
                 <input
                   type="text"
-                  placeholder="Enter content name"
+                  placeholder={
+                    language === "en"
+                      ? "Enter content name"
+                      : "أدخل اسم المحتوى"
+                  }
                   className="w-full px-4 py-2 border bg-input-bg text-text border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   value={contentDetails.name}
                   onChange={(e) =>
@@ -159,10 +176,12 @@ const ContentEditModal = ({
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Description
+                  {language === "en" ? "Description" : "الوصف"}
                 </label>
                 <textarea
-                  placeholder="Enter description"
+                  placeholder={
+                    language === "en" ? "Enter description" : "أدخل الوصف"
+                  }
                   className="w-full px-4 py-2 bg-input-bg text-text border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent h-24"
                   value={contentDetails.description}
                   onChange={(e) =>
@@ -178,7 +197,7 @@ const ContentEditModal = ({
               {isQuiz && (
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Content Type
+                    {language === "en" ? "Content Type" : "نوع المحتوى"}
                   </label>
                   <div className="flex gap-4">
                     <button
@@ -191,7 +210,9 @@ const ContentEditModal = ({
                       }`}
                     >
                       <FiUploadCloud size={18} />
-                      <span>Upload File</span>
+                      <span>
+                        {language === "en" ? "Upload File" : "رفع ملف"}
+                      </span>
                     </button>
                     <button
                       type="button"
@@ -203,7 +224,9 @@ const ContentEditModal = ({
                       }`}
                     >
                       <FiLink size={18} />
-                      <span>Add Link</span>
+                      <span>
+                        {language === "en" ? "Add Link" : "إضافة رابط"}
+                      </span>
                     </button>
                   </div>
                 </div>
@@ -213,14 +236,16 @@ const ContentEditModal = ({
               {contentType === "file" ? (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Upload File
+                    {language === "en" ? "Upload File" : "رفع الملف"}
                   </label>
                   <label className="flex flex-col items-center justify-center w-full p-6 border-2 border-dashed border-gray-300 rounded-lg hover:border-indigo-500 cursor-pointer transition-colors">
                     <FiUploadCloud className="w-8 h-8 text-gray-400 mb-2" />
                     <span className="text-sm text-gray-600 text-center">
                       {contentDetails.file
                         ? contentDetails.file.name
-                        : `Click to upload ${addingContent?.type} file`}
+                        : language === "en"
+                          ? `Click to upload ${addingContent?.type} file`
+                          : `انقر لرفع ملف ${addingContent?.type}`}
                     </span>
                     <input
                       type="file"
@@ -243,7 +268,7 @@ const ContentEditModal = ({
               ) : isQuiz ? (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Quiz Link
+                    {language === "en" ? "Quiz Link" : "رابط الاختبار"}
                   </label>
                   <div className="flex items-center w-full px-4 py-2 border bg-input-bg text-text border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-transparent">
                     <FiLink className="text-gray-400 mr-2" size={18} />
@@ -269,7 +294,7 @@ const ContentEditModal = ({
                 onClick={() => setIsAddingContent(false)}
                 className="px-6 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
               >
-                Cancel
+                {language === "en" ? "Cancel" : "إلغاء"}
               </button>
               <button
                 onClick={handleAddContent}
@@ -279,7 +304,7 @@ const ContentEditModal = ({
                 {isSubmitting && (
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 )}
-                Add Content
+                {language === "en" ? "Add Content" : "إضافة المحتوى"}
               </button>
             </div>
           </div>
