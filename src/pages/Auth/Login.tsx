@@ -1,9 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTheme } from "../../context/ThemeContext";
 import { Link, useNavigate } from "react-router-dom";
 import { postFetch } from "../../utils/apiCall";
 import { useAuth } from "../../context/AuthContext";
-import { FaSpinner } from "react-icons/fa";
+import {
+  FaSpinner,
+  FaUserShield,
+  FaEnvelope,
+  FaLock,
+  FaEye,
+  FaEyeSlash,
+} from "react-icons/fa";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import { useLanguage } from "../../context/LanguageContext";
@@ -24,45 +31,85 @@ const Login = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const navigate = useNavigate();
+
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        when: "beforeChildren",
+        staggerChildren: 0.1,
+        duration: 0.5,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: { y: 0, opacity: 1, transition: { duration: 0.5 } },
+  };
 
   const translations = {
     en: {
-      welcomeBack: "Welcome Back! 👋",
+      welcomeBack: "Welcome Back!",
       emailOrPhone: "Email or Phone Number",
-      emailOrPhonePlaceholder: "e.g. john@example.com or 9123456789",
+      emailOrPhonePlaceholder: "Enter your email or phone number",
       password: "Password",
-      passwordPlaceholder: "••••••••",
+      passwordPlaceholder: "Enter your password",
       signIn: "Sign In",
       signingIn: "Signing In...",
       noAccount: "Don't have an account?",
       createAccount: "Create account",
       invalidInput: "Please enter a valid email or phone number",
       errorOccurred: "Something went wrong.",
+      forgotPassword: "Forgot password?",
+      adminLogin: "Admin Login",
     },
     ar: {
-      welcomeBack: "مرحبًا بعودتك! 👋",
+      welcomeBack: "مرحبًا بعودتك!",
       emailOrPhone: "البريد الإلكتروني أو رقم الهاتف",
-      emailOrPhonePlaceholder: "مثال: john@example.com أو 9123456789",
+      emailOrPhonePlaceholder: "أدخل بريدك الإلكتروني أو رقم هاتفك",
       password: "كلمة المرور",
-      passwordPlaceholder: "••••••••",
+      passwordPlaceholder: "أدخل كلمة المرور",
       signIn: "تسجيل الدخول",
       signingIn: "جارٍ تسجيل الدخول...",
       noAccount: "ليس لديك حساب؟",
       createAccount: "إنشاء حساب",
       invalidInput: "يرجى إدخال بريد إلكتروني أو رقم هاتف صالح",
       errorOccurred: "حدث خطأ ما.",
+      forgotPassword: "نسيت كلمة المرور؟",
+      adminLogin: "دخول المسؤول",
     },
   };
 
   const t = translations[language];
 
+  // Check if there's stored credentials
+  useEffect(() => {
+    const storedIdentifier = localStorage.getItem("remembered_identifier");
+    if (storedIdentifier) {
+      setIdentifier(storedIdentifier);
+      setRememberMe(true);
+    }
+  }, []);
+
   const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
     setLoading(true);
 
-    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier);
-    const isPhone = /^\d{10}$/.test(identifier.replace(/^0/, ""));
+    const trimmed = identifier.trim();
+    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed);
+    const isPhone = /^\d{10}$/.test(trimmed.replace(/^0/, ""));
+
+    if (!isEmail && !isPhone) {
+      toast.error(t.invalidInput);
+      setLoading(false);
+      return;
+    }
 
     if (!isEmail && !isPhone) {
       toast.error(t.invalidInput);
@@ -79,8 +126,20 @@ const Login = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
 
       if (result.success && result.data) {
         const { token, role } = result.data;
+
+        // Handle "remember me" option
+        if (rememberMe) {
+          localStorage.setItem("remembered_identifier", identifier);
+        } else {
+          localStorage.removeItem("remembered_identifier");
+        }
+
         login(token, role);
-        navigate(`/${role.toLowerCase()}-dashboard`);
+
+        // Redirect with a slight delay for better UX
+        setTimeout(() => {
+          navigate(`/${role.toLowerCase()}-dashboard`);
+        }, 1000);
       }
     } catch (error: any) {
       const errorMessage = error.message || t.errorOccurred;
@@ -91,75 +150,125 @@ const Login = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
     }
   };
 
-  const themeStyles = {
-    light: {
-      bg: "bg-white",
-      text: "text-primary",
-      border: "border-primary",
-      inputBg: "bg-gray-50",
-    },
-    dark: {
-      bg: "bg-gray-800",
-      text: "text-secondary",
-      border: "border-secondary",
-      inputBg: "bg-gray-700",
-    },
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
-  const currentTheme = themeStyles[theme];
+  // Dynamic styles based on theme
+  const isDark = theme === "dark";
+  const primaryColor = isDark ? "text-secondary" : "text-primary";
+  const primaryBgColor = isDark ? "bg-secondary" : "bg-primary";
+  const hoverBgColor = isDark ? "hover:bg-secondary/90" : "hover:bg-primary/90";
+  const inputBgColor = isDark ? "bg-gray-800" : "bg-white";
+  const cardBgColor = isDark ? "bg-gray-900" : "bg-white";
+  const borderColor = isDark ? "border-gray-700" : "border-gray-200";
+  const textColor = isDark ? "text-white" : "text-gray-900";
+  const labelColor = isDark ? "text-gray-300" : "text-gray-700";
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-b from-background to-background/90">
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className={`w-full max-w-md p-8 rounded-2xl shadow-xl ${currentTheme.bg} ${currentTheme.border} border-2`}
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
+        className={`relative w-full max-w-md p-6 sm:p-8 rounded-2xl shadow-2xl ${cardBgColor} border ${borderColor}`}
       >
-        <h1
-          className={`text-3xl font-bold mb-8 text-center ${currentTheme.text}`}
+        {/* Admin Login Button */}
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => navigate("/admin/login")}
+          aria-label="Admin Login"
+          className={`absolute top-2 right-2 flex items-center gap-2 px-2 py-1 rounded-md ${
+            isDark
+              ? "bg-gray-800 hover:bg-gray-700 text-secondary"
+              : "bg-gray-100 hover:bg-gray-200 text-primary"
+          } transition-all duration-300 shadow-md`}
         >
-          {t.welcomeBack}
-        </h1>
+          <FaUserShield className="text-base" />
+          <span className="hidden sm:inline text-xs font-medium">
+            {t.adminLogin}
+          </span>
+        </motion.button>
 
-        <form onSubmit={handleLogin} className="space-y-6">
-          <div className="space-y-2">
-            <label className={`text-sm font-medium ${currentTheme.text}`}>
+        {/* Title */}
+        <motion.div variants={itemVariants} className="mb-8">
+          <h1
+            className={`text-2xl sm:text-3xl font-bold text-center ${textColor}`}
+          >
+            {t.welcomeBack}
+          </h1>
+          <div className="w-16 h-1 mx-auto mt-3 rounded-full bg-gradient-to-r from-primary to-secondary"></div>
+        </motion.div>
+
+        <form onSubmit={handleLogin} className="space-y-5">
+          <motion.div variants={itemVariants} className="space-y-2">
+            <label
+              className={`text-sm font-medium flex items-center gap-2 ${labelColor}`}
+            >
+              <FaEnvelope className="text-xs" />
               {t.emailOrPhone}
             </label>
-            <input
-              type="text"
-              placeholder={t.emailOrPhonePlaceholder}
-              required
-              className={`w-full p-3 rounded-lg border ${currentTheme.border} focus:ring-2 focus:ring-primary focus:border-transparent ${currentTheme.inputBg} transition-all`}
-              value={identifier}
-              onChange={(e) => setIdentifier(e.target.value)}
-            />
-          </div>
+            <div className="relative">
+              <input
+                type="text"
+                placeholder={t.emailOrPhonePlaceholder}
+                required
+                className={`w-full p-3 pl-4 rounded-lg border ${borderColor} focus:ring-2 focus:ring-primary/50 focus:border-primary ${inputBgColor} ${textColor} transition-all`}
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
+              />
+            </div>
+          </motion.div>
 
-          <div className="space-y-2">
-            <label className={`text-sm font-medium ${currentTheme.text}`}>
+          <motion.div variants={itemVariants} className="space-y-2">
+            <label
+              className={`text-sm font-medium flex items-center gap-2 ${labelColor}`}
+            >
+              <FaLock className="text-xs" />
               {t.password}
             </label>
-            <input
-              type="password"
-              placeholder={t.passwordPlaceholder}
-              required
-              className={`w-full p-3 rounded-lg border ${currentTheme.border} focus:ring-2 focus:ring-primary focus:border-transparent ${currentTheme.inputBg} transition-all`}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder={t.passwordPlaceholder}
+                required
+                className={`w-full p-3 pl-4 pr-10 rounded-lg border ${borderColor} focus:ring-2 focus:ring-primary/50 focus:border-primary ${inputBgColor} ${textColor} transition-all`}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <button
+                type="button"
+                onClick={togglePasswordVisibility}
+                className={`absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none`}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
+          </motion.div>
+
+          <motion.div
+            variants={itemVariants}
+            className="flex items-center justify-between"
+          >
+            <div className="text-sm">
+              <Link
+                to="/forgot-password"
+                className={`font-medium ${primaryColor} hover:underline`}
+              >
+                {t.forgotPassword}
+              </Link>
+            </div>
+          </motion.div>
 
           <motion.button
+            variants={itemVariants}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             type="submit"
             disabled={loading}
-            className={`w-full py-3.5 rounded-lg font-semibold ${
-              theme === "light"
-                ? "bg-primary text-white hover:bg-primary/90"
-                : "bg-secondary text-white hover:bg-secondary/90"
-            } transition-colors flex items-center justify-center gap-2 ${
+            className={`w-full py-3.5 rounded-lg font-semibold ${primaryBgColor} text-white ${hoverBgColor} transition-all duration-300 flex items-center justify-center gap-2 shadow-lg ${
               loading ? "opacity-70 cursor-not-allowed" : ""
             }`}
           >
@@ -173,22 +282,18 @@ const Login = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
             )}
           </motion.button>
 
-          <div className="text-center mt-4">
-            <span className={`text-sm ${currentTheme.text}`}>
+          <motion.div variants={itemVariants} className="text-center mt-6">
+            <p className={`text-sm ${labelColor}`}>
               {t.noAccount}{" "}
               <Link
                 to="/signup"
                 onClick={() => setIsLogin(false)}
-                className={`font-semibold underline ${
-                  theme === "light"
-                    ? "text-primary hover:text-primary/80"
-                    : "text-secondary hover:text-secondary/80"
-                } transition-colors`}
+                className={`font-semibold ${primaryColor} hover:underline transition-colors`}
               >
                 {t.createAccount}
               </Link>
-            </span>
-          </div>
+            </p>
+          </motion.div>
         </form>
       </motion.div>
     </div>

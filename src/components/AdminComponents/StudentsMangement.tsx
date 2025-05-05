@@ -33,7 +33,7 @@ const StudentsMangement = () => {
   }
 
   return (
-    <div className="overflow-x-auto px-4 py-6">
+    <div className="overflow-x-auto px-4 py-6 mt-4">
       <h2 className="text-2xl font-semibold mb-4">Students List</h2>
       <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 shadow-sm rounded-md overflow-hidden">
         <thead className="bg-gray-100 dark:bg-gray-800 text-sm text-gray-600 dark:text-gray-300">

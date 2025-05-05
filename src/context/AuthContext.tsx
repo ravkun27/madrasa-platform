@@ -69,7 +69,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setUser({ role: normalizedRole });
     setIsAuthenticated(true);
     setLoading(false); // Ensure loading is updated
-    console.log("User logged in:", { role: normalizedRole });
   };
 
   const logout = () => {

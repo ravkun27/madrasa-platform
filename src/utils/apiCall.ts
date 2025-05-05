@@ -65,6 +65,19 @@ async function apiCall<T = any>(
       return null;
     });
 
+    console.log("API response:", result); // 👈 Add this line
+
+    if (result?.message === "Invalid or expired token") {
+      // Only logout if tokens are different OR no valid token in response
+      toast.error("Session expired. Please log in again.");
+
+      localStorage.removeItem("token");
+      setTimeout(() => {
+        window.location.href = "/login";
+      }, 2500); // 2.5 seconds
+      return Promise.reject(new Error("Session expired"));
+    }
+
     if (!res.ok) {
       const errorMessage =
         result && typeof result === "object" && "message" in result

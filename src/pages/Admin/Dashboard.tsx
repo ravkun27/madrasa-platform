@@ -15,9 +15,9 @@ const AdminDashboard = () => {
     setRole(savedRole); // Save role from localStorage
   }, []);
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="min-h-screen bg-background flex mt-8 md:mt-0">
       {/* Fixed Sidebar */}
-      <div className="w-full md:w-64 fixed top-0 left-0 h-screen overflow-y-auto z-10">
+      <div className="md:w-64 fixed top-0 left-0 h-screen overflow-y-auto z-40">
         <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
       </div>
 

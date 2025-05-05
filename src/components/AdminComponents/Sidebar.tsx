@@ -159,7 +159,7 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.5 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black z-20"
+          className="fixed inset-0 bg-black"
           onClick={toggleSidebar}
         />
       )}
@@ -167,7 +167,7 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
       {/* Toggle Button - Visible on mobile only when sidebar is closed */}
       {screenWidth < 768 && !isOpen && (
         <motion.button
-          className="fixed z-30 top-4 left-4 p-2 rounded-full bg-blue-600 text-white shadow-lg"
+          className="fixed z-50 top-4 left-4 p-2 rounded-full bg-blue-600 text-white shadow-lg"
           onClick={toggleSidebar}
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
