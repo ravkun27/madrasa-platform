@@ -51,7 +51,7 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [phoneOtpId, setPhoneOtpId] = useState("");
   const [country, setCountry] = useState({
-    name: "Iraq",
+    name: "iraq",
     dial_code: "+964",
     code: "IQ",
     flag: "🇮🇶",

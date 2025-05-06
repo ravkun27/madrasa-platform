@@ -106,7 +106,7 @@ export const PhoneVerification = ({
 
       {/* Phone Input Section */}
       <div className="space-y-4">
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-3 gap-2">
           {/* Country Code Dropdown */}
           <div className="sm:col-span-1">
             <div className="relative flex items-center">
@@ -121,10 +121,18 @@ export const PhoneVerification = ({
                   const newCountry = CountryOptions.find(
                     (c) => c.dial_code === e.target.value
                   );
-                  if (newCountry) setSelectedCountry(newCountry);
+                  if (newCountry) {
+                    const { name, dial_code, code, flag } = newCountry;
+                    setSelectedCountry({
+                      name: name.toLowerCase(),
+                      dial_code,
+                      code,
+                      flag,
+                    });
+                  }
                 }}
                 disabled={isVerified}
-                className="w-full pl-10 pr-3 py-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:text-white text-sm text-black appearance-none transition-colors disabled:opacity-60 disabled:cursor-not-allowed truncate"
+                className="w-full pl-10 pr-3 py-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm text-black appearance-none transition-colors disabled:opacity-60 disabled:cursor-not-allowed truncate"
                 aria-label="Select country code"
               >
                 {CountryOptions.map((c) => (
@@ -140,7 +148,7 @@ export const PhoneVerification = ({
           </div>
 
           {/* Phone Number Input */}
-          <div className="relative sm:col-span-3">
+          <div className="relative col-span-2">
             <div className="flex">
               <input
                 type="tel"
@@ -150,7 +158,7 @@ export const PhoneVerification = ({
                 onChange={(e) =>
                   setPhoneNumber(e.target.value.replace(/\D/g, "").slice(0, 15))
                 }
-                className="w-full p-2.5 rounded-l-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-56 md:w-full p-2.5 rounded-l-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                 aria-label="Enter your phone number"
               />
 
@@ -162,7 +170,7 @@ export const PhoneVerification = ({
                   type="button"
                   onClick={handleSendOtp}
                   disabled={countdown > 0 || isSending}
-                  className={`px-4 rounded-r-lg font-medium transition-colors flex items-center justify-center gap-2 whitespace-nowrap ${
+                  className={`w-24 px-6 rounded-r-lg font-medium transition-colors flex items-center justify-center gap-2 whitespace-nowrap ${
                     countdown > 0 || isSending
                       ? "bg-gray-200 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed"
                       : "bg-primary text-white hover:opacity-90"
@@ -174,7 +182,7 @@ export const PhoneVerification = ({
                     `${countdown}s`
                   ) : (
                     <>
-                      <span className="hidden sm:inline">
+                      <span className="sm:inline">
                         {translations.sendOtp[language]}
                       </span>
                     </>

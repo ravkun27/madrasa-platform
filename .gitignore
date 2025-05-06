@@ -12,6 +12,7 @@ node_modules
 dist
 dist-ssr
 *.local
+sw.js
 
 # Ignore environment variables
 .env
