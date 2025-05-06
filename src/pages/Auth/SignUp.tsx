@@ -327,7 +327,7 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
                   setOtp={(otp: string) => setFormData({ ...formData, otp })}
                   isVerifyingOtp={isVerifyingOtp}
                 />
-                {/* {isOtpVerified && ( */}
+                {isOtpVerified && (
                   <PhoneVerification
                     phoneNumber={formData.phoneNumber}
                     setPhoneNumber={(phoneNumber) =>
@@ -348,7 +348,7 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
                       return await handleSendOtp(payload);
                     }}
                   />
-                {/* )} */}
+                )}
                 {isPhoneOtpVerified && (
                   <>
                     <div className="space-y-4">
