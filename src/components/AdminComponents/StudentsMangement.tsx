@@ -8,7 +8,6 @@ const StudentsMangement = () => {
   const fetchStudents = async () => {
     try {
       const response: any = await getFetch("/admin/auth/student/list");
-      console.log("response", response);
 
       if (response?.success && response?.data?.StudentList) {
         setStudents(response.data.StudentList);

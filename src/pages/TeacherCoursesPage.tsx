@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { getFetch } from "../utils/apiCall";
 import { useLanguage } from "../context/LanguageContext";
 import CourseCard from "../components/CourseCard";
+import LoadingScreen from "../components/LoadingScreen";
 
 const TeacherCoursesPage = () => {
   const { teacherId } = useParams();
@@ -34,7 +35,6 @@ const TeacherCoursesPage = () => {
         const teacherRes: any = await getFetch(
           `/public/course/byTeacher/${teacherId}`
         );
-        console.log(teacherRes);
 
         if (teacherRes?.success) {
           setTeacher(teacherRes.data[0].teacherId); // Assuming teacher info is in the first course
@@ -51,11 +51,7 @@ const TeacherCoursesPage = () => {
   }, [teacherId]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="loader">Loading...</div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   return (

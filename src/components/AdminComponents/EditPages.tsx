@@ -8,6 +8,7 @@ import {
   FaTwitter,
   FaInstagram,
   FaLinkedin,
+  FaTiktok,
   FaYoutube,
   FaGlobe,
 } from "react-icons/fa";
@@ -16,6 +17,7 @@ const socialIcons = {
   facebook: FaFacebook,
   twitter: FaTwitter,
   instagram: FaInstagram,
+  tiktok: FaTiktok,
   linkedin: FaLinkedin,
   youtube: FaYoutube,
   website: FaGlobe,
@@ -106,7 +108,6 @@ const EditPages = () => {
 
       const response: any = await getFetch(endpoint);
       const data = response.data;
-      console.log("Fetched data:", response);
 
       if (data) {
         const formattedData: FormData = {

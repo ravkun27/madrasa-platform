@@ -5,7 +5,7 @@ import { postFetch } from "../../utils/apiCall";
 import { useAuth } from "../../context/AuthContext";
 import {
   FaSpinner,
-  FaUserShield,
+  // FaUserShield,
   FaEnvelope,
   FaLock,
   FaEye,
@@ -24,7 +24,7 @@ type LoginResponse = {
   message?: string;
 };
 
-const Login = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
+const Login = () => {
   const { theme } = useTheme();
   const { login } = useAuth();
   const { language } = useLanguage();
@@ -174,7 +174,7 @@ const Login = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
         className={`relative w-full max-w-md p-6 sm:p-8 rounded-2xl shadow-2xl ${cardBgColor} border ${borderColor}`}
       >
         {/* Admin Login Button */}
-        <motion.button
+        {/* <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => navigate("/admin/login")}
@@ -189,7 +189,7 @@ const Login = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
           <span className="hidden sm:inline text-xs font-medium">
             {t.adminLogin}
           </span>
-        </motion.button>
+        </motion.button> */}
 
         {/* Title */}
         <motion.div variants={itemVariants} className="mb-8">
@@ -287,7 +287,6 @@ const Login = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
               {t.noAccount}{" "}
               <Link
                 to="/signup"
-                onClick={() => setIsLogin(false)}
                 className={`font-semibold ${primaryColor} hover:underline transition-colors`}
               >
                 {t.createAccount}

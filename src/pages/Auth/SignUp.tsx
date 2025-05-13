@@ -27,7 +27,7 @@ interface OtpResponse {
   };
 }
 
-const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
+const Signup = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     firstName: "",
@@ -408,7 +408,6 @@ const Signup = ({ setIsLogin }: { setIsLogin: (isLogin: boolean) => void }) => {
                 </p>
                 <Link
                   to="/login"
-                  onClick={() => setIsLogin(false)}
                   className="font-semibold text-primary hover:text-primary/80 transition-colors"
                 >
                   Sign In Now

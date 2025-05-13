@@ -49,7 +49,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           navigate("/"); // Fallback to landing page for unknown roles
       }
     } else {
-      console.log("No valid token or role found in localStorage");
       setUser(null);
       setIsAuthenticated(false);
     }
@@ -77,7 +76,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setUser(null);
     setIsAuthenticated(false);
     setLoading(false); // Ensure loading state is updated
-    console.log("User logged out");
 
     navigate("/login"); // Redirect after logout
   };

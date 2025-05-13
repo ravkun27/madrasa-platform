@@ -62,11 +62,11 @@ const publicRoutes = [
       { path: "contact", element: <ContactPage /> },
       {
         path: "signup",
-        element: <Signup setIsLogin={(isLogin) => console.log(isLogin)} />,
+        element: <Signup />,
       },
       {
         path: "login",
-        element: <Login setIsLogin={(isLogin) => console.log(isLogin)} />,
+        element: <Login />,
       },
       {
         path: "forgot-password",

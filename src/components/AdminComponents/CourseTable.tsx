@@ -19,7 +19,6 @@ interface CoursesTableProps {
 
 // Function to get the course status
 const getCourseStatus = (course: Course): string => {
-  console.log(course);
   if (!course.active) return "Deleted";
 
   return course.published ? "Published" : "Draft";

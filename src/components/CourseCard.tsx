@@ -39,6 +39,7 @@ const CourseCard = ({
   className = "",
 }: CourseCardProps) => {
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false); // 👈 new state
 
   // Change this to "ar" to use Arabic translations
   const { language } = useLanguage();
@@ -87,7 +88,7 @@ const CourseCard = ({
       className={`bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow h-96 flex flex-col ${className}`}
     >
       <div className="h-48 overflow-hidden relative">
-        {course.banner ? (
+        {course.banner && !imageError ? (
           <img
             src={course.banner}
             alt={course.title}
@@ -95,6 +96,7 @@ const CourseCard = ({
             decoding="async"
             className={`w-full h-full object-cover transition-opacity duration-500 ${imageLoaded ? "opacity-100" : "opacity-0"}`}
             onLoad={() => setImageLoaded(true)}
+            onError={() => setImageError(true)}
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center">
