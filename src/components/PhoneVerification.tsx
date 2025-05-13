@@ -77,6 +77,10 @@ export const PhoneVerification = ({
       en: "Please enter a valid 4-digit OTP",
       ar: "يرجى إدخال رمز تحقق مكون من 4 أرقام",
     },
+    searchCountry: {
+      en: "Search country",
+      ar: "ابحث عن الدولة",
+    },
   };
 
   const filteredCountries = CountryOptions.filter((c) =>
@@ -102,6 +106,21 @@ export const PhoneVerification = ({
     }
   };
 
+  // Close dropdown when clicking outside
+  const handleClickOutside = (_e: MouseEvent) => {
+    if (isCountryDropdownOpen) {
+      setIsCountryDropdownOpen(false);
+    }
+  };
+
+  // Add event listener for clicking outside
+  useState(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  });
+
   return (
     <div className="max-w-lg mx-auto">
       {/* Info Message */}
@@ -115,7 +134,10 @@ export const PhoneVerification = ({
         <div className="relative">
           <div className="flex flex-col md:flex-row gap-3">
             {/* Country Code Dropdown */}
-            <div className="relative w-full md:w-1/3">
+            <div
+              className="relative w-full md:w-1/3"
+              onClick={(e) => e.stopPropagation()}
+            >
               <div
                 className={`relative flex items-center justify-between px-3 py-3 rounded-lg border ${isVerified ? "border-green-300 bg-green-50 dark:bg-green-900/10 dark:border-green-700" : "border-gray-300 hover:border-gray-400 dark:border-gray-600 dark:hover:border-gray-500"} focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent transition-all cursor-pointer ${isVerified ? "cursor-not-allowed" : ""}`}
                 onClick={() =>
@@ -125,12 +147,12 @@ export const PhoneVerification = ({
               >
                 <div className="flex items-center gap-2">
                   <Flag
-                    code={selectedCountry.code.toLowerCase()}
+                    code={selectedCountry?.code.toLowerCase()}
                     style={{ width: 24, height: 16 }}
                     className="rounded-sm"
                   />
-                  <span className="font-medium text-gray-800 dark:text-gray-200">
-                    {selectedCountry.dial_code}
+                  <span className="font-medium text-black">
+                    {selectedCountry?.dial_code}
                   </span>
                 </div>
                 {!isVerified && (
@@ -143,25 +165,24 @@ export const PhoneVerification = ({
 
               {/* Country Dropdown */}
               {isCountryDropdownOpen && (
-                <div className="absolute z-10 mt-1 w-full max-h-60 overflow-y-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
-                  <div className="p-2 sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                <div className="absolute z-10 mt-1 w-full min-w-[250px] max-h-60 overflow-y-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg left-0 right-0">
+                  <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-2">
                     <input
                       type="text"
-                      placeholder={
-                        language === "ar" ? "ابحث عن الدولة" : "Search country"
-                      }
+                      placeholder={translations.searchCountry[language]}
                       value={countrySearch}
                       onChange={(e) =>
                         setCountrySearch(e.target.value.toLowerCase())
                       }
-                      className="w-full mt-2 mb-4 p-2 border rounded-md text-sm text-black"
+                      className="w-full p-2 border rounded-md text-sm text-black dark:text-white dark:bg-gray-700 dark:border-gray-600"
+                      onClick={(e) => e.stopPropagation()}
                     />
                   </div>
                   <div className="py-1">
                     {filteredCountries.map((c) => (
                       <div
-                        key={`${c.dial_code}-${c.code}`}
-                        className="flex items-center gap-3 px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+                        key={`${c.dial_code}-${c?.code}`}
+                        className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
                         onClick={() => {
                           setSelectedCountry({
                             name: c.name.toLowerCase(),
@@ -175,12 +196,12 @@ export const PhoneVerification = ({
                         <Flag
                           code={c.code.toLowerCase()}
                           style={{ width: 24, height: 16 }}
-                          className="rounded-sm"
+                          className="rounded-sm flex-shrink-0"
                         />
-                        <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                        <span className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate flex-1">
                           {c.name}
                         </span>
-                        <span className="text-sm text-gray-500 dark:text-gray-400 ml-auto">
+                        <span className="text-sm text-gray-500 dark:text-gray-400 flex-shrink-0">
                           {c.dial_code}
                         </span>
                       </div>
@@ -209,7 +230,7 @@ export const PhoneVerification = ({
                     isVerified
                       ? "border-green-300 bg-green-50 dark:bg-green-900/10 dark:border-green-700"
                       : "border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:border-gray-600"
-                  } text-gray-900 text-base transition-colors disabled:opacity-90 disabled:cursor-not-allowed pr-10`}
+                  } text-gray-900 dark:text-gray-100 text-base transition-colors disabled:opacity-90 disabled:cursor-not-allowed pr-10`}
                   aria-label="Enter your phone number"
                 />
 
