@@ -81,6 +81,11 @@ body {
     color 0.3s ease;
 }
 
+html,
+body {
+  overflow-x: hidden;
+}
+
 /* Custom Classes */
 .bg-gradient-landing {
   background: linear-gradient(
@@ -257,46 +262,36 @@ body {
   }
 }
 
-  .shimmer-effect {
-    background: linear-gradient(
-      to right,
-      #f6f7f8 8%,
-      #edeef1 18%,
-      #f6f7f8 33%
-    );
-    background-size: 800px 104px;
-    animation: shimmer 1.5s infinite linear;
-  }
+.shimmer-effect {
+  background: linear-gradient(to right, #f6f7f8 8%, #edeef1 18%, #f6f7f8 33%);
+  background-size: 800px 104px;
+  animation: shimmer 1.5s infinite linear;
+}
 
-  @keyframes shimmer {
-    0% {
-      background-position: -468px 0;
-    }
-    100% {
-      background-position: 468px 0;
-    }
+@keyframes shimmer {
+  0% {
+    background-position: -468px 0;
   }
+  100% {
+    background-position: 468px 0;
+  }
+}
 
-  .custom-scrollbar::-webkit-scrollbar {
-    width: 4px;
-  }
-  .custom-scrollbar::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 10px;
-  }
-  .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #c5c5c5;
-    border-radius: 10px;
-  }
-  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #a8a8a8;
-  }
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #c5c5c5;
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
 
-  .dark .shimmer-effect {
-    background: linear-gradient(
-      to right,
-      #2d3748 8%,
-      #4a5568 18%,
-      #2d3748 33%
-    );
-  }
+.dark .shimmer-effect {
+  background: linear-gradient(to right, #2d3748 8%, #4a5568 18%, #2d3748 33%);
+}

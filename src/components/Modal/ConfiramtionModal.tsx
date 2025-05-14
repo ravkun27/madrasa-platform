@@ -24,7 +24,7 @@ export const ConfirmationModal = ({
   const t = translations[language];
 
   return (
-    <div className="fixed mt-20 inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
       <div className="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-md w-full mx-4 shadow-xl">
         <p className="text-gray-800 dark:text-gray-200 text-lg mb-4">
           {message}

@@ -575,100 +575,101 @@ export const MediaModal: React.FC<MediaPlayerProps> = ({
       )}
 
       {/* Media controls overlay */}
-      <div
-        className={`absolute inset-0 transition-opacity duration-200 rounded-lg ${
-          showControls || !isPlaying || mediaType === "image"
-            ? "opacity-100"
-            : "opacity-0"
-        }`}
-      >
-        {/* Top bar with title/info */}
-        <div className="absolute top-0 left-0 right-0 p-2 bg-gradient-to-b from-black/70 to-transparent flex justify-between items-center">
-          {title && (
-            <div className="text-white text-sm md:text-base font-medium truncate max-w-[80%]">
-              {title}
+      {mediaType !== "pdf" && (
+        <div
+          className={`absolute inset-0 transition-opacity duration-200 rounded-lg ${
+            showControls || !isPlaying || mediaType === "image"
+              ? "opacity-100"
+              : "opacity-0"
+          }`}
+        >
+          {/* Top bar with title/info */}
+          <div className="absolute top-0 left-0 right-0 p-2 bg-gradient-to-b from-black/70 to-transparent flex justify-between items-center">
+            {title && (
+              <div className="text-white text-sm md:text-base font-medium truncate max-w-[80%]">
+                {title}
+              </div>
+            )}
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowInfo(!showInfo)}
+                className={`text-white p-1 md:p-2 hover:bg-white/10 rounded-full ${showInfo ? "bg-white/20" : ""}`}
+                title="Info"
+              ></button>
+            </div>
+          </div>
+
+          {/* Info panel */}
+          {showInfo && (
+            <div className="absolute top-12 right-4 p-4 bg-black/80 text-white rounded-lg text-sm z-30">
+              <h3 className="font-bold mb-2">{title}</h3>
+              <p>
+                <strong>Type:</strong> {mediaType}
+              </p>
+              {mediaType === "video" && duration > 0 && (
+                <p>
+                  <strong>Duration:</strong> {formatTime(duration)}
+                </p>
+              )}
+              {/* Removed the source URL for security */}
             </div>
           )}
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setShowInfo(!showInfo)}
-              className={`text-white p-1 md:p-2 hover:bg-white/10 rounded-full ${showInfo ? "bg-white/20" : ""}`}
-              title="Info"
-            ></button>
-          </div>
-        </div>
+          {/* Video-specific controls */}
+          {mediaType === "video" && (
+            <>
+              <div className="absolute inset-0 flex items-center justify-center md:gap-4">
+                <button
+                  onClick={() =>
+                    videoRef.current && (videoRef.current.currentTime -= 10)
+                  }
+                  className="text-white p-3 hover:bg-white/10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                  title="Back 10s"
+                >
+                  <SkipBack className="h-4 w-4 md:w-6 md:h-6" />
+                </button>
+                <button
+                  onClick={togglePlay}
+                  className="text-white p-2 md:p-4 bg-white/10 hover:bg-white/20 rounded-full backdrop-blur-sm"
+                >
+                  {isPlaying ? (
+                    <Pause className="h-6 w-6 md:w-8 md:h-8 fill-current" />
+                  ) : (
+                    <Play className="w-6 h-6 md:w-8 md:h-8 fill-current" />
+                  )}
+                </button>
+                <button
+                  onClick={() =>
+                    videoRef.current && (videoRef.current.currentTime += 10)
+                  }
+                  className="text-white p-3 hover:bg-white/10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                  title="Forward 10s"
+                >
+                  <SkipForward className="h-4 w-4 md:w-6 md:h-6" />
+                </button>
+              </div>
 
-        {/* Info panel */}
-        {showInfo && (
-          <div className="absolute top-12 right-4 p-4 bg-black/80 text-white rounded-lg text-sm z-30">
-            <h3 className="font-bold mb-2">{title}</h3>
-            <p>
-              <strong>Type:</strong> {mediaType}
-            </p>
-            {mediaType === "video" && duration > 0 && (
-              <p>
-                <strong>Duration:</strong> {formatTime(duration)}
-              </p>
-            )}
-            {/* Removed the source URL for security */}
-          </div>
-        )}
-
-        {/* Video-specific controls */}
-        {mediaType === "video" && (
-          <>
-            <div className="absolute inset-0 flex items-center justify-center md:gap-4">
-              <button
-                onClick={() =>
-                  videoRef.current && (videoRef.current.currentTime -= 10)
-                }
-                className="text-white p-3 hover:bg-white/10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                title="Back 10s"
-              >
-                <SkipBack className="h-4 w-4 md:w-6 md:h-6" />
-              </button>
-              <button
-                onClick={togglePlay}
-                className="text-white p-2 md:p-4 bg-white/10 hover:bg-white/20 rounded-full backdrop-blur-sm"
-              >
-                {isPlaying ? (
-                  <Pause className="h-6 w-6 md:w-8 md:h-8 fill-current" />
-                ) : (
-                  <Play className="w-6 h-6 md:w-8 md:h-8 fill-current" />
-                )}
-              </button>
-              <button
-                onClick={() =>
-                  videoRef.current && (videoRef.current.currentTime += 10)
-                }
-                className="text-white p-3 hover:bg-white/10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                title="Forward 10s"
-              >
-                <SkipForward className="h-4 w-4 md:w-6 md:h-6" />
-              </button>
-            </div>
-
-            <div className="absolute bottom-0 left-0 right-0 p-1 md:p-2 bg-gradient-to-t from-black/70 to-transparent space-y-1 md:space-y-3">
-              {/* Progress bar */}
-              <div className="w-full flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2">
-                <input
-                  type="range"
-                  min="0"
-                  max={duration || 0}
-                  step="0.01"
-                  value={currentTime}
-                  onChange={(e) => {
-                    const time = parseFloat(e.target.value);
-                    if (videoRef.current) videoRef.current.currentTime = time;
-                  }}
-                  style={{
-                    backgroundSize: `${(currentTime / duration) * 100 || 0}% 100%`,
-                    backgroundImage:
-                      "linear-gradient(to right, #6366f1, #6366f1), linear-gradient(to right, #4b5563, #4b5563)",
-                    backgroundRepeat: "no-repeat",
-                  }}
-                  className="w-[90%] h-1 md:h-2 rounded-xl appearance-none cursor-pointer
+              <div className="absolute bottom-0 left-0 right-0 p-1 md:p-2 bg-gradient-to-t from-black/70 to-transparent space-y-1 md:space-y-3">
+                {/* Progress bar */}
+                <div className="w-full flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2">
+                  <input
+                    type="range"
+                    min="0"
+                    max={duration || 0}
+                    step="0.01"
+                    value={currentTime}
+                    onChange={(e) => {
+                      const time = parseFloat(e.target.value);
+                      if (videoRef.current) videoRef.current.currentTime = time;
+                    }}
+                    style={{
+                      backgroundSize: `${(currentTime / duration) * 100 || 0}% 100%`,
+                      backgroundImage:
+                        "linear-gradient(to right, #6366f1, #6366f1), linear-gradient(to right, #4b5563, #4b5563)",
+                      backgroundRepeat: "no-repeat",
+                    }}
+                    className="w-[90%] h-1 md:h-2 rounded-xl appearance-none cursor-pointer
                     bg-gray-600
                     [&::-webkit-slider-thumb]:appearance-none
                     [&::-webkit-slider-thumb]:w-3
@@ -679,131 +680,132 @@ export const MediaModal: React.FC<MediaPlayerProps> = ({
                     [&::-webkit-slider-thumb]:bg-white
                     [&::-webkit-slider-thumb]:shadow-md
                     focus:outline-none"
-                />
+                  />
 
-                <span className="text-white text-[8px] md:text-sm font-mono whitespace-nowrap">
-                  {formatTime(currentTime)}/{formatTime(duration)}
-                </span>
-              </div>
+                  <span className="text-white text-[8px] md:text-sm font-mono whitespace-nowrap">
+                    {formatTime(currentTime)}/{formatTime(duration)}
+                  </span>
+                </div>
 
-              {/* Controls bar */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1 md:gap-2">
-                  <button
-                    onClick={togglePlay}
-                    className="text-white p-1 md:p-2 hover:bg-white/10 rounded-lg"
-                    title={isPlaying ? "Pause" : "Play"}
-                  >
-                    {isPlaying ? (
-                      <Pause className="w-3 h-3 md:w-5 md:h-5" />
-                    ) : (
-                      <Play className="w-3 h-3 md:w-5 md:h-5" />
-                    )}
-                  </button>
-                  <button
-                    onClick={() => {
-                      if (!videoRef.current) return;
-                      videoRef.current.muted = !videoRef.current.muted;
-                      setIsMuted(!isMuted);
-                    }}
-                    className="text-white p-1 md:p-2 hover:bg-white/10 rounded-lg"
-                    title={isMuted ? "Unmute" : "Mute"}
-                  >
-                    {isMuted ? (
-                      <VolumeX className="w-3 h-3 md:w-5 md:h-5" />
-                    ) : (
-                      <Volume2 className="w-3 h-3 md:w-5 md:h-5" />
-                    )}
-                  </button>
-
-                  {/* Volume control - hidden on mobile, visible on md+ */}
-                  <div className="hidden md:block">
-                    <input
-                      type="range"
-                      min="0"
-                      max="1"
-                      step="0.01"
-                      value={volume}
-                      onChange={(e) => {
-                        const vol = parseFloat(e.target.value);
-                        setVolume(vol);
-                        if (videoRef.current) {
-                          videoRef.current.volume = vol;
-                          if (vol > 0) videoRef.current.muted = false;
-                          setIsMuted(vol === 0);
-                        }
+                {/* Controls bar */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1 md:gap-2">
+                    <button
+                      onClick={togglePlay}
+                      className="text-white p-1 md:p-2 hover:bg-white/10 rounded-lg"
+                      title={isPlaying ? "Pause" : "Play"}
+                    >
+                      {isPlaying ? (
+                        <Pause className="w-3 h-3 md:w-5 md:h-5" />
+                      ) : (
+                        <Play className="w-3 h-3 md:w-5 md:h-5" />
+                      )}
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (!videoRef.current) return;
+                        videoRef.current.muted = !videoRef.current.muted;
+                        setIsMuted(!isMuted);
                       }}
-                      style={{
-                        background: isMuted
-                          ? "#9CA3AF"
-                          : `linear-gradient(to right, #6366f1 ${volume * 100}%, #4b5563 ${volume * 100}%)`,
-                      }}
-                      className="w-20 h-1.5 rounded-lg appearance-none cursor-pointer 
+                      className="text-white p-1 md:p-2 hover:bg-white/10 rounded-lg"
+                      title={isMuted ? "Unmute" : "Mute"}
+                    >
+                      {isMuted ? (
+                        <VolumeX className="w-3 h-3 md:w-5 md:h-5" />
+                      ) : (
+                        <Volume2 className="w-3 h-3 md:w-5 md:h-5" />
+                      )}
+                    </button>
+
+                    {/* Volume control - hidden on mobile, visible on md+ */}
+                    <div className="hidden md:block">
+                      <input
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                        value={volume}
+                        onChange={(e) => {
+                          const vol = parseFloat(e.target.value);
+                          setVolume(vol);
+                          if (videoRef.current) {
+                            videoRef.current.volume = vol;
+                            if (vol > 0) videoRef.current.muted = false;
+                            setIsMuted(vol === 0);
+                          }
+                        }}
+                        style={{
+                          background: isMuted
+                            ? "#9CA3AF"
+                            : `linear-gradient(to right, #6366f1 ${volume * 100}%, #4b5563 ${volume * 100}%)`,
+                        }}
+                        className="w-20 h-1.5 rounded-lg appearance-none cursor-pointer 
                         [&::-webkit-slider-thumb]:w-3 
                         [&::-webkit-slider-thumb]:h-3 
                         [&::-webkit-slider-thumb]:appearance-none
                         [&::-webkit-slider-thumb]:rounded-full 
                         [&::-webkit-slider-thumb]:bg-white"
-                    />
+                      />
+                    </div>
+
+                    {/* Playback speed */}
+                    <select
+                      value={playbackSpeed}
+                      onChange={(e) => {
+                        const speed = parseFloat(e.target.value);
+                        setPlaybackSpeed(speed);
+                        if (videoRef.current)
+                          videoRef.current.playbackRate = speed;
+                      }}
+                      className="bg-black/50 text-white px-1 md:px-2 py-0.5 md:py-1 rounded text-xs md:text-sm"
+                      title="Playback Speed"
+                    >
+                      {SPEED_OPTIONS.map((speed) => (
+                        <option key={speed} value={speed}>
+                          {speed}x
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
-                  {/* Playback speed */}
-                  <select
-                    value={playbackSpeed}
-                    onChange={(e) => {
-                      const speed = parseFloat(e.target.value);
-                      setPlaybackSpeed(speed);
-                      if (videoRef.current)
-                        videoRef.current.playbackRate = speed;
-                    }}
-                    className="bg-black/50 text-white px-1 md:px-2 py-0.5 md:py-1 rounded text-xs md:text-sm"
-                    title="Playback Speed"
-                  >
-                    {SPEED_OPTIONS.map((speed) => (
-                      <option key={speed} value={speed}>
-                        {speed}x
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                  <div className="flex items-center gap-1 md:gap-2">
+                    {/* Removed PiP button as requested to make accessing the resource harder */}
 
-                <div className="flex items-center gap-1 md:gap-2">
-                  {/* Removed PiP button as requested to make accessing the resource harder */}
-
-                  <button
-                    onClick={toggleFullscreen}
-                    className="text-white p-1 md:p-2 hover:bg-white/10 rounded-lg cursor-pointer z-10"
-                    title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
-                  >
-                    {isFullscreen ? (
-                      <Minimize className="w-3 h-3 md:w-5 md:h-5" />
-                    ) : (
-                      <Maximize className="w-3 h-3 md:w-5 md:h-5" />
-                    )}
-                  </button>
+                    <button
+                      onClick={toggleFullscreen}
+                      className="text-white p-1 md:p-2 hover:bg-white/10 rounded-lg cursor-pointer z-10"
+                      title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+                    >
+                      {isFullscreen ? (
+                        <Minimize className="w-3 h-3 md:w-5 md:h-5" />
+                      ) : (
+                        <Maximize className="w-3 h-3 md:w-5 md:h-5" />
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          </>
-        )}
+            </>
+          )}
 
-        {/* Image-specific controls - just fullscreen */}
-        {mediaType === "image" && (
-          <div className="absolute bottom-4 right-4">
-            <button
-              onClick={toggleFullscreen}
-              className="text-white p-2 bg-black/50 hover:bg-black/70 rounded-full cursor-pointer z-10"
-              title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
-            >
-              {isFullscreen ? (
-                <Minimize className="w-5 h-5" />
-              ) : (
-                <Maximize className="w-5 h-5" />
-              )}
-            </button>
-          </div>
-        )}
-      </div>
+          {/* Image-specific controls - just fullscreen */}
+          {mediaType === "image" && (
+            <div className="absolute bottom-4 right-4">
+              <button
+                onClick={toggleFullscreen}
+                className="text-white p-2 bg-black/50 hover:bg-black/70 rounded-full cursor-pointer z-10"
+                title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+              >
+                {isFullscreen ? (
+                  <Minimize className="w-5 h-5" />
+                ) : (
+                  <Maximize className="w-5 h-5" />
+                )}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

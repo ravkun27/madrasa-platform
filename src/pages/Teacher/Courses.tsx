@@ -232,7 +232,7 @@ export const Courses = ({ course }: { course: any }) => {
           </button>
           <button
             onClick={() => toast.dismiss(t.id)}
-            className="px-6 py-2 bg-gray-200 rounded-lg hover:bg-gray-300"
+            className="px-6 py-2 text-white bg-gray-500 rounded-lg hover:bg-muted"
           >
             Cancel
           </button>

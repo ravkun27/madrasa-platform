@@ -199,7 +199,7 @@ const Header = () => {
           </div>
 
           {/* Mobile Menu Button */}
-          <div className="flex md:hidden items-center space-x-3">
+          <div className="flex md:hidden items-center space-x-3 overflow-x-hidden">
             <LanguageToggle />
 
             <motion.button
@@ -246,7 +246,7 @@ const Header = () => {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className={`fixed top-0 right-0 bottom-0 w-4/5 max-w-sm bg-background z-50 shadow-xl overflow-y-auto min-h-screen`}
+              className={`fixed top-0 right-0 bottom-0 w-4/5 max-w-screen bg-background z-50 shadow-xl overflow-y-auto min-h-screen overflow-x-hidden`}
               style={{ direction: "ltr" }}
             >
               <div className="p-5 flex flex-col h-full">

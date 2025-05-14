@@ -90,13 +90,16 @@ const ContentEditModal = ({
         fileType = "link";
       }
 
-      const requestData = {
+      const requestData: any = {
         title: contentDetails.name,
         description: contentDetails.description,
         filePath,
         fileType,
-        link,
       };
+
+      if (isLinkType) {
+        requestData.link = contentDetails.link.trim();
+      }
 
       const result: any = await postFetch(
         `/user/teacher/course/lesson?sectionId=${addingContent.sectionId}&courseId=${addingContent.courseId}`,
@@ -106,7 +109,12 @@ const ContentEditModal = ({
       if (result.success) {
         setAddingContent(null);
         setIsAddingContent(false);
-        setContentDetails({ name: "", description: "", file: null, link: "" });
+        setContentDetails({
+          name: "",
+          description: "",
+          file: isFileType ? null : contentDetails.file,
+          link: isLinkType ? "" : contentDetails.link,
+        });
         setCourseList(); // refetch or refresh course
       } else {
         throw new Error(result.message || "Failed to add content");
