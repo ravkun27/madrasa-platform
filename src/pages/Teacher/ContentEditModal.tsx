@@ -58,7 +58,6 @@ const ContentEditModal = ({
     try {
       let filePath: string | null = null;
       let fileType: string | null = null;
-      let link: string | null = null;
 
       // === Handle File Uploads Only ===
       if (isFileType && contentDetails.file) {
@@ -85,7 +84,6 @@ const ContentEditModal = ({
 
       // === Handle Link Type ===
       if (isLinkType) {
-        link = contentDetails.link.trim();
         filePath = "empty";
         fileType = "link";
       }
