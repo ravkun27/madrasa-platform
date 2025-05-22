@@ -180,22 +180,53 @@ const ManageCoursesPage = () => {
                     }
                   >
                     <option value="">Select Subject</option>
+
                     <optgroup label="Math">
                       <option value="Math">Math</option>
                     </optgroup>
+
                     <optgroup label="Science">
                       <option value="Physics">Physics</option>
                       <option value="Chemistry">Chemistry</option>
                       <option value="Biology">Biology</option>
                       <option value="Science">Science</option>
                     </optgroup>
+
                     <optgroup label="Languages">
                       <option value="English">English</option>
                       <option value="French">French</option>
+                      <option value="Arabic">Arabic</option>
+                      <option value="German">German</option>
                     </optgroup>
+
+                    <optgroup label="Business & Economics">
+                      <option value="Economy">Economy</option>
+                      <option value="Business">Business</option>
+                      <option value="Marketing">Marketing</option>
+                      <option value="Accounting">Accounting</option>
+                    </optgroup>
+
                     <optgroup label="Technology">
                       <option value="Coding">Coding</option>
                       <option value="Technology">Technology</option>
+                      <option value="Engineering">Engineering</option>
+                    </optgroup>
+
+                    <optgroup label="Medical">
+                      <option value="Medicine">Medicine</option>
+                      <option value="Pharmacy">Pharmacy</option>
+                      <option value="Dentistry">Dentistry</option>
+                    </optgroup>
+
+                    <optgroup label="Arts & Personal Growth">
+                      <option value="Arts">Arts</option>
+                      <option value="Personal development">
+                        Personal development
+                      </option>
+                    </optgroup>
+
+                    <optgroup label="Others">
+                      <option value="Others">Others</option>
                     </optgroup>
                   </select>
                 </div>

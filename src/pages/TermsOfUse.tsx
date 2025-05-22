@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getFetch } from "../utils/apiCall"; // Adjust path if needed
+import { getFetch } from "../utils/apiCall";
 
 interface Section {
   _id: string;
@@ -13,8 +13,12 @@ interface TermsData {
   content: Section[];
 }
 
+// Utility function to check if text contains Arabic
+const isArabic = (text: string) => /[\u0600-\u06FF]/.test(text);
+
 const TermsOfUse: React.FC = () => {
   const [terms, setTerms] = useState<TermsData | null>(null);
+  const [isRTL, setIsRTL] = useState(false);
 
   useEffect(() => {
     const fetchTerms = async () => {
@@ -24,6 +28,14 @@ const TermsOfUse: React.FC = () => {
         );
         if (response?.success && response?.data) {
           setTerms(response.data);
+
+          // Check if any major field is in Arabic
+          const textToCheck =
+            response.data.header +
+            response.data.content
+              .map((s: Section) => s.subheader + s.paragraph)
+              .join(" ");
+          setIsRTL(isArabic(textToCheck));
         }
       } catch (err) {
         console.error("Failed to fetch terms and conditions", err);
@@ -48,12 +60,18 @@ const TermsOfUse: React.FC = () => {
   });
 
   return (
-    <div className="max-w-4xl mx-auto my-2 md:my-6 p-6 bg-white dark:bg-gray-800 rounded-lg shadow space-y-6">
+    <div
+      className={`max-w-4xl mx-auto my-2 md:my-6 p-6 bg-white dark:bg-gray-800 rounded-lg shadow space-y-6 ${
+        isRTL ? "rtl text-right" : "ltr text-left"
+      }`}
+      dir={isRTL ? "rtl" : "ltr"}
+    >
       <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-4">
-        {terms.header || "Terms of Use"}
+        {terms.header || (isRTL ? "شروط الاستخدام" : "Terms of Use")}
       </h1>
       <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-        Last Updated: {formattedDate || "N/A"}
+        {isRTL ? "آخر تحديث: " : "Last Updated: "}
+        {formattedDate || "N/A"}
       </p>
 
       {terms.content.map(({ _id, subheader, paragraph }, index) => (

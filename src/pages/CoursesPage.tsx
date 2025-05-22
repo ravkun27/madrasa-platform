@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getFetch } from "../utils/apiCall";
 import { useLanguage } from "../context/LanguageContext";
-import CourseCard from "../components/CourseCard"; // Import the new reusable component
+import CourseCard from "../components/CourseCard";
 
 // TypeScript interfaces
 interface Teacher {
@@ -27,10 +27,9 @@ const CoursesPage = () => {
   const isRTL = language === "ar";
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [allCourses, setAllCourses] = useState<Course[]>([]);
+  const [filteredCourses, setFilteredCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // Translations object
   const translations = {
     en: {
       explore: "Explore Courses",
@@ -56,43 +55,45 @@ const CoursesPage = () => {
 
   const t = translations[language === "ar" ? "ar" : "en"];
 
-  useEffect(() => {
-    const fetchAllCourses = async () => {
-      try {
-        const response: any = await getFetch("/public/course/all");
-        if (response?.success && Array.isArray(response.data)) {
-          setAllCourses(response.data);
-        }
-      } catch (error) {
-        console.error("Error fetching courses:", error);
-      } finally {
-        setLoading(false);
+  const fetchCourses = async (query?: string) => {
+    try {
+      setLoading(true);
+      const endpoint = query?.trim()
+        ? `/public/course?tags=${query.trim()}`
+        : "/public/course/all";
+      const response: any = await getFetch(endpoint);
+      if (response?.success && Array.isArray(response.data)) {
+        setFilteredCourses(response.data);
+      } else {
+        setFilteredCourses([]);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching courses:", error);
+      setFilteredCourses([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchAllCourses();
+  // Initial fetch of all courses
+  useEffect(() => {
+    fetchCourses();
   }, []);
 
-  const filteredCourses = allCourses.filter((course) => {
-    const query = searchQuery.trim().toLowerCase();
-    if (!query) return true;
+  // Debounced search
+  useEffect(() => {
+    const delayDebounce = setTimeout(() => {
+      fetchCourses(searchQuery);
+    }, 500);
 
-    const teacherName = `${course.teacherId?.firstName || ""} ${
-      course.teacherId?.lastName || ""
-    }`.toLowerCase();
-
-    return (
-      course.title?.toLowerCase().includes(query) ||
-      teacherName.includes(query) ||
-      course.tags?.some((tag) => tag.toLowerCase().includes(query))
-    );
-  });
+    return () => clearTimeout(delayDebounce);
+  }, [searchQuery]);
 
   const handleViewTeacherCourses = (teacherId: string) => {
     navigate(`/teachers/${teacherId}`);
   };
 
-  const teacherCourseCounts = allCourses.reduce(
+  const teacherCourseCounts = filteredCourses.reduce(
     (acc, course) => {
       const teacherId = course.teacherId?._id;
       if (teacherId) {
@@ -129,7 +130,7 @@ const CoursesPage = () => {
           {[...Array(6)].map((_, index) => (
             <CourseCard
               key={`loading-${index}`}
-              course={{} as Course} // Empty course object for loading state
+              course={{} as Course}
               loading={true}
             />
           ))}

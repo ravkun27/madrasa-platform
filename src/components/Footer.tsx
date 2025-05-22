@@ -61,7 +61,7 @@ const Footer = () => {
 
           {/* Middle Section - Links */}
           <div className="w-full md:w-1/3 mt-4 md:mt-0">
-            <ul className="flex justify-center md:justify-end space-x-6">
+            <ul className="flex justify-center md:justify-end space-x-6 text-sm">
               <li>
                 <Link
                   to="/about"

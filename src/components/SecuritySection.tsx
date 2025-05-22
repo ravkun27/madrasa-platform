@@ -149,7 +149,7 @@ const SecuritySection = ({ userData }: SecuritySectionProps) => {
       } else if (otpState.verificationMethod === "phone" && userData.phone) {
         payload = {
           phoneNumber: userData.phone,
-          otpMethod: "whatsapp", // Default to WhatsApp for password reset via phone
+          method: "whatsapp", // Default to WhatsApp for password reset via phone
         };
       } else {
         toast.error(t.noValidVerificationMethod);
@@ -162,13 +162,11 @@ const SecuritySection = ({ userData }: SecuritySectionProps) => {
       if (result.success) {
         setOtpState((prev) => ({
           ...prev,
-          otpId: result.otpId || result.data?.otpId,
+          optId: result.data?.otpId,
           isOTPSent: true,
         }));
-        toast.success("Verification code sent");
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to send verification code");
     } finally {
       setIsLoading(false);
     }

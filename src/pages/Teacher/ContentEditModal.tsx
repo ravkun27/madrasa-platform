@@ -298,7 +298,7 @@ const ContentEditModal = ({
             <div className="flex justify-end items-center gap-3 mt-6">
               <button
                 onClick={() => setIsAddingContent(false)}
-                className="px-6 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
+                className="px-6 py-2 text-gray-200 hover:bg-gray-50 rounded-lg transition-colors"
               >
                 {language === "en" ? "Cancel" : "إلغاء"}
               </button>

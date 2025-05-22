@@ -18,7 +18,7 @@ const ProfileSection = ({ userData, setUserData }: any) => {
     otpId: "",
     otpCode: "",
     isOTPSent: false,
-    otpMethod: "whatsapp",
+    method: "whatsapp",
   });
   const { language } = useLanguage();
   const translations = {
@@ -103,7 +103,7 @@ const ProfileSection = ({ userData, setUserData }: any) => {
       otpId: "",
       otpCode: "",
       isOTPSent: false,
-      otpMethod: "whatsapp",
+      method: "whatsapp",
     });
   };
 
@@ -117,7 +117,7 @@ const ProfileSection = ({ userData, setUserData }: any) => {
       otpId: "",
       otpCode: "",
       isOTPSent: false,
-      otpMethod: "whatsapp",
+      method: "whatsapp",
     });
   };
 
@@ -131,7 +131,7 @@ const ProfileSection = ({ userData, setUserData }: any) => {
       if (editState.field === "phone") {
         payload = {
           phoneNumber: editState.value,
-          method: otpState.otpMethod,
+          method: otpState.method,
         };
       } else if (editState.field === "email") {
         payload = { email: editState.value };

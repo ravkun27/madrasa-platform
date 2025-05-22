@@ -12,16 +12,23 @@ const App: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+  const [showIosInstallPrompt, setShowIosInstallPrompt] = useState(false);
+
+  const isIos = () => {
+    return /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
+  };
+
+  const isInStandaloneMode = () =>
+    "standalone" in window.navigator && window.navigator.standalone;
 
   useEffect(() => {
     document.documentElement.style.scrollBehavior = "smooth";
 
     const timer = setTimeout(() => setLoading(false), 2000);
-
     const handleBeforeInstallPrompt = (e: any) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-      setShowInstallPrompt(true);
+      e.preventDefault(); // Stop the default prompt
+      setDeferredPrompt(e); // Save the event
+      setShowInstallPrompt(true); // Show your custom install UI
     };
 
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
@@ -34,10 +41,21 @@ const App: React.FC = () => {
       );
     };
   }, []);
+  useEffect(() => {
+    const isIosDevice = isIos();
+    const isStandalone = isInStandaloneMode();
+    const alreadyInstalled = localStorage.getItem("iosAppInstalled");
+
+    if (isIosDevice && !isStandalone && !alreadyInstalled) {
+      setShowIosInstallPrompt(true);
+    }
+  }, []);
 
   const handleInstallClick = async () => {
     if (deferredPrompt) {
-      deferredPrompt.prompt();
+      deferredPrompt.prompt(); // ✅ This is allowed, because it's inside a user click
+      const choiceResult = await deferredPrompt.userChoice;
+      console.log("User choice", choiceResult.outcome);
       setDeferredPrompt(null);
       setShowInstallPrompt(false);
     }
@@ -46,6 +64,10 @@ const App: React.FC = () => {
   if (loading) {
     return <LoadingScreen />;
   }
+  const handleDismissIosPrompt = () => {
+    setShowIosInstallPrompt(false);
+    localStorage.setItem("iosAppInstalled", "true");
+  };
 
   return (
     <ErrorBoundary>
@@ -70,6 +92,43 @@ const App: React.FC = () => {
               >
                 Install App
               </button>
+            )}
+            {showIosInstallPrompt && (
+              <div
+                style={{
+                  position: "fixed",
+                  bottom: "20px",
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  padding: "12px 16px",
+                  background: "#000",
+                  color: "#fff",
+                  borderRadius: "8px",
+                  zIndex: 1000,
+                  fontSize: "14px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                }}
+              >
+                <span>
+                  To install the app, tap <strong>Share</strong> then{" "}
+                  <strong>Add to Home Screen</strong>
+                </span>
+                <button
+                  onClick={handleDismissIosPrompt}
+                  style={{
+                    marginLeft: "8px",
+                    background: "transparent",
+                    color: "#fff",
+                    border: "none",
+                    fontSize: "16px",
+                    cursor: "pointer",
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
             )}
           </Suspense>
         </LanguageProvider>

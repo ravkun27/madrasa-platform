@@ -9,6 +9,7 @@ import {
   FaInstagram,
 } from "react-icons/fa";
 import { getFetch } from "../utils/apiCall"; // adjust path if needed
+import { useLanguage } from "../context/LanguageContext"; // import language context
 
 const socialIconMap: Record<string, React.ElementType> = {
   Instagram: FaInstagram,
@@ -24,6 +25,25 @@ const ContactPage: React.FC = () => {
   const [socialLinks, setSocialLinks] = useState<
     { name: string; link: string }[]
   >([]);
+
+  const { language } = useLanguage(); // Get selected language
+
+  const translations = {
+    en: {
+      contact: {
+        title: "Contact Us",
+        description: "Connect with us on our social media platforms:",
+      },
+    },
+    ar: {
+      contact: {
+        title: "اتصل بنا",
+        description: "تواصل معنا على منصات التواصل الاجتماعي:",
+      },
+    },
+  };
+
+  const t = translations[language]; // Current language translations
 
   useEffect(() => {
     const fetchLinks = async () => {
@@ -43,10 +63,10 @@ const ContactPage: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto my-2 md:my-6 p-6 bg-white dark:bg-gray-800 rounded-lg shadow space-y-6">
       <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-4">
-        Contact Us
+        {t.contact.title}
       </h1>
       <p className="text-gray-600 dark:text-gray-400 mb-6">
-        Connect with us on our social media platforms:
+        {t.contact.description}
       </p>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">

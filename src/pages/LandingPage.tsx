@@ -181,9 +181,7 @@ const LandingPage = () => {
       setError("");
       try {
         // Consider adding language parameter to API request if needed
-        const res = await fetch(
-          `/api/courses/${searchValue.trim()}?lang=${language}`
-        );
+        const res = await fetch(`/api/courses?tags=${searchValue.trim()}`);
         if (!res.ok) throw new Error("Course not found");
         const data = await res.json();
         setCourse(data);

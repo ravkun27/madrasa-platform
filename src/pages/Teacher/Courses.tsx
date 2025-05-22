@@ -29,14 +29,8 @@ import ReactCrop from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 import { Crop } from "react-image-crop";
 import MeetingForm from "../../components/MeetingForm";
+import { useStudents } from "../../hooks/useStudents";
 // import { format, parseISO, isBefore, isAfter } from "date-fns";
-interface Student {
-  _id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phoneNumber: string;
-}
 
 export const Courses = ({ course }: { course: any }) => {
   const { setCourseList } = useCourseActions();
@@ -63,7 +57,6 @@ export const Courses = ({ course }: { course: any }) => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [cropping, setCropping] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [students, setStudents] = useState<Student[]>([]);
 
   const [showMeetingForm, setShowMeetingForm] = useState(false);
 
@@ -71,23 +64,7 @@ export const Courses = ({ course }: { course: any }) => {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const fetchStudentsForCourse = async (courseId: string) => {
-    try {
-      const response: any = await getFetch(
-        `/user/teacher/course/students?courseId=${courseId}`
-      );
-
-      if (Array.isArray(response?.data?.students)) {
-        setStudents(response.data.students); // list of students
-      } else {
-        console.error("Unexpected response format:", response);
-        return [];
-      }
-    } catch (error) {
-      console.error("Error fetching students:", error);
-      return [];
-    }
-  };
+  const { students, setStudents, loading, error } = useStudents(course._id);
 
   const kickStudent = async (courseId: string, studentId: string) => {
     try {
@@ -104,9 +81,9 @@ export const Courses = ({ course }: { course: any }) => {
     }
   };
 
-  useEffect(() => {
-    fetchStudentsForCourse(course._id);
-  }, [showStudents]);
+  // useEffect(() => {
+  //   fetchStudentsForCourse(course._id);
+  // }, [showStudents]);
 
   useEffect(() => {
     if (addSectionToggle && !newSection.title && !newSection.description) {
@@ -462,7 +439,7 @@ export const Courses = ({ course }: { course: any }) => {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0 }}
         transition={{ duration: 0.2, ease: "easeInOut" }}
-        className="w-full bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden"
+        className="w-full min-w-[60vw] bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden"
       >
         {/* {isMeetingLive && <LiveMeetingBadge />} */}
 
@@ -599,7 +576,7 @@ export const Courses = ({ course }: { course: any }) => {
             >
               {/* Meetings Section */}
               <div className="mb-6">
-                <div className="flex justify-between items-center mb-4">
+                <div className="flex justify-between items-center mb-4 px-2">
                   <h3 className="text-lg font-semibold">Meetings</h3>
                   <motion.div
                     animate={{
@@ -678,7 +655,15 @@ export const Courses = ({ course }: { course: any }) => {
 
                 {showStudents && (
                   <div className="py-3 space-y-2">
-                    {students.length > 0 ? (
+                    {loading ? (
+                      <div className="text-center text-gray-500 dark:text-gray-400 text-sm">
+                        Loading students...
+                      </div>
+                    ) : error ? (
+                      <div className="text-center text-red-500 dark:text-red-400 text-sm">
+                        Failed to load students.
+                      </div>
+                    ) : students.length > 0 ? (
                       students.map((student) => (
                         <div
                           key={student?._id}
