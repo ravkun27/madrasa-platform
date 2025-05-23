@@ -17,6 +17,7 @@ import {
 } from "react-icons/fi";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
+import { LockOpenIcon } from "lucide-react";
 
 interface SidebarProps {
   activeTab: string;
@@ -254,30 +255,47 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
                     </motion.button>
                   )
               )}
+              {/* Theme toggle */}
+              <motion.button
+                onClick={toggleTheme}
+                className={`${
+                  isOpen ? "ml-auto" : ""
+                } w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300`}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                {theme === "light" ? (
+                  <FiMoon className="w-5 h-5" />
+                ) : (
+                  <FiSun className="w-5 h-5" />
+                )}
+              </motion.button>
             </div>
           </nav>
 
           {/* Logout Button */}
           <div
-            className={`flex items-center justify-center border-t border-gray-200 dark:border-gray-700 py-3 px-3 ${
-              isOpen ? "flex-row" : "flex-col"
-            }`}
+            className={`flex ${
+              isOpen ? "flex-col justify-between" : "flex-col items-center"
+            } border-t border-gray-200 dark:border-gray-700 py-3 px-3 gap-3`}
           >
+            {/* Logout */}
             <motion.button
               onClick={handleLogout}
-              className={`w-full h-12 flex items-center rounded-lg text-red-700 hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-900/30 transition-colors ${!isOpen ? "justify-center" : "px-4"}`}
+              className={`flex items-center w-full h-12 rounded-lg text-red-700 hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-900/30 transition-colors ${
+                !isOpen ? "justify-center" : "justify-start px-4"
+              }`}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
               <motion.div
-                className="flex items-center justify-center"
+                className="flex items-center justify-center mr-2"
                 variants={iconContainerVariants}
                 initial="closed"
                 animate={isOpen ? "open" : "closed"}
               >
                 <FiLogOut size={20} />
               </motion.div>
-
               <motion.span
                 variants={textVariants}
                 initial="closed"
@@ -287,18 +305,25 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
                 Logout
               </motion.span>
             </motion.button>
-            {/* Theme toggle */}
+
+            {/* Forgot Password */}
             <motion.button
-              onClick={toggleTheme}
-              className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
+              onClick={() => navigate("forgot-password")}
+              className={`flex items-center w-full h-12 rounded-lg text-blue-700 hover:bg-blue-100 dark:text-blue-400 dark:hover:bg-blue-900/30 transition-colors ${
+                !isOpen ? "justify-center" : "justify-start px-4"
+              }`}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
             >
-              {theme === "light" ? (
-                <FiMoon className="w-5 h-5" />
-              ) : (
-                <FiSun className="w-5 h-5" />
-              )}
+              <LockOpenIcon size={20} className="mr-2" />
+              <motion.span
+                variants={textVariants}
+                initial="closed"
+                animate={isOpen ? "open" : "closed"}
+                className="whitespace-nowrap"
+              >
+                Forgot Password
+              </motion.span>
             </motion.button>
           </div>
         </div>

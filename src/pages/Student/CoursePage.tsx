@@ -1,5 +1,5 @@
 // CoursePage.tsx
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { getFetch } from "../../utils/apiCall";
 import { CourseSidebar } from "../../components/Courses/CourseSidebar";
@@ -9,18 +9,33 @@ import { NotesSection } from "../../components/Courses/NotesSection";
 import { useLanguage } from "../../context/LanguageContext";
 import { motion } from "framer-motion";
 
+interface LessonMeta {
+  _id: string;
+  title?: string;
+  sectionId: string;
+  completed: boolean;
+}
+
+interface FullLesson extends LessonMeta {
+  content?: any; // Full lesson content
+  [key: string]: any; // Other lesson properties
+}
+
 export const CoursePage = () => {
   const { courseId } = useParams();
   const [course, setCourse] = useState<any>(null);
-  const [lessons, setLessons] = useState<any[]>([]);
-  const [selectedLesson, setSelectedLesson] = useState<any>(null);
+  const [lessonMetas, setLessonMetas] = useState<LessonMeta[]>([]);
+  const [selectedLesson, setSelectedLesson] = useState<FullLesson | null>(null);
   const [loading, setLoading] = useState(true);
+  const [lessonLoading, setLessonLoading] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { language } = useLanguage();
 
+  // Fetch ONLY course structure - no lesson content
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchCourseStructure = async () => {
       if (!courseId) return;
+
       try {
         const res: any = await getFetch(`/user/student/course/all`);
         const courseData = res.data.courseList.find(
@@ -30,30 +45,111 @@ export const CoursePage = () => {
         if (courseData) {
           setCourse(courseData);
 
-          // Fetch all lessons
+          // Build array of promises to fetch each lesson's full data
           const lessonsPromises = courseData.sectionIds.flatMap(
             (section: any) =>
               section.lessonIds.map(async (lessonId: string) => {
                 const lessonRes: any = await getFetch(
                   `/user/student/course/lesson?lessonId=${lessonId}&courseId=${courseId}`
                 );
-                return { ...lessonRes.lesson, sectionId: section._id };
+
+                const lessonTitle = lessonRes?.lesson?.title || "Untitled";
+
+                return {
+                  _id: lessonId,
+                  sectionId: section._id,
+                  completed: false,
+                  title: lessonTitle,
+                };
               })
           );
 
-          const allLessons = await Promise.all(lessonsPromises);
-          setLessons(allLessons.flat().filter(Boolean));
-          setSelectedLesson(allLessons[0] || null);
+          // Wait for all lesson titles to be fetched
+          const metas = await Promise.all(lessonsPromises);
+
+          setLessonMetas(metas);
+        } else {
+          console.warn("⚠️ No course found with ID:", courseId);
         }
       } catch (error) {
-        console.error("Error loading course:", error);
+        console.error("❌ Error loading course structure or lessons:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
+    fetchCourseStructure();
   }, [courseId]);
+
+  // Fetch individual lesson content ONLY when selected
+  const fetchAndSelectLesson = useCallback(
+    async (lessonMeta: LessonMeta) => {
+      if (!courseId) return;
+
+      setLessonLoading(true);
+
+      try {
+        const lessonRes: any = await getFetch(
+          `/user/student/course/lesson?lessonId=${lessonMeta._id}&courseId=${courseId}`
+        );
+
+        const fullLesson: FullLesson = {
+          ...lessonRes.lesson,
+          _id: lessonMeta._id,
+          sectionId: lessonMeta.sectionId,
+        };
+
+        // Update the lesson meta with title and completion status
+        setLessonMetas((prev) =>
+          prev.map((meta) =>
+            meta._id === lessonMeta._id
+              ? {
+                  ...meta,
+                  title: fullLesson.title || meta.title,
+                  completed: fullLesson.completed || meta.completed,
+                }
+              : meta
+          )
+        );
+
+        setSelectedLesson(fullLesson);
+      } catch (error) {
+        console.error("Error loading lesson:", error);
+      } finally {
+        setLessonLoading(false);
+      }
+    },
+    [courseId]
+  );
+
+  // Handle lesson selection from sidebar
+  const handleLessonSelect = useCallback(
+    async (lessonMeta: LessonMeta) => {
+      // Only fetch if it's a different lesson
+      if (selectedLesson?._id !== lessonMeta._id) {
+        await fetchAndSelectLesson(lessonMeta);
+      }
+    },
+    [selectedLesson, fetchAndSelectLesson]
+  );
+
+  // Update lesson completion status
+  const updateLessonCompletion = useCallback(
+    (lessonId: string, completed: boolean) => {
+      // Update lesson metas
+      setLessonMetas((prev) =>
+        prev.map((meta) =>
+          meta._id === lessonId ? { ...meta, completed } : meta
+        )
+      );
+
+      // Update selected lesson if it's the current one
+      if (selectedLesson?._id === lessonId) {
+        setSelectedLesson((prev) => (prev ? { ...prev, completed } : null));
+      }
+    },
+    [selectedLesson]
+  );
 
   if (loading) {
     return (
@@ -64,29 +160,33 @@ export const CoursePage = () => {
   }
 
   return (
-    <div className={`flex`}>
+    <div className="flex">
       <CourseSidebar
         course={course}
-        lessons={lessons}
+        lessonMetas={lessonMetas}
         selectedLesson={selectedLesson}
-        onLessonSelect={setSelectedLesson}
+        onLessonSelect={handleLessonSelect}
         courseId={courseId!}
         isMobileOpen={isSidebarOpen}
+        onMobileOpen={() => setIsSidebarOpen(true)}
         onMobileClose={() => setIsSidebarOpen(false)}
+        onLessonCompletionUpdate={updateLessonCompletion}
       />
 
       <main className="flex-1 min-h-screen p-6 lg:p-8">
-        <button
-          onClick={() => setIsSidebarOpen(true)}
-          className="md:hidden mb-6 p-3 bg-primary text-white rounded-lg shadow-md hover:bg-primary-dark"
-        >
-          {language === "ar" ? "عرض الدروس" : "Show Lessons"}
-        </button>
-
-        {selectedLesson ? (
+        {lessonLoading ? (
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary" />
+            <span className="ml-3 text-muted">
+              {language === "ar" ? "جاري تحميل الدرس..." : "Loading lesson..."}
+            </span>
+          </div>
+        ) : selectedLesson ? (
           <motion.div
+            key={selectedLesson._id}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
             className="space-y-8"
           >
             {course?.meetingDetails && (

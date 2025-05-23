@@ -81,13 +81,16 @@ const App: React.FC = () => {
                 onClick={handleInstallClick}
                 style={{
                   position: "fixed",
-                  bottom: "20px",
-                  right: "20px",
                   padding: "10px 20px",
                   background: "#000",
                   color: "#fff",
                   borderRadius: "8px",
                   zIndex: 1000,
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+                  // Responsive placement
+                  bottom: window.innerWidth > 768 ? "20px" : "auto",
+                  top: window.innerWidth <= 768 ? "20px" : "auto",
+                  right: "20px",
                 }}
               >
                 Install App
@@ -97,8 +100,9 @@ const App: React.FC = () => {
               <div
                 style={{
                   position: "fixed",
-                  bottom: "20px",
-                  left: "50%",
+                  bottom: window.innerWidth > 768 ? "20px" : "auto",
+                  top: window.innerWidth <= 768 ? "20px" : "auto",
+                  right: "20px",
                   transform: "translateX(-50%)",
                   padding: "12px 16px",
                   background: "#000",
