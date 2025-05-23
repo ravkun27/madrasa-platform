@@ -89,7 +89,7 @@ const App: React.FC = () => {
                   boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
                   // Responsive placement
                   bottom: window.innerWidth > 768 ? "20px" : "auto",
-                  top: window.innerWidth <= 768 ? "20px" : "auto",
+                  top: window.innerWidth <= 768 ? "60px" : "auto",
                   right: "20px",
                 }}
               >

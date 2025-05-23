@@ -308,7 +308,7 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
 
             {/* Forgot Password */}
             <motion.button
-              onClick={() => navigate("forgot-password")}
+              onClick={() => navigate("/forgot-password")}
               className={`flex items-center w-full h-12 rounded-lg text-blue-700 hover:bg-blue-100 dark:text-blue-400 dark:hover:bg-blue-900/30 transition-colors ${
                 !isOpen ? "justify-center" : "justify-start px-4"
               }`}
@@ -323,6 +323,34 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
                 className="whitespace-nowrap"
               >
                 Forgot Password
+              </motion.span>
+            </motion.button>
+            {/* Theme Toggle Button */}
+            <motion.button
+              onClick={toggleTheme}
+              className={`flex items-center w-full h-12 rounded-lg transition-colors ${
+                isOpen
+                  ? "justify-start px-4 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                  : "justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+              }`}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <motion.div
+                className="flex items-center justify-center mr-2"
+                variants={iconContainerVariants}
+                initial="closed"
+                animate={isOpen ? "open" : "closed"}
+              >
+                {theme === "light" ? <FiMoon size={20} /> : <FiSun size={20} />}
+              </motion.div>
+              <motion.span
+                variants={textVariants}
+                initial="closed"
+                animate={isOpen ? "open" : "closed"}
+                className="whitespace-nowrap"
+              >
+                {theme === "light" ? "Dark Mode" : "Light Mode"}
               </motion.span>
             </motion.button>
           </div>

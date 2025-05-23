@@ -49,6 +49,38 @@ export const LessonContent = ({ lesson }: { lesson: any }) => {
       navigator.clipboard.writeText(lesson.link);
     }
   };
+  const handleDownload = async (url: string, baseFilename: string) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+
+      // Extract extension from MIME type
+      const mimeToExt: Record<string, string> = {
+        "application/pdf": "pdf",
+        "image/jpeg": "jpg",
+        "image/png": "png",
+        "image/webp": "webp",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+          "docx",
+        "application/msword": "doc",
+        "application/zip": "zip",
+        "text/plain": "txt",
+        // Add more as needed
+      };
+
+      const ext = mimeToExt[blob.type] || "bin"; // fallback to .bin
+      const filename = `${baseFilename}.${ext}`;
+
+      // Trigger download
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(link.href);
+    } catch (error) {
+      console.error("Download failed", error);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -126,12 +158,10 @@ export const LessonContent = ({ lesson }: { lesson: any }) => {
 
             {lesson?.additionalResources?.map(
               (resource: any, index: number) => (
-                <a
+                <button
                   key={index}
-                  href={resource.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center p-3 border border-cardBorder rounded-lg hover:bg-background transition-colors"
+                  onClick={() => handleDownload(resource.url, resource.name)}
+                  className="w-full cursor-pointer text-left flex items-center p-3 border border-cardBorder rounded-lg hover:bg-background transition-colors"
                 >
                   <span className="p-2 bg-background rounded-md mr-3 text-primary">
                     <LinkIcon className="w-6 h-6" />
@@ -143,7 +173,7 @@ export const LessonContent = ({ lesson }: { lesson: any }) => {
                     </div>
                   </div>
                   <Download className="w-5 h-5 text-muted" />
-                </a>
+                </button>
               )
             )}
           </div>

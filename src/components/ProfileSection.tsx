@@ -142,7 +142,7 @@ const ProfileSection = ({ userData, setUserData }: any) => {
       if (result.success) {
         setOtpState((prev) => ({
           ...prev,
-          otpId: result.otpId || result.data?.otpId,
+          optId: result.otpId || result.data?.otpId,
           isOTPSent: true,
         }));
         toast.success("Verification code sent");
@@ -175,7 +175,7 @@ const ProfileSection = ({ userData, setUserData }: any) => {
           if (editState.field === "phone" || /^\d+$/.test(editState.value)) {
             payload = {
               phoneNumber: editState.value,
-              otpId: otpState.otpId,
+              optId: otpState.otpId,
               otp: otpState.otpCode,
             };
           } else {
