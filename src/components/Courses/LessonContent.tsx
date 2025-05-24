@@ -49,6 +49,7 @@ export const LessonContent = ({ lesson }: { lesson: any }) => {
       navigator.clipboard.writeText(lesson.link);
     }
   };
+
   const handleDownload = async (url: string, baseFilename: string) => {
     try {
       const response = await fetch(url);
@@ -65,6 +66,9 @@ export const LessonContent = ({ lesson }: { lesson: any }) => {
         "application/msword": "doc",
         "application/zip": "zip",
         "text/plain": "txt",
+        "video/mp4": "mp4",
+        "audio/mpeg": "mp3",
+        "audio/wav": "wav",
         // Add more as needed
       };
 
@@ -75,7 +79,9 @@ export const LessonContent = ({ lesson }: { lesson: any }) => {
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
       link.download = filename;
+      document.body.appendChild(link); // Add to DOM for better browser compatibility
       link.click();
+      document.body.removeChild(link); // Clean up
       URL.revokeObjectURL(link.href);
     } catch (error) {
       console.error("Download failed", error);
@@ -139,12 +145,10 @@ export const LessonContent = ({ lesson }: { lesson: any }) => {
         <div className="border-t border-cardBorder pt-4 mt-6">
           <h3 className="text-lg font-medium mb-3">{t.resources}</h3>
           <div className="space-y-2">
-            <a
-              href={lesson.filePath}
-              download
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center p-3 border border-cardBorder rounded-lg hover:bg-background transition-colors"
+            {/* Fixed: Use button with handleDownload instead of anchor tag */}
+            <button
+              onClick={() => handleDownload(lesson.filePath, lesson.title)}
+              className="w-full text-left flex items-center p-3 border border-cardBorder rounded-lg hover:bg-background transition-colors cursor-pointer"
             >
               <span className="p-2 bg-background rounded-md mr-3 text-primary">
                 {getFileTypeIcon(lesson.fileType)}
@@ -154,7 +158,7 @@ export const LessonContent = ({ lesson }: { lesson: any }) => {
                 <div className="text-sm text-muted">{t.downloadMaterial}</div>
               </div>
               <Download className="w-5 h-5 text-muted" />
-            </a>
+            </button>
 
             {lesson?.additionalResources?.map(
               (resource: any, index: number) => (
