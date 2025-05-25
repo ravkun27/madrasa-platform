@@ -353,14 +353,14 @@ const SecuritySection = ({ userData }: SecuritySectionProps) => {
                   )}
                   {userData.phone && (
                     <button
-                      onClick={() => handleVerificationMethodChange("phone")}
+                      // onClick={() => handleVerificationMethodChange("phone")}
                       className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
                         otpState.verificationMethod === "phone"
                           ? "bg-blue-600 text-white shadow"
                           : "text-gray-600 dark:text-gray-300"
                       }`}
                     >
-                      {t.phone}
+                      {t.phone} (Coming Soon)
                     </button>
                   )}
                 </div>

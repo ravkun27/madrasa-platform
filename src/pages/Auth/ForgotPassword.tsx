@@ -7,7 +7,7 @@ import {
   FaArrowLeft,
   FaEnvelope,
   FaPhone,
-  FaWhatsapp,
+  // FaWhatsapp,
   FaLock,
   FaEye,
   FaEyeSlash,
@@ -46,7 +46,7 @@ const ForgotPassword = () => {
   const [currentStep, setCurrentStep] = useState<Steps>(Steps.SEND_OTP);
   const [contactMethod, setContactMethod] = useState<ContactMethod>("email");
   const [email, setEmail] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
+  const [phoneNumber, _setPhoneNumber] = useState("");
   const [otp, setOtp] = useState(["", "", "", ""]);
   const [optId, setOptId] = useState("");
   const [password, setPassword] = useState("");
@@ -476,7 +476,7 @@ const ForgotPassword = () => {
                   </>
                 ) : (
                   <>
-                    <label className={`text-sm font-medium ${labelColor}`}>
+                    {/* <label className={`text-sm font-medium ${labelColor}`}>
                       {t.phone}
                     </label>
                     <input
@@ -486,20 +486,24 @@ const ForgotPassword = () => {
                       onChange={(e) => setPhoneNumber(e.target.value)}
                       required
                       className={`w-full p-3 rounded-lg border ${borderColor} focus:ring-2 focus:ring-primary focus:border-primary ${inputBgColor} ${textColor} transition-all`}
-                    />
+                    /> */}
+                    <div className="w-full flex items-center justify-between rounded-lg bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-100 px-4 py-3 text-sm font-medium">
+                      ⚠️ This feature is coming soon. Verification method
+                      selection will be available in a future update.
+                    </div>
                   </>
                 )}
               </motion.div>
 
               {/* WhatsApp Notice (only for phone) */}
-              {contactMethod === "phone" && (
+              {/* {contactMethod === "phone" && (
                 <motion.div variants={itemVariants} className="space-y-2">
                   <div className="flex items-center gap-2 p-3 rounded-lg bg-blue-50 border border-blue-200 text-blue-800 dark:bg-blue-900/30 dark:border-blue-800 dark:text-blue-300">
                     <FaWhatsapp className="text-lg flex-shrink-0" />
                     <span className="text-sm">{t.whatsappRequired}</span>
                   </div>
                 </motion.div>
-              )}
+              )} */}
 
               {/* Submit Button */}
               <motion.button
