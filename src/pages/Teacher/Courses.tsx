@@ -51,6 +51,9 @@ export const Courses = ({ course }: { course: any }) => {
   const [isEnrollable, setIsEnrollable] = useState(course?.enrollable || false);
   const [showStudents, setShowStudents] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(
+    null
+  );
 
   const [addSectionToggle, setAddSectionToggle] = useState(false);
   const [crop, setCrop] = useState<Crop>();
@@ -357,14 +360,18 @@ export const Courses = ({ course }: { course: any }) => {
         />
       )}
 
-      {showDeleteConfirm && (
+      {showDeleteConfirm && selectedStudentId && (
         <ConfirmationModal
-          message="Are you sure you want to delete this course?"
+          message="Are you sure you want to remove this student?"
           onConfirm={() => {
-            deleteCourse();
+            kickStudent(course._id, selectedStudentId);
             setShowDeleteConfirm(false);
+            setSelectedStudentId(null);
           }}
-          onCancel={() => setShowDeleteConfirm(false)}
+          onCancel={() => {
+            setShowDeleteConfirm(false);
+            setSelectedStudentId(null);
+          }}
         />
       )}
 
@@ -674,9 +681,10 @@ export const Courses = ({ course }: { course: any }) => {
                             {student?.phoneNumber}
                           </span>
                           <button
-                            onClick={() =>
-                              kickStudent(course._id, student?._id)
-                            }
+                            onClick={() => {
+                              setSelectedStudentId(student._id);
+                              setShowDeleteConfirm(true);
+                            }}
                             className="text-red-500 hover:text-red-600 p-2"
                           >
                             <FiTrash2 size={18} />
