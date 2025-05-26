@@ -150,7 +150,8 @@ const SecuritySection = ({ userData }: SecuritySectionProps) => {
         payload = {
           phoneNumber: userData.phone,
           method: "whatsapp", // Default to WhatsApp for password reset via phone
-          country:'iraq'
+          country: "iraq",
+          // country: "india",
         };
       } else {
         toast.error(t.noValidVerificationMethod);
@@ -163,7 +164,7 @@ const SecuritySection = ({ userData }: SecuritySectionProps) => {
       if (result.success) {
         setOtpState((prev) => ({
           ...prev,
-          optId: result.data?.otpId,
+          otpId: result.data?.optId,
           isOTPSent: true,
         }));
       }
@@ -172,6 +173,8 @@ const SecuritySection = ({ userData }: SecuritySectionProps) => {
       setIsLoading(false);
     }
   };
+
+  console.log(otpState);
 
   const handleUpdatePassword = async () => {
     if (!editState.value) {
@@ -195,6 +198,8 @@ const SecuritySection = ({ userData }: SecuritySectionProps) => {
       const payload = {
         password: editState.value,
         optId: otpState.otpId,
+        // country: "india",
+        country: "iraq",
         otp: otpState.otpCode,
         ...(otpState.verificationMethod === "phone"
           ? { phoneNumber: userData.phone }
