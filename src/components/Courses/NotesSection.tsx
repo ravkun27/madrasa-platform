@@ -27,67 +27,54 @@ export const NotesSection = ({
     null
   );
 
-  // Use effect to set local notes when lesson changes
+  const currentImageCount = localNotes.filter((note) => note?.url).length;
+
   useEffect(() => {
-    if (lesson?.note?.content) {
-      const filteredNotes = Array.isArray(lesson.note.content)
-        ? lesson.note.content.filter((item: any) => item !== null)
-        : [];
-      setLocalNotes(
-        filteredNotes.filter(
-          (note: any) => note?.title || note?.description || note?.url
-        )
+    const initNotes = async () => {
+      if (!lesson?.note?.content) {
+        setLocalNotes([]);
+        return;
+      }
+
+      const validNotes = lesson.note.content.filter(
+        (note: any) => note && (note.title || note.description || note.url)
       );
-    } else {
-      setLocalNotes([]);
-    }
+
+      setLocalNotes(validNotes);
+      await fetchImageUrls(validNotes);
+    };
+
+    initNotes();
   }, [lesson]);
 
-  const currentImageCount = localNotes.filter((note: any) => note?.url).length;
-
-  const fetchNoteImageUrls = async () => {
-    if (!localNotes.length) {
-      setIsLoading(false);
-      return;
-    }
-
+  const fetchImageUrls = async (notes: any[]) => {
+    const urls: Record<string, string> = {};
     setIsLoading(true);
-    const urlMap: Record<string, string> = {};
 
-    for (const note of localNotes) {
-      if (note?._id && note?.url) {
-        try {
-          const viewLinkRes: any = await getFetch(
-            `/user/student/course/getViewableLink?filename=${note.url}`
-          );
-
-          if (viewLinkRes?.success && viewLinkRes?.data?.signedUrl) {
-            urlMap[note._id] = viewLinkRes.data.signedUrl;
+    await Promise.all(
+      notes.map(async (note) => {
+        if (note?._id && note.url) {
+          try {
+            const res: any = await getFetch(
+              `/user/student/course/getViewableLink?filename=${note.url}`
+            );
+            if (res?.success && res.data?.signedUrl) {
+              urls[note._id] = res.data.signedUrl;
+            }
+          } catch (err) {
+            console.error("Error fetching image URL:", err);
           }
-        } catch (error) {
-          console.error("Error fetching image URL:", error);
         }
-      }
-    }
+      })
+    );
 
-    setNoteUrls(urlMap);
+    setNoteUrls(urls);
     setIsLoading(false);
   };
 
-  useEffect(() => {
-    if (lesson) {
-      fetchNoteImageUrls();
-    }
-  }, [lesson, localNotes]);
-
   const handleAddNote = async () => {
-    if (!newNote || !newNote.title || !newNote.description) {
-      toast.error("Title and description are required");
-      return;
-    }
-
-    if (!previewImage) {
-      toast.error("Image is required");
+    if (!newNote.title || !newNote.description || !previewImage) {
+      toast.error("Title, description, and image are required");
       return;
     }
 
@@ -99,23 +86,19 @@ export const NotesSection = ({
     setIsAdding(true);
 
     try {
-      // Get upload URL
       const uploadUrlRes: any = await getFetch(
         `/user/student/course/getUpdateLink?filename=${encodeURIComponent(
           previewImage.name
         )}&contentType=${previewImage.type}&courseId=${courseId}`
       );
+      if (!uploadUrlRes?.success) throw new Error("Upload URL failed");
 
-      if (!uploadUrlRes?.success) throw new Error("Failed to get upload URL");
-
-      // Upload the image
-      const uploadResponse = await fetch(uploadUrlRes.data.signedUrl, {
+      const uploadRes = await fetch(uploadUrlRes.data.signedUrl, {
         method: "PUT",
         body: previewImage,
         headers: { "Content-Type": previewImage.type },
       });
-
-      if (!uploadResponse.ok) throw new Error("Image upload failed");
+      if (!uploadRes.ok) throw new Error("Upload failed");
 
       const noteRes: any = await postFetch(
         `/user/student/course/note?courseId=${courseId}&lessonId=${lesson._id}`,
@@ -130,66 +113,33 @@ export const NotesSection = ({
         }
       );
 
-      if (!noteRes?.success) throw new Error("Failed to create note");
-
-      const createdNote = noteRes.data.note.content.find(
+      const createdNote = noteRes?.data?.note?.content?.find(
         (n: any) =>
-          n?.title === newNote.title && n?.description === newNote.description
+          n.title === newNote.title && n.description === newNote.description
       );
+      if (!createdNote) throw new Error("Note creation failed");
 
-      if (!createdNote) throw new Error("Note not returned from server");
-
-      // Get viewable URL for image
-      const viewLinkRes: any = await getFetch(
+      const viewRes: any = await getFetch(
         `/user/student/course/getViewableLink?filename=${uploadUrlRes.data.fileKey}`
       );
-
-      if (!viewLinkRes?.success || !viewLinkRes?.data?.signedUrl) {
-        throw new Error("Image not accessible");
+      if (!viewRes?.success || !viewRes.data?.signedUrl) {
+        throw new Error("View link failed");
       }
 
-      // ✅ Only update UI here after all succeeds
+      // ✅ Real-time state update
       setLocalNotes((prev) => [...prev, createdNote]);
       setNoteUrls((prev) => ({
         ...prev,
-        [createdNote._id]: viewLinkRes.data.signedUrl,
+        [createdNote._id]: viewRes.data.signedUrl,
       }));
-
+      setNewNote({ title: "", description: "" });
+      setPreviewImage(null);
       toast.success("Note added successfully");
     } catch (err: any) {
       console.error(err);
-      toast.error(err.message || "Something went wrong while adding the note");
+      toast.error(err.message || "Failed to add note");
     } finally {
       setIsAdding(false);
-    }
-  };
-
-  const handleDeleteNote = async (noteId: string, contentId: string) => {
-    // Mark note as deleting for visual feedback
-    setDeletingNoteIds((prev) => [...prev, contentId]);
-
-    try {
-      const updateRes: any = await putFetch(
-        `/user/student/course/note?courseId=${courseId}&lessonId=${lesson._id}&noteId=${noteId}&contentId=${contentId}`,
-        { content: null }
-      );
-
-      if (updateRes?.success) {
-        toast.success("Note deleted successfully");
-
-        // Remove the note from local state
-        setLocalNotes((prev) =>
-          prev.filter((note) => note && note._id !== contentId)
-        );
-      } else {
-        throw new Error("Failed to delete note");
-      }
-    } catch (error) {
-      console.error("Error deleting note:", error);
-      toast.error("Failed to delete note");
-
-      // Remove from deleting list on failure
-      setDeletingNoteIds((prev) => prev.filter((id) => id !== contentId));
     }
   };
 
@@ -198,13 +148,33 @@ export const NotesSection = ({
     setShowDeleteConfirm(true);
   };
 
-  const handleConfirmDelete = () => {
-    if (noteToDelete) {
-      const [noteId, contentId] = noteToDelete;
-      handleDeleteNote(noteId, contentId);
+  const handleConfirmDelete = async () => {
+    if (!noteToDelete) return;
+    const [noteId, contentId] = noteToDelete;
+    setDeletingNoteIds((prev) => [...prev, contentId]);
+
+    try {
+      const res: any = await putFetch(
+        `/user/student/course/note?courseId=${courseId}&lessonId=${lesson._id}&noteId=${noteId}&contentId=${contentId}`,
+        { content: null }
+      );
+      if (!res?.success) throw new Error("Deletion failed");
+
+      setLocalNotes((prev) => prev.filter((note) => note._id !== contentId));
+      setNoteUrls((prev) => {
+        const updated = { ...prev };
+        delete updated[contentId];
+        return updated;
+      });
+      toast.success("Note deleted");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to delete note");
+    } finally {
+      setDeletingNoteIds((prev) => prev.filter((id) => id !== contentId));
+      setNoteToDelete(null);
+      setShowDeleteConfirm(false);
     }
-    setShowDeleteConfirm(false);
-    setNoteToDelete(null);
   };
 
   if (!lesson) return null;

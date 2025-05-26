@@ -128,9 +128,13 @@ const ProfileSection = ({ userData, setUserData }: any) => {
         "/user/send_OTP_for_updateMailOrPhone?for=updateMailOrPhone";
       let payload = {};
 
-      if (editState.field === "phone") {
+      if (editState.field === "phone" || /^\d+$/.test(editState.value)) {
+        let phone = editState.value.replace(/\D/g, ""); // Remove non-digits
+        if (phone.startsWith("0")) phone = phone.slice(1); // Remove leading 0
+        if (phone.length > 10) phone = phone.slice(-10); // Keep last 10 digits
+
         payload = {
-          phoneNumber: editState.value,
+          phoneNumber: phone,
           method: otpState.method,
         };
       } else if (editState.field === "email") {
@@ -140,12 +144,13 @@ const ProfileSection = ({ userData, setUserData }: any) => {
       const result: any = await postFetch(endpoint, payload);
 
       if (result.success) {
+        console.log(result);
+
         setOtpState((prev) => ({
           ...prev,
-          optId: result.otpId || result.data?.otpId,
+          otpId: result.data?.optId,
           isOTPSent: true,
         }));
-        toast.success("Verification code sent");
       }
     } catch (error: any) {
       toast.error(error.message || "Failed to send verification code");
@@ -173,8 +178,12 @@ const ProfileSection = ({ userData, setUserData }: any) => {
         case "email":
           endpoint = "/user/phone_or_email";
           if (editState.field === "phone" || /^\d+$/.test(editState.value)) {
+            let phone = editState.value.replace(/\D/g, ""); // Remove non-digits
+            if (phone.startsWith("0")) phone = phone.slice(1); // Remove leading 0
+            if (phone.length > 10) phone = phone.slice(-10); // Keep last 10 digits
+
             payload = {
-              phoneNumber: editState.value,
+              phoneNumber: phone,
               optId: otpState.otpId,
               otp: otpState.otpCode,
             };
@@ -362,17 +371,6 @@ const ProfileSection = ({ userData, setUserData }: any) => {
                       placeholder={t.common.enterVerificationCode}
                       className="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 py-2 px-3 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                     />
-                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                      {field === "email"
-                        ? t.profileSection.codeSentTo.replace(
-                            "{editState.value}",
-                            editState.value
-                          )
-                        : t.profileSection.codeSentTo.replace(
-                            "{editState.value}",
-                            `WhatsApp (${editState.value})`
-                          )}
-                    </p>
                   </div>
 
                   <div className="flex justify-end gap-3">

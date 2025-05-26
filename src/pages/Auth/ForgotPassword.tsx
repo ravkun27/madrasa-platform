@@ -7,14 +7,16 @@ import {
   FaArrowLeft,
   FaEnvelope,
   FaPhone,
-  // FaWhatsapp,
-  FaLock,
+  FaWhatsapp,
   FaEye,
   FaEyeSlash,
 } from "react-icons/fa";
+import { ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import { useLanguage } from "../../context/LanguageContext";
+import CountryList from "country-list-with-dial-code-and-flag";
+import Flag from "react-world-flags";
 
 type SendOTPResponse = {
   success: boolean;
@@ -42,11 +44,12 @@ const ForgotPassword = () => {
   const { theme } = useTheme();
   const { language } = useLanguage();
   const navigate = useNavigate();
+  const CountryOptions = CountryList.getAll();
 
   const [currentStep, setCurrentStep] = useState<Steps>(Steps.SEND_OTP);
   const [contactMethod, setContactMethod] = useState<ContactMethod>("email");
   const [email, setEmail] = useState("");
-  const [phoneNumber, _setPhoneNumber] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [otp, setOtp] = useState(["", "", "", ""]);
   const [optId, setOptId] = useState("");
   const [password, setPassword] = useState("");
@@ -56,6 +59,16 @@ const ForgotPassword = () => {
   const [resendCountdown, setResendCountdown] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
+  const [countrySearch, setCountrySearch] = useState("");
+
+  // Add missing selectedCountry state
+  const [selectedCountry, setSelectedCountry] = useState({
+    name: "united states",
+    dial_code: "+1",
+    code: "US",
+    flag: "🇺🇸",
+  });
 
   // Animations
   const containerVariants = {
@@ -120,6 +133,7 @@ const ForgotPassword = () => {
       backToLogin: "Back to Login",
       otpExpired: "OTP expired. Please request a new one.",
       errorOccurred: "Something went wrong. Please try again.",
+      searchCountry: "Search country",
     },
     ar: {
       forgotPassword: "نسيت كلمة المرور",
@@ -159,6 +173,7 @@ const ForgotPassword = () => {
       backToLogin: "العودة إلى تسجيل الدخول",
       otpExpired: "انتهت صلاحية رمز OTP. يرجى طلب رمز جديد.",
       errorOccurred: "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
+      searchCountry: "ابحث عن الدولة",
     },
   };
 
@@ -241,7 +256,11 @@ const ForgotPassword = () => {
       const payload =
         contactMethod === "email"
           ? { email }
-          : { phoneNumber: phoneNumber.replace(/^0/, ""), method: "whatsapp" };
+          : {
+              phoneNumber: phoneNumber.replace(/^0/, ""),
+              method: "whatsapp",
+              country: selectedCountry.name,
+            };
 
       const result = await postFetch<SendOTPResponse>(
         "/user/sendOTP?for=forgetPassword",
@@ -265,6 +284,7 @@ const ForgotPassword = () => {
       }
     } catch (error: any) {
       console.error(error);
+      toast.error(t.errorOccurred);
     } finally {
       setLoading(false);
     }
@@ -310,6 +330,7 @@ const ForgotPassword = () => {
               password,
               optId,
               otp: otpValue,
+              country: selectedCountry.name,
             };
 
       const result = await patchFetch<ResetPasswordResponse>(
@@ -382,6 +403,10 @@ const ForgotPassword = () => {
   const textColor = isDark ? "text-white" : "text-gray-900";
   const labelColor = isDark ? "text-gray-300" : "text-gray-700";
   const mutedTextColor = isDark ? "text-gray-400" : "text-gray-500";
+
+  const filteredCountries = CountryOptions.filter((c) =>
+    c.name.toLowerCase().includes(countrySearch)
+  );
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-b from-background to-background/90">
@@ -476,51 +501,138 @@ const ForgotPassword = () => {
                   </>
                 ) : (
                   <>
-                    {/* <label className={`text-sm font-medium ${labelColor}`}>
+                    <label className={`text-sm font-medium ${labelColor}`}>
                       {t.phone}
                     </label>
-                    <input
-                      type="tel"
-                      placeholder={t.phonePlaceholder}
-                      value={phoneNumber}
-                      onChange={(e) => setPhoneNumber(e.target.value)}
-                      required
-                      className={`w-full p-3 rounded-lg border ${borderColor} focus:ring-2 focus:ring-primary focus:border-primary ${inputBgColor} ${textColor} transition-all`}
-                    /> */}
-                    <div className="w-full flex items-center justify-between rounded-lg bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-100 px-4 py-3 text-sm font-medium">
-                      ⚠️ This feature is coming soon. Verification method
-                      selection will be available in a future update.
+                    <div className="flex flex-col md:flex-row gap-3">
+                      {/* Country Code Dropdown */}
+                      <div
+                        className="relative w-full md:w-1/3"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div
+                          className={`relative flex items-center justify-between px-3 py-3 rounded-lg border ${borderColor} hover:border-gray-400 dark:hover:border-gray-500 focus-within:ring-2 focus-within:ring-primary focus-within:border-transparent transition-all cursor-pointer`}
+                          onClick={() =>
+                            setIsCountryDropdownOpen(!isCountryDropdownOpen)
+                          }
+                        >
+                          <div className="flex items-center gap-2">
+                            <Flag
+                              code={selectedCountry?.code.toLowerCase()}
+                              style={{ width: 24, height: 16 }}
+                              className="rounded-sm"
+                            />
+                            <span className={`font-medium ${textColor}`}>
+                              {selectedCountry?.dial_code}
+                            </span>
+                          </div>
+                          <ChevronDown
+                            size={18}
+                            className={`text-gray-500 transition-transform duration-200 ${
+                              isCountryDropdownOpen ? "rotate-180" : ""
+                            }`}
+                          />
+                        </div>
+
+                        {/* Country Dropdown */}
+                        {isCountryDropdownOpen && (
+                          <div
+                            className={`absolute z-10 mt-1 w-full min-w-[250px] max-h-60 overflow-y-auto ${inputBgColor} border ${borderColor} rounded-lg shadow-lg left-0 right-0`}
+                          >
+                            <div
+                              className={`sticky top-0 ${inputBgColor} border-b ${borderColor} p-2`}
+                            >
+                              <input
+                                type="text"
+                                placeholder={t.searchCountry}
+                                value={countrySearch}
+                                onChange={(e) =>
+                                  setCountrySearch(e.target.value.toLowerCase())
+                                }
+                                className={`w-full p-2 border rounded-md text-sm ${textColor} ${inputBgColor} ${borderColor}`}
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            </div>
+                            <div className="py-1">
+                              {filteredCountries.map((c) => (
+                                <div
+                                  key={`${c.dial_code}-${c?.code}`}
+                                  className={`flex items-center gap-2 px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer`}
+                                  onClick={() => {
+                                    setSelectedCountry({
+                                      name: c.name.toLowerCase(),
+                                      dial_code: c.dial_code,
+                                      code: c.code,
+                                      flag: c.flag,
+                                    });
+                                    setIsCountryDropdownOpen(false);
+                                  }}
+                                >
+                                  <Flag
+                                    code={c.code.toLowerCase()}
+                                    style={{ width: 24, height: 16 }}
+                                    className="rounded-sm flex-shrink-0"
+                                  />
+                                  <span
+                                    className={`text-sm font-medium ${textColor} truncate flex-1`}
+                                  >
+                                    {c.name}
+                                  </span>
+                                  <span
+                                    className={`text-sm ${mutedTextColor} flex-shrink-0`}
+                                  >
+                                    {c.dial_code}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Phone Number Input */}
+                      <input
+                        type="tel"
+                        placeholder={t.phonePlaceholder}
+                        value={phoneNumber}
+                        onChange={(e) =>
+                          setPhoneNumber(
+                            e.target.value.replace(/\D/g, "").slice(0, 15)
+                          )
+                        }
+                        required
+                        className={`flex-grow p-3 rounded-lg border ${borderColor} focus:ring-2 focus:ring-primary focus:border-primary ${inputBgColor} ${textColor} transition-all`}
+                      />
+                    </div>
+
+                    {/* WhatsApp Info */}
+                    <div
+                      className={`flex items-center gap-2 text-sm ${mutedTextColor}`}
+                    >
+                      <FaWhatsapp className="text-green-500" />
+                      {t.whatsappRequired}
                     </div>
                   </>
                 )}
               </motion.div>
 
-              {/* WhatsApp Notice (only for phone) */}
-              {/* {contactMethod === "phone" && (
-                <motion.div variants={itemVariants} className="space-y-2">
-                  <div className="flex items-center gap-2 p-3 rounded-lg bg-blue-50 border border-blue-200 text-blue-800 dark:bg-blue-900/30 dark:border-blue-800 dark:text-blue-300">
-                    <FaWhatsapp className="text-lg flex-shrink-0" />
-                    <span className="text-sm">{t.whatsappRequired}</span>
-                  </div>
-                </motion.div>
-              )} */}
-
-              {/* Submit Button */}
+              {/* Send OTP Button */}
               <motion.button
-                variants={itemVariants}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
+                variants={itemVariants}
                 onClick={handleSendOTP}
-                disabled={loading}
-                className={`w-full py-3.5 rounded-lg font-semibold ${primaryBgColor} text-white ${hoverBgColor} transition-all duration-300 flex items-center justify-center gap-2 shadow-lg ${
-                  loading ? "opacity-70 cursor-not-allowed" : ""
+                disabled={loading || resendDisabled}
+                className={`w-full px-6 py-3 rounded-lg font-medium transition-all flex items-center justify-center gap-2 ${
+                  loading || resendDisabled
+                    ? `bg-gray-300 dark:bg-gray-700 text-gray-500 cursor-not-allowed`
+                    : `${primaryBgColor} text-white ${hoverBgColor}`
                 }`}
               >
                 {loading ? (
-                  <>
-                    <FaSpinner className="animate-spin" />
-                    {t.sendOTP}...
-                  </>
+                  <FaSpinner className="animate-spin" />
+                ) : resendDisabled ? (
+                  `${t.resendIn} ${resendCountdown}s`
                 ) : (
                   t.sendOTP
                 )}
@@ -538,64 +650,60 @@ const ForgotPassword = () => {
               variants={containerVariants}
               className="space-y-5"
             >
-              <motion.p
-                variants={itemVariants}
-                className={`text-center ${mutedTextColor}`}
-              >
-                {t.otpSent} {contactMethod === "email" ? email : phoneNumber}
-              </motion.p>
-
-              <motion.div variants={itemVariants} className="space-y-2">
-                <label
-                  className={`text-sm font-medium block text-center ${labelColor}`}
-                >
+              <motion.div variants={itemVariants} className="text-center">
+                <p className={`text-sm ${mutedTextColor} mb-4`}>
+                  {t.otpSent} {contactMethod === "email" ? email : phoneNumber}
+                </p>
+                <p className={`text-sm font-medium ${labelColor} mb-6`}>
                   {t.enterOTP}
-                </label>
-                <div className="flex justify-center gap-3 mt-3">
-                  {[0, 1, 2, 3].map((index) => (
-                    <input
-                      key={index}
-                      id={`otp-${index}`}
-                      type="text"
-                      maxLength={1}
-                      value={otp[index]}
-                      onChange={(e) => handleOtpChange(index, e.target.value)}
-                      onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                      className={`w-14 h-14 text-center text-xl font-bold rounded-lg border ${borderColor} focus:ring-2 focus:ring-primary focus:border-primary ${inputBgColor} ${textColor} transition-all`}
-                    />
-                  ))}
-                </div>
+                </p>
               </motion.div>
 
-              {/* Resend OTP */}
-              <motion.div variants={itemVariants} className="text-center">
-                {resendDisabled ? (
-                  <p className={`text-sm ${mutedTextColor}`}>
-                    {t.resendIn}{" "}
-                    <span className="font-semibold">{resendCountdown}</span>{" "}
-                    {t.seconds}
-                  </p>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={handleResendOTP}
-                    className={`text-sm font-medium ${primaryColor} hover:underline`}
-                  >
-                    {t.resendOTP}
-                  </button>
-                )}
+              {/* OTP Input */}
+              <motion.div
+                variants={itemVariants}
+                className="flex gap-3 justify-center"
+              >
+                {otp.map((digit, index) => (
+                  <input
+                    key={index}
+                    id={`otp-${index}`}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={1}
+                    value={digit}
+                    onChange={(e) => handleOtpChange(index, e.target.value)}
+                    onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                    className={`w-12 h-12 text-center text-lg font-bold rounded-lg border-2 ${borderColor} focus:ring-2 focus:ring-primary focus:border-primary ${inputBgColor} ${textColor} transition-all`}
+                  />
+                ))}
               </motion.div>
 
               {/* Verify Button */}
               <motion.button
-                variants={itemVariants}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
+                variants={itemVariants}
                 onClick={handleVerifyOTP}
-                className={`w-full py-3.5 rounded-lg font-semibold ${primaryBgColor} text-white ${hoverBgColor} transition-all duration-300 flex items-center justify-center gap-2 shadow-lg`}
+                className={`w-full px-6 py-3 rounded-lg font-medium transition-all ${primaryBgColor} text-white ${hoverBgColor}`}
               >
                 {t.verify}
               </motion.button>
+
+              {/* Resend OTP */}
+              <motion.div variants={itemVariants} className="text-center">
+                <button
+                  onClick={handleResendOTP}
+                  disabled={resendDisabled}
+                  className={`text-sm ${
+                    resendDisabled ? mutedTextColor : primaryColor
+                  } hover:underline transition-all`}
+                >
+                  {resendDisabled
+                    ? `${t.resendIn} ${resendCountdown} ${t.seconds}`
+                    : t.resendOTP}
+                </button>
+              </motion.div>
             </motion.div>
           )}
 
@@ -611,10 +719,7 @@ const ForgotPassword = () => {
             >
               {/* New Password */}
               <motion.div variants={itemVariants} className="space-y-2">
-                <label
-                  className={`text-sm font-medium flex items-center gap-2 ${labelColor}`}
-                >
-                  <FaLock className="text-xs" />
+                <label className={`text-sm font-medium ${labelColor}`}>
                   {t.enterNewPassword}
                 </label>
                 <div className="relative">
@@ -624,12 +729,12 @@ const ForgotPassword = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className={`w-full p-3 rounded-lg border ${borderColor} focus:ring-2 focus:ring-primary focus:border-primary ${inputBgColor} ${textColor} transition-all`}
+                    className={`w-full p-3 pr-10 rounded-lg border ${borderColor} focus:ring-2 focus:ring-primary focus:border-primary ${inputBgColor} ${textColor} transition-all`}
                   />
                   <button
                     type="button"
                     onClick={() => togglePasswordVisibility("password")}
-                    className={`absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none`}
+                    className={`absolute right-3 top-1/2 transform -translate-y-1/2 ${mutedTextColor} hover:${textColor} transition-colors`}
                   >
                     {showPassword ? <FaEyeSlash /> : <FaEye />}
                   </button>
@@ -638,10 +743,7 @@ const ForgotPassword = () => {
 
               {/* Confirm Password */}
               <motion.div variants={itemVariants} className="space-y-2">
-                <label
-                  className={`text-sm font-medium flex items-center gap-2 ${labelColor}`}
-                >
-                  <FaLock className="text-xs" />
+                <label className={`text-sm font-medium ${labelColor}`}>
                   {t.confirmNewPassword}
                 </label>
                 <div className="relative">

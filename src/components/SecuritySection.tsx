@@ -150,6 +150,7 @@ const SecuritySection = ({ userData }: SecuritySectionProps) => {
         payload = {
           phoneNumber: userData.phone,
           method: "whatsapp", // Default to WhatsApp for password reset via phone
+          country:'iraq'
         };
       } else {
         toast.error(t.noValidVerificationMethod);
@@ -353,14 +354,14 @@ const SecuritySection = ({ userData }: SecuritySectionProps) => {
                   )}
                   {userData.phone && (
                     <button
-                      // onClick={() => handleVerificationMethodChange("phone")}
+                      onClick={() => handleVerificationMethodChange("phone")}
                       className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
                         otpState.verificationMethod === "phone"
                           ? "bg-blue-600 text-white shadow"
                           : "text-gray-600 dark:text-gray-300"
                       }`}
                     >
-                      {t.phone} (Coming Soon)
+                      {t.phone}
                     </button>
                   )}
                 </div>

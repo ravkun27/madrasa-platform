@@ -8,7 +8,7 @@ import {
 } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "../../context/LanguageContext";
-import { putFetch } from "../../utils/apiCall";
+import { putFetch, getFetch } from "../../utils/apiCall";
 import { Check, Circle, Loader2 } from "lucide-react";
 
 interface LessonMeta {
@@ -20,6 +20,22 @@ interface LessonMeta {
 
 interface FullLesson extends LessonMeta {
   [key: string]: any;
+}
+
+interface SectionProgress {
+  _id: string;
+  title: string;
+  description: string;
+  lessonIds: string[];
+  sectionCompleted: number;
+  completedLessons: number;
+  totalLessons: number;
+}
+
+interface CourseProgress {
+  courseCompleted: number;
+  completedLessons: number;
+  totalLessons: number;
 }
 
 export const CourseSidebar = ({
@@ -46,9 +62,96 @@ export const CourseSidebar = ({
   const { language } = useLanguage();
   const [expandedSections, setExpandedSections] = useState<string[]>([]);
   const [loadingLesson, setLoadingLesson] = useState<string | null>(null);
-  const [completionLoading, setCompletionLoading] = useState<Set<string>>(
-    new Set()
+  const [courseProgress, setCourseProgress] = useState<CourseProgress | null>(
+    null
   );
+  const [sectionsProgress, setSectionsProgress] = useState<SectionProgress[]>(
+    []
+  );
+  const [lessonCompletionStates, setLessonCompletionStates] = useState<
+    Record<string, boolean>
+  >({});
+  const [togglingCompletion, setTogglingCompletion] = useState<string | null>(
+    null
+  );
+
+  // Initialize completion states from lessonMetas and fetch individual lesson states
+  useEffect(() => {
+    const initialStates: Record<string, boolean> = {};
+
+    // First set from lessonMetas
+    lessonMetas.forEach((lesson) => {
+      initialStates[lesson._id] = lesson.completed;
+    });
+
+    setLessonCompletionStates(initialStates);
+
+    // Then fetch individual lesson states for accuracy
+    const fetchLessonStates = async () => {
+      const updatedStates = { ...initialStates };
+      let needsUpdate = false;
+
+      for (const lesson of lessonMetas) {
+        try {
+          const response: any = await getFetch(
+            `/user/student/course/lesson?lessonId=${lesson._id}&courseId=${courseId}`
+          );
+          if (response.success && response.lesson) {
+            if (updatedStates[lesson._id] !== response.lesson.completed) {
+              updatedStates[lesson._id] = response.lesson.completed;
+              needsUpdate = true;
+            }
+          }
+        } catch (error) {
+          console.error(`Error fetching lesson ${lesson._id} state:`, error);
+        }
+      }
+
+      if (needsUpdate) {
+        setLessonCompletionStates(updatedStates);
+      }
+    };
+
+    if (courseId) {
+      fetchLessonStates();
+    }
+  }, [courseId, lessonMetas]);
+
+  // Update completion state when selectedLesson changes
+  useEffect(() => {
+    if (selectedLesson) {
+      setLessonCompletionStates((prev) => ({
+        ...prev,
+        [selectedLesson._id]: selectedLesson.completed,
+      }));
+    }
+  }, [selectedLesson]);
+
+  // Fetch course progress data
+  useEffect(() => {
+    const fetchCourseProgress = async () => {
+      try {
+        const response: any = await getFetch(
+          `/user/student/course?courseId=${courseId}`
+        );
+        if (response.success && response.data.course) {
+          const courseData = response.data.course;
+          setCourseProgress({
+            courseCompleted: courseData.courseCompleted,
+            completedLessons: courseData.completedLessons,
+            totalLessons: courseData.totalLessons,
+          });
+          setSectionsProgress(courseData.sectionIds || []);
+        }
+      } catch (error) {
+        console.error("Error fetching course progress:", error);
+      }
+    };
+
+    if (courseId) {
+      fetchCourseProgress();
+    }
+  }, [courseId]);
 
   // Auto-expand section containing selected lesson
   useEffect(() => {
@@ -72,7 +175,6 @@ export const CourseSidebar = ({
   };
 
   const handleLessonClick = async (lessonMeta: LessonMeta) => {
-    // Don't trigger if already selected and loading
     if (
       selectedLesson?._id === lessonMeta._id ||
       loadingLesson === lessonMeta._id
@@ -94,51 +196,114 @@ export const CourseSidebar = ({
 
   const toggleLessonCompletion = async (
     lessonId: string,
-    currentCompleted: boolean
+    event: React.MouseEvent
   ) => {
-    if (!courseId) return;
+    event.stopPropagation();
 
-    setCompletionLoading((prev) => new Set(prev.add(lessonId)));
+    if (togglingCompletion === lessonId) return;
 
-    // Optimistic update
-    const newCompleted = !currentCompleted;
-    onLessonCompletionUpdate?.(lessonId, newCompleted);
+    setTogglingCompletion(lessonId);
 
     try {
-      await putFetch(
+      // First update the UI optimistically
+      const newCompletionState = !lessonCompletionStates[lessonId];
+      setLessonCompletionStates((prev) => ({
+        ...prev,
+        [lessonId]: newCompletionState,
+      }));
+
+      // Then make the API call
+      const response: any = await putFetch(
         `/user/student/course/lesson/completionToggle?courseId=${courseId}&lessonId=${lessonId}`,
         {}
       );
+
+      if (response.success) {
+        // Verify the actual state from the API
+        const verificationResponse: any = await getFetch(
+          `/user/student/course/lesson?lessonId=${lessonId}&courseId=${courseId}`
+        );
+
+        if (verificationResponse.success && verificationResponse.lesson) {
+          const actualState = verificationResponse.lesson.completed;
+          if (actualState !== newCompletionState) {
+            // If there's a mismatch, correct it
+            setLessonCompletionStates((prev) => ({
+              ...prev,
+              [lessonId]: actualState,
+            }));
+          }
+        }
+
+        // Notify parent component
+        if (onLessonCompletionUpdate) {
+          onLessonCompletionUpdate(lessonId, newCompletionState);
+        }
+
+        // Refresh course progress data
+        const courseResponse: any = await getFetch(
+          `/user/student/course?courseId=${courseId}`
+        );
+        if (courseResponse.success && courseResponse.data.course) {
+          const courseData = courseResponse.data.course;
+          setCourseProgress({
+            courseCompleted: courseData.courseCompleted,
+            completedLessons: courseData.completedLessons,
+            totalLessons: courseData.totalLessons,
+          });
+          setSectionsProgress(courseData.sectionIds || []);
+        }
+      } else {
+        // Revert if API call failed
+        setLessonCompletionStates((prev) => ({
+          ...prev,
+          [lessonId]: !newCompletionState,
+        }));
+      }
     } catch (error) {
+      console.error("Error toggling lesson completion:", error);
       // Revert on error
-      onLessonCompletionUpdate?.(lessonId, currentCompleted);
-      console.error("Error toggling completion:", error);
+      setLessonCompletionStates((prev) => ({
+        ...prev,
+        [lessonId]: !lessonCompletionStates[lessonId],
+      }));
     } finally {
-      setCompletionLoading((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(lessonId);
-        return newSet;
-      });
+      setTogglingCompletion(null);
     }
   };
 
-  const calculateProgress = (sectionId: string): number => {
-    const section = course?.sectionIds.find((s: any) => s._id === sectionId);
-    if (!section) return 0;
+  const getProgressPercentage = (completed: number, total: number) => {
+    return total > 0 ? Math.round((completed / total) * 100) : 0;
+  };
 
-    const sectionLessons = lessonMetas.filter(
-      (meta) => meta.sectionId === sectionId
+  const ProgressBar = ({
+    completed,
+    total,
+    className = "",
+  }: {
+    completed: number;
+    total: number;
+    className?: string;
+  }) => {
+    const percentage = getProgressPercentage(completed, total);
+
+    return (
+      <div
+        className={`w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 ${className}`}
+      >
+        <div
+          className="bg-primary h-2 rounded-full transition-all duration-300 ease-in-out"
+          style={{ width: `${percentage}%` }}
+        />
+      </div>
     );
-    const completed = sectionLessons.filter((meta) => meta.completed).length;
-
-    return sectionLessons.length > 0
-      ? Math.round((completed / sectionLessons.length) * 100)
-      : 0;
   };
 
   if (!course) return null;
 
-  const lessonsBySection = course.sectionIds.map((section: any) => ({
+  const lessonsBySection = (
+    sectionsProgress.length > 0 ? sectionsProgress : course.sectionIds || []
+  ).map((section: any) => ({
     section,
     lessons: lessonMetas.filter(
       (meta: LessonMeta) => meta.sectionId === section._id
@@ -165,124 +330,165 @@ export const CourseSidebar = ({
         dir={language}
       >
         {/* Header */}
-        <div className="p-4 border-b flex items-center justify-between bg-background flex-shrink-0">
-          <div className="flex items-center gap-2 min-w-0">
-            <FiBook className="text-text flex-shrink-0" />
-            <h2 className="text-lg font-bold truncate">{course.title}</h2>
+        <div className="p-4 border-b flex-shrink-0 bg-background">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2 min-w-0">
+              <FiBook className="text-text flex-shrink-0" />
+              <h2 className="text-lg font-bold truncate">{course.title}</h2>
+            </div>
+            <button
+              onClick={onMobileClose}
+              className="md:hidden p-2 hover:bg-gray-500/30 rounded-full flex-shrink-0"
+            >
+              <FiX className="text-text" />
+            </button>
           </div>
-          <button
-            onClick={onMobileClose}
-            className="md:hidden p-2 hover:bg-gray-500/30 rounded-full flex-shrink-0"
-          >
-            <FiX className="text-text" />
-          </button>
+
+          {/* Overall Course Progress */}
+          {courseProgress && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted">Overall Progress</span>
+                <span className="font-medium">
+                  {courseProgress.completedLessons}/
+                  {courseProgress.totalLessons} lessons
+                </span>
+              </div>
+              <ProgressBar
+                completed={courseProgress.completedLessons}
+                total={courseProgress.totalLessons}
+              />
+              <div className="text-xs text-muted text-center">
+                {getProgressPercentage(
+                  courseProgress.completedLessons,
+                  courseProgress.totalLessons
+                )}
+                % Complete
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Content with custom scrollbar */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0 sidebar-scroll">
-          {lessonsBySection.map(({ section, lessons: sectionLessons }: any) => (
-            <div key={section._id} className="space-y-2">
-              {/* Section toggle button */}
-              <button
-                onClick={() => toggleSection(section._id)}
-                className="w-full flex items-center justify-between p-3 bg-card rounded-lg hover:bg-card-hover transition-colors"
-              >
-                <div className="text-left flex-1 min-w-0">
-                  <div className="font-medium truncate">{section.title}</div>
-                  {sectionLessons.length > 0 && (
-                    <div className="flex items-center mt-1">
-                      <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-green-500 transition-all duration-300"
-                          style={{
-                            width: `${calculateProgress(section._id)}%`,
-                          }}
-                        />
-                      </div>
-                      <span className="text-sm text-muted mx-2">
-                        {calculateProgress(section._id)}%
-                      </span>
-                    </div>
-                  )}
-                </div>
-                <div className="flex-shrink-0">
-                  {expandedSections.includes(section._id) ? (
-                    <FiChevronUp className="w-5 h-5" />
-                  ) : (
-                    <FiChevronDown className="w-5 h-5" />
-                  )}
-                </div>
-              </button>
+          {lessonsBySection.map(({ section, lessons: sectionLessons }: any) => {
+            const sectionProgress = sectionsProgress.find(
+              (s) => s._id === section._id
+            );
 
-              {/* Lessons */}
-              <AnimatePresence>
-                {expandedSections.includes(section._id) && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="space-y-1 ml-4 overflow-hidden"
+            return (
+              <div key={section._id} className="space-y-2">
+                {/* Section toggle button with progress */}
+                <div className="space-y-2">
+                  <button
+                    onClick={() => toggleSection(section._id)}
+                    className="w-full flex items-center justify-between p-3 bg-card rounded-lg hover:bg-card-hover transition-colors"
                   >
-                    {sectionLessons.length === 0 ? (
-                      <p className="text-muted text-sm py-2">
-                        No content available
-                      </p>
-                    ) : (
-                      sectionLessons.map((lessonMeta: LessonMeta) => (
-                        <div
-                          key={lessonMeta._id}
-                          className={`w-full flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors ${
-                            selectedLesson?._id === lessonMeta._id
-                              ? "bg-primary/10 text-primary border border-primary/20"
-                              : "hover:bg-white/5"
-                          } ${loadingLesson === lessonMeta._id ? "opacity-70" : ""}`}
-                          onClick={() => handleLessonClick(lessonMeta)}
-                        >
-                          <div className="flex items-center gap-2 flex-1 min-w-0">
-                            {loadingLesson === lessonMeta._id && (
-                              <Loader2 className="w-4 h-4 animate-spin flex-shrink-0 text-primary" />
-                            )}
-                            <span className="truncate text-sm">
-                              {lessonMeta.title || "Untitled Lesson"}
-                            </span>
-                          </div>
-
-                          <div
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleLessonCompletion(
-                                lessonMeta._id,
-                                lessonMeta.completed
-                              );
-                            }}
-                            className={`p-1 rounded-full cursor-pointer flex-shrink-0 transition-colors ${
-                              lessonMeta.completed
-                                ? "text-green-500 hover:bg-green-50"
-                                : "text-muted hover:bg-gray-100"
-                            } ${completionLoading.has(lessonMeta._id) ? "opacity-50" : ""}`}
-                            title={
-                              lessonMeta.completed
-                                ? "Mark as incomplete"
-                                : "Mark as complete"
-                            }
-                          >
-                            {completionLoading.has(lessonMeta._id) ? (
-                              <Loader2 className="w-5 h-5 animate-spin" />
-                            ) : lessonMeta.completed ? (
-                              <Check className="w-5 h-5" />
-                            ) : (
-                              <Circle className="w-5 h-5" />
-                            )}
-                          </div>
+                    <div className="text-left flex-1 min-w-0">
+                      <div className="font-medium truncate">
+                        {section.title}
+                      </div>
+                      {sectionProgress && (
+                        <div className="text-xs text-muted mt-1">
+                          {sectionProgress.completedLessons}/
+                          {sectionProgress.totalLessons} lessons
                         </div>
-                      ))
-                    )}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          ))}
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {sectionProgress && (
+                        <div className="text-xs text-muted">
+                          {getProgressPercentage(
+                            sectionProgress.completedLessons,
+                            sectionProgress.totalLessons
+                          )}
+                          %
+                        </div>
+                      )}
+                      {expandedSections.includes(section._id) ? (
+                        <FiChevronUp className="w-5 h-5" />
+                      ) : (
+                        <FiChevronDown className="w-5 h-5" />
+                      )}
+                    </div>
+                  </button>
+                </div>
+
+                {/* Lessons */}
+                <AnimatePresence>
+                  {expandedSections.includes(section._id) && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="space-y-1 ml-4 overflow-hidden"
+                    >
+                      {sectionLessons.length === 0 ? (
+                        <p className="text-muted text-sm py-2">
+                          No content available
+                        </p>
+                      ) : (
+                        sectionLessons.map((lessonMeta: LessonMeta) => {
+                          const isCompleted =
+                            lessonCompletionStates[lessonMeta._id] ?? false;
+                          const isToggling =
+                            togglingCompletion === lessonMeta._id;
+
+                          return (
+                            <div
+                              key={lessonMeta._id}
+                              className={`w-full flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors ${
+                                selectedLesson?._id === lessonMeta._id
+                                  ? "bg-primary/10 text-primary border border-primary/20"
+                                  : "hover:bg-white/5"
+                              } ${loadingLesson === lessonMeta._id ? "opacity-70" : ""}`}
+                              onClick={() => handleLessonClick(lessonMeta)}
+                            >
+                              <div className="flex items-center gap-2 flex-1 min-w-0">
+                                {loadingLesson === lessonMeta._id && (
+                                  <Loader2 className="w-4 h-4 animate-spin flex-shrink-0 text-primary" />
+                                )}
+                                <span className="truncate text-sm">
+                                  {lessonMeta.title || "Untitled Lesson"}
+                                </span>
+                              </div>
+
+                              {/* Completion Toggle Button */}
+                              <button
+                                onClick={(e) =>
+                                  toggleLessonCompletion(lessonMeta._id, e)
+                                }
+                                disabled={isToggling}
+                                className={`p-1 rounded-full transition-colors flex-shrink-0 ml-2 ${
+                                  isCompleted
+                                    ? "text-green-500 hover:text-green-600"
+                                    : "text-gray-400 hover:text-gray-600"
+                                } ${isToggling ? "opacity-50" : ""}`}
+                                title={
+                                  isCompleted
+                                    ? "Mark as incomplete"
+                                    : "Mark as complete"
+                                }
+                              >
+                                {isToggling ? (
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : isCompleted ? (
+                                  <Check className="w-4 h-4" />
+                                ) : (
+                                  <Circle className="w-4 h-4" />
+                                )}
+                              </button>
+                            </div>
+                          );
+                        })
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            );
+          })}
         </div>
       </motion.div>
     </>
