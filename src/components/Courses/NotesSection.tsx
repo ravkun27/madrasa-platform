@@ -30,9 +30,11 @@ export const NotesSection = ({
   const currentImageCount = localNotes.filter((note) => note?.url).length;
 
   useEffect(() => {
+    // Update the initNotes function in useEffect
     const initNotes = async () => {
       if (!lesson?.note?.content) {
         setLocalNotes([]);
+        setIsLoading(false); // Add this line to stop loading
         return;
       }
 
@@ -43,7 +45,6 @@ export const NotesSection = ({
       setLocalNotes(validNotes);
       await fetchImageUrls(validNotes);
     };
-
     initNotes();
   }, [lesson]);
 

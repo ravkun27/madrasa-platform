@@ -1,5 +1,6 @@
 import { useLanguage } from "../../context/LanguageContext";
 import { MediaModal } from "../Modal/MediaModal";
+import { useMemo, useCallback } from "react";
 import {
   Download,
   FileText,
@@ -13,25 +14,30 @@ import {
 
 export const LessonContent = ({ lesson }: { lesson: any }) => {
   const { language } = useLanguage();
-  const translations = {
-    en: {
-      copy: "Copy",
-      open: "Open",
-      resources: "Resources",
-      downloadMaterial: "Download lesson material",
-    },
-    ar: {
-      copy: "نسخ",
-      open: "فتح",
-      resources: "الموارد",
-      downloadMaterial: "تحميل المادة التعليمية",
-    },
-  };
+
+  // Memoize translations to prevent unnecessary rerenders
+  const translations = useMemo(
+    () => ({
+      en: {
+        copy: "Copy",
+        open: "Open",
+        resources: "Resources",
+        downloadMaterial: "Download lesson material",
+      },
+      ar: {
+        copy: "نسخ",
+        open: "فتح",
+        resources: "الموارد",
+        downloadMaterial: "تحميل المادة التعليمية",
+      },
+    }),
+    []
+  );
 
   const t = translations[language];
-  if (!lesson) return null;
 
-  const getFileTypeIcon = (fileType: string) => {
+  // Memoize the file type icon function
+  const getFileTypeIcon = useCallback((fileType: string) => {
     switch (fileType) {
       case "video/mp4":
         return <FileVideo className="w-6 h-6" />;
@@ -42,51 +48,71 @@ export const LessonContent = ({ lesson }: { lesson: any }) => {
       default:
         return <File className="w-6 h-6" />;
     }
-  };
+  }, []);
 
-  const handleCopyLink = () => {
-    if (lesson.link) {
+  // Memoize the copy link handler
+  const handleCopyLink = useCallback(() => {
+    if (lesson?.link) {
       navigator.clipboard.writeText(lesson.link);
     }
-  };
+  }, [lesson?.link]);
 
-  const handleDownload = async (url: string, baseFilename: string) => {
-    try {
-      const response = await fetch(url);
-      const blob = await response.blob();
+  // Memoize the download handler
+  const handleDownload = useCallback(
+    async (url: string, baseFilename: string) => {
+      try {
+        const response = await fetch(url);
+        const blob = await response.blob();
 
-      // Extract extension from MIME type
-      const mimeToExt: Record<string, string> = {
-        "application/pdf": "pdf",
-        "image/jpeg": "jpg",
-        "image/png": "png",
-        "image/webp": "webp",
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
-          "docx",
-        "application/msword": "doc",
-        "application/zip": "zip",
-        "text/plain": "txt",
-        "video/mp4": "mp4",
-        "audio/mpeg": "mp3",
-        "audio/wav": "wav",
-        // Add more as needed
-      };
+        // Extract extension from MIME type
+        const mimeToExt: Record<string, string> = {
+          "application/pdf": "pdf",
+          "image/jpeg": "jpg",
+          "image/png": "png",
+          "image/webp": "webp",
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+            "docx",
+          "application/msword": "doc",
+          "application/zip": "zip",
+          "text/plain": "txt",
+          "video/mp4": "mp4",
+          "audio/mpeg": "mp3",
+          "audio/wav": "wav",
+          // Add more as needed
+        };
 
-      const ext = mimeToExt[blob.type] || "bin"; // fallback to .bin
-      const filename = `${baseFilename}.${ext}`;
+        const ext = mimeToExt[blob.type] || "bin"; // fallback to .bin
+        const filename = `${baseFilename}.${ext}`;
 
-      // Trigger download
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = filename;
-      document.body.appendChild(link); // Add to DOM for better browser compatibility
-      link.click();
-      document.body.removeChild(link); // Clean up
-      URL.revokeObjectURL(link.href);
-    } catch (error) {
-      console.error("Download failed", error);
-    }
-  };
+        // Trigger download
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+        document.body.appendChild(link); // Add to DOM for better browser compatibility
+        link.click();
+        document.body.removeChild(link); // Clean up
+        URL.revokeObjectURL(link.href);
+      } catch (error) {
+        console.error("Download failed", error);
+      }
+    },
+    []
+  );
+
+  // Memoize lesson properties to prevent unnecessary MediaModal rerenders
+  const mediaProps = useMemo(() => {
+    if (!lesson || lesson.fileType === "link") return null;
+
+    return {
+      url: lesson.filePath,
+      contentType: lesson.fileType,
+      title: lesson.title,
+      // Add a key based on the actual content to force remount when lesson changes
+      key: `${lesson.filePath}-${lesson.fileType}-${lesson.title}`,
+    };
+  }, [lesson?.filePath, lesson?.fileType, lesson?.title]);
+
+  if (!lesson) return null;
 
   return (
     <div className="space-y-6">
@@ -132,11 +158,15 @@ export const LessonContent = ({ lesson }: { lesson: any }) => {
         </div>
       ) : (
         <div className="bg-background rounded-lg overflow-hidden">
-          <MediaModal
-            url={lesson.filePath}
-            contentType={lesson.fileType}
-            title={lesson.title}
-          />
+          {/* Use the memoized props and add a unique key to force proper remounting */}
+          {mediaProps && (
+            <MediaModal
+              key={mediaProps.key}
+              url={mediaProps.url}
+              contentType={mediaProps.contentType}
+              title={mediaProps.title}
+            />
+          )}
         </div>
       )}
 
@@ -163,7 +193,7 @@ export const LessonContent = ({ lesson }: { lesson: any }) => {
             {lesson?.additionalResources?.map(
               (resource: any, index: number) => (
                 <button
-                  key={index}
+                  key={`${resource.url}-${resource.name}-${index}`}
                   onClick={() => handleDownload(resource.url, resource.name)}
                   className="w-full cursor-pointer text-left flex items-center p-3 border border-cardBorder rounded-lg hover:bg-background transition-colors"
                 >

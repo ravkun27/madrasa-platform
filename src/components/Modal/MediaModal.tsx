@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, useCallback } from "react";
 import { AlertTriangle, Loader2 } from "lucide-react";
 import platformLogo from "/favicon.png";
 
@@ -22,6 +22,7 @@ export const MediaModal: React.FC<MediaPlayerProps> = ({
   const [mediaType, setMediaType] = useState<
     "video" | "image" | "pdf" | "unknown"
   >("unknown");
+  const [isVideoJsLoaded, setIsVideoJsLoaded] = useState(false);
 
   // Detect media type
   useEffect(() => {
@@ -77,49 +78,84 @@ export const MediaModal: React.FC<MediaPlayerProps> = ({
   useEffect(() => {
     if (mediaType !== "video") return;
 
-    // Load CSS
-    if (!document.querySelector('link[href*="video-js.css"]')) {
-      const cssLink = document.createElement("link");
-      cssLink.rel = "stylesheet";
-      cssLink.href = "https://vjs.zencdn.net/8.6.1/video-js.css";
-      document.head.appendChild(cssLink);
-    }
+    const loadVideoJs = async () => {
+      // Load CSS
+      if (!document.querySelector('link[href*="video-js.css"]')) {
+        const cssLink = document.createElement("link");
+        cssLink.rel = "stylesheet";
+        cssLink.href = "https://vjs.zencdn.net/8.6.1/video-js.css";
+        document.head.appendChild(cssLink);
+      }
 
-    // Load JS
-    if (!window.videojs) {
-      const script = document.createElement("script");
-      script.src = "https://vjs.zencdn.net/8.6.1/video.min.js";
-      document.body.appendChild(script);
-    }
+      // Load JS if not already loaded
+      if (!window.videojs) {
+        return new Promise<void>((resolve) => {
+          const script = document.createElement("script");
+          script.src = "https://vjs.zencdn.net/8.6.1/video.min.js";
+          script.onload = () => {
+            setIsVideoJsLoaded(true);
+            resolve();
+          };
+          document.body.appendChild(script);
+        });
+      } else {
+        setIsVideoJsLoaded(true);
+      }
+    };
+
+    loadVideoJs();
   }, [mediaType]);
 
-  // Initialize Video.js player after DOM is ready
+  // Cleanup function for Video.js player
+  const cleanupPlayer = useCallback(() => {
+    if (playerRef.current) {
+      try {
+        // Add check for player readiness
+        if (!playerRef.current.isDisposed_ && !playerRef.current.isDisposed()) {
+          playerRef.current.dispose();
+        }
+      } catch (err) {
+        console.warn("Error disposing Video.js player:", err);
+      }
+      playerRef.current = null;
+    }
+    // Remove any leftover video-js DOM elements
+    document.querySelectorAll(".vjs-modal-dialog").forEach((el) => el.remove());
+  }, []);
+
+  // Initialize Video.js player
   useEffect(() => {
-    if (mediaType !== "video") return;
+    if (mediaType !== "video" || !isVideoJsLoaded || !window.videojs) return;
 
     const initializePlayer = () => {
-      // Double check that element exists and is in DOM
+      // Clean up any existing player first
+      cleanupPlayer();
+
+      // Ensure video element exists and is in DOM
       if (!videoRef.current || !document.body.contains(videoRef.current)) {
         console.warn("Video element not found in DOM");
         return;
       }
 
-      // Check if player already exists
-      if (playerRef.current) {
-        if (!playerRef.current.isDisposed()) {
-          playerRef.current.dispose();
+      // Check if this element already has a Video.js player
+      const existingPlayer = window.videojs.getPlayer(videoRef.current);
+      if (existingPlayer) {
+        console.warn("Player already exists for this element");
+        try {
+          existingPlayer.dispose();
+        } catch (err) {
+          console.warn("Error disposing existing player:", err);
         }
-        playerRef.current = null;
-      }
-
-      // Wait for Video.js to be available
-      if (!window.videojs) {
-        setTimeout(initializePlayer, 100);
-        return;
       }
 
       try {
         setIsLoading(true);
+        setError(null);
+
+        // Create a unique ID for the video element if it doesn't have one
+        if (!videoRef.current.id) {
+          videoRef.current.id = `video-player-${Math.random().toString(36).substr(2, 9)}`;
+        }
 
         // Initialize Video.js player
         playerRef.current = window.videojs(videoRef.current, {
@@ -146,12 +182,34 @@ export const MediaModal: React.FC<MediaPlayerProps> = ({
 
         // Add event listeners
         playerRef.current.ready(() => {
+          console.log("Video.js player ready");
           setIsLoading(false);
         });
 
         playerRef.current.on("error", (e: any) => {
           console.error("Video.js error:", e);
-          setError("Failed to load video. Please check the URL and try again.");
+          const playerError = playerRef.current?.error();
+          let errorMessage =
+            "Failed to load video. Please check the URL and try again.";
+
+          if (playerError) {
+            switch (playerError.code) {
+              case 1:
+                errorMessage = "Video loading was aborted.";
+                break;
+              case 2:
+                errorMessage = "Network error occurred while loading video.";
+                break;
+              case 3:
+                errorMessage = "Video format is not supported.";
+                break;
+              case 4:
+                errorMessage = "Video source is not available.";
+                break;
+            }
+          }
+
+          setError(errorMessage);
           setIsLoading(false);
         });
 
@@ -178,17 +236,21 @@ export const MediaModal: React.FC<MediaPlayerProps> = ({
     };
 
     // Small delay to ensure DOM is fully ready
-    const timeoutId = setTimeout(initializePlayer, 100);
+    const timeoutId = setTimeout(initializePlayer, 150);
 
-    // Cleanup
+    // Cleanup function
     return () => {
       clearTimeout(timeoutId);
-      if (playerRef.current && !playerRef.current.isDisposed()) {
-        playerRef.current.dispose();
-        playerRef.current = null;
-      }
+      cleanupPlayer();
     };
-  }, [url, contentType, mediaType]);
+  }, [url, contentType, mediaType, isVideoJsLoaded, cleanupPlayer]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      cleanupPlayer();
+    };
+  }, [cleanupPlayer]);
 
   // Get aspect ratio class
   const getAspectRatioClass = () => {
@@ -213,6 +275,31 @@ export const MediaModal: React.FC<MediaPlayerProps> = ({
     setIsLoading(false);
   };
 
+  // Handle retry
+  const handleRetry = () => {
+    setError(null);
+    setIsLoading(true);
+
+    if (
+      mediaType === "video" &&
+      playerRef.current &&
+      !playerRef.current.isDisposed()
+    ) {
+      try {
+        playerRef.current.src({
+          src: url,
+          type: contentType || "video/mp4",
+        });
+      } catch (err) {
+        console.error("Error setting new source:", err);
+        // Force re-initialization
+        cleanupPlayer();
+        setIsVideoJsLoaded(false);
+        setTimeout(() => setIsVideoJsLoaded(true), 100);
+      }
+    }
+  };
+
   // Loading state
   if (mediaType === "unknown" && isLoading) {
     return (
@@ -230,14 +317,7 @@ export const MediaModal: React.FC<MediaPlayerProps> = ({
         <AlertTriangle className="w-12 h-12 mb-4" />
         <p className="text-center mb-4">{error}</p>
         <button
-          onClick={() => {
-            setError(null);
-            setIsLoading(true);
-            // Reload based on media type
-            if (mediaType === "video" && playerRef.current) {
-              playerRef.current.src(url);
-            }
-          }}
+          onClick={handleRetry}
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
           Retry
@@ -270,7 +350,6 @@ export const MediaModal: React.FC<MediaPlayerProps> = ({
           <video
             ref={videoRef}
             className="video-js vjs-default-skin w-full h-full"
-            data-setup="{}"
           />
           <PlatformLogo />
         </div>

@@ -1,5 +1,5 @@
 // CoursePage.tsx
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { getFetch } from "../../utils/apiCall";
 import { CourseSidebar } from "../../components/Courses/CourseSidebar";
@@ -25,11 +25,18 @@ export const CoursePage = () => {
   const { courseId } = useParams();
   const [course, setCourse] = useState<any>(null);
   const [lessonMetas, setLessonMetas] = useState<LessonMeta[]>([]);
-  const [selectedLesson, setSelectedLesson] = useState<FullLesson | null>(null);
+  const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
+  const [lessonCache, setLessonCache] = useState<Map<string, FullLesson>>(new Map());
   const [loading, setLoading] = useState(true);
   const [lessonLoading, setLessonLoading] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { language } = useLanguage();
+
+  // Memoize the selected lesson to prevent unnecessary re-renders
+  const selectedLesson = useMemo(() => {
+    if (!selectedLessonId) return null;
+    return lessonCache.get(selectedLessonId) || null;
+  }, [selectedLessonId, lessonCache]);
 
   // Fetch ONLY course structure - no lesson content
   useEffect(() => {
@@ -82,9 +89,14 @@ export const CoursePage = () => {
   }, [courseId]);
 
   // Fetch individual lesson content ONLY when selected
-  const fetchAndSelectLesson = useCallback(
+  const fetchAndCacheLesson = useCallback(
     async (lessonMeta: LessonMeta) => {
-      if (!courseId) return;
+      if (!courseId) return null;
+
+      // Check if lesson is already cached
+      if (lessonCache.has(lessonMeta._id)) {
+        return lessonCache.get(lessonMeta._id)!;
+      }
 
       setLessonLoading(true);
 
@@ -99,6 +111,13 @@ export const CoursePage = () => {
           sectionId: lessonMeta.sectionId,
         };
 
+        // Cache the lesson using setState callback to ensure we get the latest Map
+        setLessonCache(prevCache => {
+          const newCache = new Map(prevCache);
+          newCache.set(lessonMeta._id, fullLesson);
+          return newCache;
+        });
+
         // Update the lesson meta with title and completion status
         setLessonMetas((prev) =>
           prev.map((meta) =>
@@ -112,25 +131,32 @@ export const CoursePage = () => {
           )
         );
 
-        setSelectedLesson(fullLesson);
+        return fullLesson;
       } catch (error) {
         console.error("Error loading lesson:", error);
+        return null;
       } finally {
         setLessonLoading(false);
       }
     },
-    [courseId]
+    [courseId, lessonCache]
   );
 
   // Handle lesson selection from sidebar
   const handleLessonSelect = useCallback(
     async (lessonMeta: LessonMeta) => {
       // Only fetch if it's a different lesson
-      if (selectedLesson?._id !== lessonMeta._id) {
-        await fetchAndSelectLesson(lessonMeta);
+      if (selectedLessonId !== lessonMeta._id) {
+        // Set the selected lesson ID immediately
+        setSelectedLessonId(lessonMeta._id);
+        
+        // If not cached, fetch the lesson
+        if (!lessonCache.has(lessonMeta._id)) {
+          await fetchAndCacheLesson(lessonMeta);
+        }
       }
     },
-    [selectedLesson, fetchAndSelectLesson]
+    [selectedLessonId, lessonCache, fetchAndCacheLesson]
   );
 
   // Update lesson completion status
@@ -143,13 +169,28 @@ export const CoursePage = () => {
         )
       );
 
-      // Update selected lesson if it's the current one
-      if (selectedLesson?._id === lessonId) {
-        setSelectedLesson((prev) => (prev ? { ...prev, completed } : null));
-      }
+      // Update cached lesson if it exists
+      setLessonCache(prevCache => {
+        const cachedLesson = prevCache.get(lessonId);
+        if (cachedLesson) {
+          const newCache = new Map(prevCache);
+          newCache.set(lessonId, { ...cachedLesson, completed });
+          return newCache;
+        }
+        return prevCache;
+      });
     },
-    [selectedLesson]
+    []
   );
+
+  // Memoize the motion div props to prevent unnecessary re-renders
+  const motionProps = useMemo(() => ({
+    key: selectedLessonId || 'no-lesson',
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.3 },
+    className: "space-y-8"
+  }), [selectedLessonId]);
 
   if (loading) {
     return (
@@ -182,13 +223,7 @@ export const CoursePage = () => {
             </span>
           </div>
         ) : selectedLesson ? (
-          <motion.div
-            key={selectedLesson._id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-            className="space-y-8"
-          >
+          <motion.div {...motionProps}>
             {course?.meetingDetails && (
               <MeetingSection meeting={course.meetingDetails} />
             )}

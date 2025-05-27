@@ -13,7 +13,6 @@ interface TermsData {
   content: Section[];
 }
 
-// Utility function to check if text contains Arabic
 const isArabic = (text: string) => /[\u0600-\u06FF]/.test(text);
 
 const TermsOfUse: React.FC = () => {
@@ -28,9 +27,7 @@ const TermsOfUse: React.FC = () => {
         );
         if (response?.success && response?.data) {
           setTerms(response.data);
-
-          // Check if any major field is in Arabic
-          const textToCheck =
+          const textToCheck = 
             response.data.header +
             response.data.content
               .map((s: Section) => s.subheader + s.paragraph)
@@ -41,13 +38,17 @@ const TermsOfUse: React.FC = () => {
         console.error("Failed to fetch terms and conditions", err);
       }
     };
-
     fetchTerms();
   }, []);
 
   if (!terms) {
     return (
-      <div className="text-center mt-20 text-gray-600 dark:text-gray-300">
+      <div 
+        className={`text-center mt-20 text-gray-600 dark:text-gray-300 ${
+          isRTL ? "rtl" : "ltr"
+        }`}
+        dir={isRTL ? "rtl" : "ltr"}
+      >
         Loading Terms of Use...
       </div>
     );
@@ -79,7 +80,10 @@ const TermsOfUse: React.FC = () => {
           <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-2">
             {index + 1}. {subheader}
           </h2>
-          <p className="text-gray-700 dark:text-gray-300">{paragraph}</p>
+          <div
+            className="text-gray-700 dark:text-gray-300 whitespace-pre-line"
+            dangerouslySetInnerHTML={{ __html: paragraph.replace(/\n/g, '<br />') }}
+          />
         </section>
       ))}
     </div>
