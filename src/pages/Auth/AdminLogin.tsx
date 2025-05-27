@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTheme } from "../../context/ThemeContext";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { postFetch } from "../../utils/apiCall";
 import { useAuth } from "../../context/AuthContext";
 import { FaSpinner } from "react-icons/fa";
@@ -149,6 +149,16 @@ const AdminLogin = () => {
             )}
           </motion.button>
         </form>
+        <motion.div className="flex items-center justify-between mt-2">
+          <div className="text-sm">
+            <Link
+              to="/forgot-password"
+              className={`font-medium bg-primary/10 text-primary hover:bg-primary/20 hover:underline`}
+            >
+              Forgot password?
+            </Link>
+          </div>
+        </motion.div>
       </motion.div>
     </div>
   );
