@@ -24,6 +24,79 @@ export const MediaModal: React.FC<MediaPlayerProps> = ({
   >("unknown");
   const [isVideoJsLoaded, setIsVideoJsLoaded] = useState(false);
 
+  // Enhanced video type detection and normalization
+  const getVideoSources = (url: string, contentType?: string) => {
+    const sources = [];
+
+    // If we have a specific content type, use it first
+    if (contentType && contentType.startsWith("video/")) {
+      sources.push({ src: url, type: contentType });
+    }
+
+    // Always add multiple fallback options for better compatibility
+    const urlLower = url.toLowerCase();
+
+    // Try to detect format and add appropriate sources
+    if (
+      urlLower.includes(".mp4") ||
+      urlLower.includes("mp4") ||
+      contentType?.includes("mp4")
+    ) {
+      if (!sources.some((s) => s.type === "video/mp4")) {
+        sources.push({ src: url, type: "video/mp4" });
+      }
+    } else if (urlLower.includes(".webm") || contentType?.includes("webm")) {
+      if (!sources.some((s) => s.type === "video/webm")) {
+        sources.push({ src: url, type: "video/webm" });
+      }
+      sources.push({ src: url, type: "video/mp4" }); // Fallback
+    } else if (
+      urlLower.includes(".mov") ||
+      urlLower.includes("quicktime") ||
+      contentType?.includes("quicktime")
+    ) {
+      sources.push({ src: url, type: "video/mp4" }); // Most compatible first
+      sources.push({ src: url, type: "video/quicktime" });
+    } else if (urlLower.includes(".avi") || contentType?.includes("avi")) {
+      sources.push({ src: url, type: "video/mp4" }); // Most compatible first
+      sources.push({ src: url, type: "video/avi" });
+      sources.push({ src: url, type: "video/x-msvideo" });
+    } else if (urlLower.includes(".mkv") || contentType?.includes("matroska")) {
+      sources.push({ src: url, type: "video/mp4" }); // Most compatible first
+      sources.push({ src: url, type: "video/x-matroska" });
+    } else if (urlLower.includes(".m4v") || contentType?.includes("m4v")) {
+      sources.push({ src: url, type: "video/mp4" }); // Most compatible
+      sources.push({ src: url, type: "video/x-m4v" });
+    } else if (urlLower.includes(".3gp") || contentType?.includes("3gp")) {
+      sources.push({ src: url, type: "video/mp4" }); // Most compatible first
+      sources.push({ src: url, type: "video/3gpp" });
+    } else if (urlLower.includes(".flv") || contentType?.includes("flv")) {
+      sources.push({ src: url, type: "video/mp4" }); // Most compatible first
+      sources.push({ src: url, type: "video/x-flv" });
+    } else if (
+      urlLower.includes(".ogg") ||
+      urlLower.includes(".ogv") ||
+      contentType?.includes("ogg")
+    ) {
+      sources.push({ src: url, type: "video/ogg" });
+      sources.push({ src: url, type: "video/mp4" }); // Fallback
+    } else {
+      // Unknown format - try all common formats as fallbacks
+      sources.push({ src: url, type: "video/mp4" });
+      sources.push({ src: url, type: "video/webm" });
+      sources.push({ src: url, type: "application/x-mpegURL" }); // HLS streams
+      sources.push({ src: url, type: "application/dash+xml" }); // DASH streams
+    }
+
+    // Remove duplicates
+    const uniqueSources = sources.filter(
+      (source, index, self) =>
+        index === self.findIndex((s) => s.type === source.type)
+    );
+
+    return uniqueSources;
+  };
+
   // Detect media type
   useEffect(() => {
     const detectMediaType = () => {
@@ -54,6 +127,8 @@ export const MediaModal: React.FC<MediaPlayerProps> = ({
         ".m4v",
         ".3gp",
         ".flv",
+        ".ogv",
+        ".ogg",
       ];
 
       if (imageExtensions.some((ext) => urlLower.endsWith(ext))) return "image";
@@ -157,61 +232,194 @@ export const MediaModal: React.FC<MediaPlayerProps> = ({
           videoRef.current.id = `video-player-${Math.random().toString(36).substr(2, 9)}`;
         }
 
-        // Initialize Video.js player
+        // Get multiple source options for better compatibility
+        const sources = getVideoSources(url, contentType);
+
+        // Initialize Video.js player with enhanced configuration
         playerRef.current = window.videojs(videoRef.current, {
           controls: true,
-          responsive: true,
-          fluid: true,
+          responsive: false, // Disable to prevent full-screen behavior
+          fluid: false, // Disable to maintain aspect ratio
+          fill: false, // Prevent filling container completely
           playbackRates: [0.5, 0.75, 1, 1.25, 1.5, 2],
-          preload: "metadata",
+          preload: "auto", // Changed from metadata to auto for better loading
           html5: {
             vhs: {
               overrideNative: true,
+              enableLowInitialPlaylist: true,
+              smoothQualityChange: true,
+            },
+            nativeVideoTracks: false,
+            nativeAudioTracks: false,
+            nativeTextTracks: false,
+            // Additional HTML5 options for better compatibility
+            hls: {
+              overrideNative: true,
             },
           },
-          sources: [
-            {
-              src: url,
-              type: contentType || "video/mp4",
-            },
-          ],
+          sources: sources,
           userActions: {
             hotkeys: true,
           },
+          // Enhanced tech order and options
+          techOrder: ["html5", "youtube", "vimeo"],
+          autoplay: false,
+          muted: false,
+          // Force HTML5 video element
+          preferFullWindow: false,
+          // Additional compatibility options
+          crossOrigin: "anonymous",
+          // Error recovery options
+          retryOnError: 3,
+          experimentalSvgIcons: false,
+          // Aspect ratio and sizing
+          aspectRatio: "16:9", // Default aspect ratio
+          breakpoints: {
+            tiny: 300,
+            xsmall: 400,
+            small: 500,
+            medium: 640,
+            large: 1024,
+            xlarge: 1440,
+            huge: 1920,
+          },
         });
+
+        console.log("Video sources configured:", sources);
+        console.log("Content type:", contentType);
 
         // Add event listeners
         playerRef.current.ready(() => {
           console.log("Video.js player ready");
           setIsLoading(false);
+
+          // Ensure proper sizing and aspect ratio
+          const player = playerRef.current;
+          if (player) {
+            // Force proper aspect ratio and prevent full screen behavior
+            player.dimensions("100%", "auto");
+
+            // Add custom CSS to maintain aspect ratio and control visibility
+            const playerEl = player.el();
+            if (playerEl) {
+              playerEl.style.maxWidth = "100%";
+              playerEl.style.maxHeight = "70vh"; // Limit height on mobile
+              playerEl.style.aspectRatio = "auto";
+
+              // Ensure controls are always visible
+              const controlBar = playerEl.querySelector(".vjs-control-bar");
+              if (controlBar) {
+                controlBar.style.opacity = "1";
+                controlBar.style.visibility = "visible";
+                controlBar.style.position = "absolute";
+                controlBar.style.bottom = "0";
+                controlBar.style.width = "100%";
+                controlBar.style.zIndex = "1000";
+              }
+            }
+          }
         });
 
         playerRef.current.on("error", (e: any) => {
           console.error("Video.js error:", e);
           const playerError = playerRef.current?.error();
           let errorMessage =
-            "Failed to load video. Please check the URL and try again.";
+            "Failed to load video. This video format may not be supported by your browser.";
 
           if (playerError) {
+            console.error("Player error details:", playerError);
+            console.error(
+              "Current sources:",
+              playerRef.current?.currentSources()
+            );
+
+            // Try to get more specific error information
+            const currentSrc = playerRef.current?.currentSrc();
+            console.error("Current source URL:", currentSrc);
+
             switch (playerError.code) {
-              case 1:
-                errorMessage = "Video loading was aborted.";
+              case 1: // MEDIA_ERR_ABORTED
+                errorMessage = "Video loading was aborted by the user.";
                 break;
-              case 2:
-                errorMessage = "Network error occurred while loading video.";
+              case 2: // MEDIA_ERR_NETWORK
+                errorMessage =
+                  "Network error occurred while loading video. Please check your internet connection.";
                 break;
-              case 3:
-                errorMessage = "Video format is not supported.";
+              case 3: // MEDIA_ERR_DECODE
+                errorMessage =
+                  "Video file is corrupted or contains unsupported encoding.";
                 break;
-              case 4:
-                errorMessage = "Video source is not available.";
-                break;
+              case 4: // MEDIA_ERR_SRC_NOT_SUPPORTED
+                // Try native HTML5 video as fallback
+                console.log("Attempting fallback to native HTML5 video...");
+                tryNativeVideoFallback();
+                return; // Don't set error immediately, let fallback try first
+              default:
+                errorMessage = playerError.message || errorMessage;
             }
           }
 
           setError(errorMessage);
           setIsLoading(false);
         });
+
+        // Fallback function for native HTML5 video
+        const tryNativeVideoFallback = () => {
+          console.log("Trying native HTML5 video fallback...");
+
+          if (videoRef.current) {
+            // Dispose Video.js player
+            if (playerRef.current && !playerRef.current.isDisposed()) {
+              playerRef.current.dispose();
+            }
+
+            // Reset video element
+            const videoElement = videoRef.current;
+            videoElement.controls = true;
+            videoElement.preload = "auto";
+            videoElement.style.width = "100%";
+            videoElement.style.height = "auto"; // Changed from 100% to auto
+            videoElement.style.maxHeight = "70vh"; // Limit height
+            videoElement.style.objectFit = "contain"; // Maintain aspect ratio
+            videoElement.style.backgroundColor = "black";
+
+            // Clear existing sources
+            while (videoElement.firstChild) {
+              videoElement.removeChild(videoElement.firstChild);
+            }
+
+            // Add sources as <source> elements
+            const sources = getVideoSources(url, contentType);
+            sources.forEach((source) => {
+              const sourceElement = document.createElement("source");
+              sourceElement.src = source.src;
+              sourceElement.type = source.type;
+              videoElement.appendChild(sourceElement);
+            });
+
+            // Add error handler for native video
+            const handleNativeError = () => {
+              console.error("Native HTML5 video also failed");
+              setError(
+                "This video format is not supported. Please try converting the video to MP4 format."
+              );
+              setIsLoading(false);
+            };
+
+            const handleNativeLoad = () => {
+              console.log("Native HTML5 video loaded successfully");
+              setIsLoading(false);
+              setError(null);
+            };
+
+            videoElement.addEventListener("error", handleNativeError);
+            videoElement.addEventListener("loadeddata", handleNativeLoad);
+            videoElement.addEventListener("canplay", () => setIsLoading(false));
+
+            // Try to load
+            videoElement.load();
+          }
+        };
 
         playerRef.current.on("loadstart", () => {
           setIsLoading(true);
@@ -228,9 +436,20 @@ export const MediaModal: React.FC<MediaPlayerProps> = ({
         playerRef.current.on("playing", () => {
           setIsLoading(false);
         });
+
+        // Additional event listeners for debugging
+        playerRef.current.on("loadedmetadata", () => {
+          console.log("Video metadata loaded");
+        });
+
+        playerRef.current.on("loadeddata", () => {
+          console.log("Video data loaded");
+        });
       } catch (err) {
         console.error("Video.js initialization error:", err);
-        setError("Failed to initialize video player.");
+        setError(
+          "Failed to initialize video player. Please try refreshing the page."
+        );
         setIsLoading(false);
       }
     };
@@ -286,10 +505,8 @@ export const MediaModal: React.FC<MediaPlayerProps> = ({
       !playerRef.current.isDisposed()
     ) {
       try {
-        playerRef.current.src({
-          src: url,
-          type: contentType || "video/mp4",
-        });
+        const sources = getVideoSources(url, contentType);
+        playerRef.current.src(sources);
       } catch (err) {
         console.error("Error setting new source:", err);
         // Force re-initialization
@@ -335,9 +552,7 @@ export const MediaModal: React.FC<MediaPlayerProps> = ({
   );
 
   return (
-    <div
-      className={`relative w-full bg-black ${getAspectRatioClass()} rounded-lg mb-2 overflow-hidden`}
-    >
+    <div className="relative w-full bg-black rounded-lg mb-2 overflow-hidden">
       {isLoading && mediaType !== "video" && (
         <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/50">
           <Loader2 className="animate-spin text-white w-12 h-12" />
@@ -346,10 +561,15 @@ export const MediaModal: React.FC<MediaPlayerProps> = ({
 
       {/* Video Player with Video.js */}
       {mediaType === "video" && (
-        <div className="relative w-full h-full">
+        <div className="relative w-full h-auto aspect-video bg-black flex items-center justify-center">
           <video
             ref={videoRef}
-            className="video-js vjs-default-skin w-full h-full"
+            className="video-js vjs-default-skin w-full h-auto max-h-[70vh] object-contain"
+            style={{
+              aspectRatio: "auto",
+              maxWidth: "100%",
+              display: "block",
+            }}
           />
           <PlatformLogo />
         </div>
@@ -357,7 +577,9 @@ export const MediaModal: React.FC<MediaPlayerProps> = ({
 
       {/* Image Display */}
       {mediaType === "image" && (
-        <div className="w-full h-full max-h-screen flex items-center justify-center relative">
+        <div
+          className={`w-full h-full max-h-screen flex items-center justify-center relative ${getAspectRatioClass()}`}
+        >
           <img
             src={url}
             alt={title}
@@ -374,7 +596,7 @@ export const MediaModal: React.FC<MediaPlayerProps> = ({
 
       {/* PDF Display */}
       {mediaType === "pdf" && (
-        <div className="relative w-full h-full">
+        <div className={`relative w-full h-full ${getAspectRatioClass()}`}>
           <iframe
             src={url}
             className={`w-full h-full border-0 ${isLoading ? "opacity-0" : "opacity-100"} transition-opacity duration-300`}

@@ -255,21 +255,6 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
                     </motion.button>
                   )
               )}
-              {/* Theme toggle */}
-              <motion.button
-                onClick={toggleTheme}
-                className={`${
-                  isOpen ? "ml-auto" : ""
-                } w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300`}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                {theme === "light" ? (
-                  <FiMoon className="w-5 h-5" />
-                ) : (
-                  <FiSun className="w-5 h-5" />
-                )}
-              </motion.button>
             </div>
           </nav>
 

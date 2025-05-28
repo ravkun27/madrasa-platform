@@ -344,82 +344,86 @@ const EditPages = () => {
         )}
 
         {/* Privacy and Terms Pages Fields */}
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label
-                htmlFor="header"
-                className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300"
-              >
-                Title
-              </label>
-              <input
-                id="header"
-                {...register("header")}
-                className="w-full p-2 border rounded-md dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <div className="flex flex-wrap justify-between items-center">
-              <h3 className="text-lg font-medium text-gray-800 dark:text-white">
-                Content Sections
-              </h3>
-              <button
-                type="button"
-                onClick={handleAddContentBlock}
-                className="flex items-center gap-1 text-sm sm:text-base px-2 py-1 sm:px-3 sm:py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors mt-2 sm:mt-0"
-              >
-                <FiPlus size={16} />{" "}
-                <span className="hidden sm:inline">Add Section</span>
-              </button>
-            </div>
-
-            {contentFields.length === 0 && (
-              <div className="text-center py-4 bg-gray-100 dark:bg-gray-700 rounded-md">
-                <p className="text-gray-500 dark:text-gray-400">
-                  No content sections added yet. Click the button above to add
-                  one.
-                </p>
-              </div>
-            )}
-
-            {contentFields.map((field, index) => (
-              <div
-                key={field.id}
-                className="space-y-3 border p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50"
-              >
-                <div className="flex justify-between items-center">
-                  <h4 className="font-medium text-gray-800 dark:text-white">
-                    Section {index + 1}
-                  </h4>
-                  <button
-                    type="button"
-                    onClick={() => removeContent(index)}
-                    className="flex items-center gap-1 text-red-600 hover:text-red-800 transition-colors"
-                    aria-label="Remove section"
-                  >
-                    <FiTrash2 size={16} />{" "}
-                    <span className="text-sm">Remove</span>
-                  </button>
-                </div>
+        {(activePage === "about" ||
+          activePage === "contact" ||
+          activePage === "privacy" ||
+          activePage === "terms") && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label
+                  htmlFor="header"
+                  className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300"
+                >
+                  Title
+                </label>
                 <input
-                  {...register(`content.${index}.subheader` as const)}
-                  placeholder="Subheader"
+                  id="header"
+                  {...register("header")}
                   className="w-full p-2 border rounded-md dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-                <textarea
-                  {...register(`content.${index}.paragraph` as const)}
-                  placeholder="Content"
-                  rows={4}
-                  className="w-full p-2 border rounded-md dark:bg-gray-700 dark:text-white resize-y focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
               </div>
-            ))}
-          </div>
-        </div>
+            </div>
 
+            <div className="space-y-4">
+              <div className="flex flex-wrap justify-between items-center">
+                <h3 className="text-lg font-medium text-gray-800 dark:text-white">
+                  Content Sections
+                </h3>
+                <button
+                  type="button"
+                  onClick={handleAddContentBlock}
+                  className="flex items-center gap-1 text-sm sm:text-base px-2 py-1 sm:px-3 sm:py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors mt-2 sm:mt-0"
+                >
+                  <FiPlus size={16} />{" "}
+                  <span className="hidden sm:inline">Add Section</span>
+                </button>
+              </div>
+
+              {contentFields.length === 0 && (
+                <div className="text-center py-4 bg-gray-100 dark:bg-gray-700 rounded-md">
+                  <p className="text-gray-500 dark:text-gray-400">
+                    No content sections added yet. Click the button above to add
+                    one.
+                  </p>
+                </div>
+              )}
+
+              {contentFields.map((field, index) => (
+                <div
+                  key={field.id}
+                  className="space-y-3 border p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50"
+                >
+                  <div className="flex justify-between items-center">
+                    <h4 className="font-medium text-gray-800 dark:text-white">
+                      Section {index + 1}
+                    </h4>
+                    <button
+                      type="button"
+                      onClick={() => removeContent(index)}
+                      className="flex items-center gap-1 text-red-600 hover:text-red-800 transition-colors"
+                      aria-label="Remove section"
+                    >
+                      <FiTrash2 size={16} />{" "}
+                      <span className="text-sm">Remove</span>
+                    </button>
+                  </div>
+                  <input
+                    {...register(`content.${index}.subheader` as const)}
+                    placeholder="Subheader"
+                    className="w-full p-2 border rounded-md dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <textarea
+                    {...register(`content.${index}.paragraph` as const)}
+                    placeholder="Content"
+                    rows={4}
+                    className="w-full p-2 border rounded-md dark:bg-gray-700 dark:text-white resize-y focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         <div className="pt-4 border-t">
           <button
             type="submit"

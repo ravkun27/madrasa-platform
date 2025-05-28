@@ -61,15 +61,22 @@ const ContactPage: React.FC = () => {
   }, []);
 
   return (
-    <div className="max-w-4xl mx-auto my-2 md:my-6 p-6 bg-white dark:bg-gray-800 rounded-lg shadow space-y-6">
-      <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-4">
+    <div
+      className="max-w-4xl mx-auto my-2 md:my-6 p-6 bg-white dark:bg-gray-800 rounded-lg shadow space-y-6"
+      dir={language === "ar" ? "rtl" : "ltr"} // set direction dynamically
+    >
+      <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-4 text-start">
         {t.contact.title}
       </h1>
-      <p className="text-gray-600 dark:text-gray-400 mb-6">
+      <p className="text-gray-600 dark:text-gray-400 mb-6 text-start">
         {t.contact.description}
       </p>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
+      <div
+        className={`grid grid-cols-2 sm:grid-cols-3 gap-6 ${
+          language === "ar" ? "text-right" : "text-left"
+        }`}
+      >
         {socialLinks.map(({ name, link }) => {
           const Icon = socialIconMap[name] || FaInstagram; // fallback icon
           return (

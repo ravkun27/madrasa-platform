@@ -369,7 +369,7 @@ const TeacherManagement = () => {
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-y-2 gap-x-4 text-sm">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-y-2 gap-x-4 text-xs">
                     <div className="overflow-hidden">
                       <span className="font-medium text-gray-600 dark:text-gray-300">
                         Email:

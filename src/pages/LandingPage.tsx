@@ -1,13 +1,10 @@
-import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
   FaChalkboardTeacher,
   FaUserGraduate,
-  FaSearch,
   FaKey,
   FaUsers,
-  FaArrowRight,
 } from "react-icons/fa";
 import { useLanguage } from "../context/LanguageContext";
 
@@ -19,10 +16,6 @@ interface StepCardProps {
 }
 
 const LandingPage = () => {
-  const [searchValue, setSearchValue] = useState("");
-  const [course, setCourse] = useState<any | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const { language } = useLanguage();
 
   // Content translations
@@ -34,7 +27,6 @@ const LandingPage = () => {
       heroDescription:
         "Join thousands of educators and students to create, share and access interactive learning materials all in one place.",
       searchPlaceholder: "Enter course code to join...",
-      searching: "Searching...",
       joinCourse: "Join this Course",
       createCourses: "Create Courses",
       joinAsStudent: "Join as Student",
@@ -102,8 +94,6 @@ const LandingPage = () => {
       heroTitle2: "منصة مدرسة",
       heroDescription:
         "انضم إلى آلاف المعلمين والطلاب لإنشاء ومشاركة والوصول إلى مواد تعليمية تفاعلية في مكان واحد.",
-      searchPlaceholder: "أدخل رمز الدورة للانضمام...",
-      searching: "جاري البحث...",
       joinCourse: "انضم إلى هذه الدورة",
       createCourses: "إنشاء دورات",
       joinAsStudent: "انضم كطالب",
@@ -137,7 +127,7 @@ const LandingPage = () => {
         "أدخل رمز الدورة الذي شاركه معلمك",
         "الوصول إلى المواد وبدء التعلم بالوتيرة الخاصة بك",
       ],
-      ctaTitle: "هل أنت مستعد لتحويل تعليمك؟",
+      ctaTitle: "هل أنت مستعد لتحويل هل أنت مستعد لإحداث ثورة في طرق التعليم؟",
       ctaDescription:
         "انضم إلى آلاف المعلمين والطلاب الذين يستخدمون منصتنا بالفعل لتعزيز تجارب التعلم",
       startTeaching: "ابدأ التدريس",
@@ -169,36 +159,6 @@ const LandingPage = () => {
 
   // Current language content
   const t = translations[language as keyof typeof translations];
-
-  useEffect(() => {
-    const fetchCourse = async () => {
-      if (searchValue.trim().length === 0) {
-        setCourse(null);
-        return;
-      }
-
-      setLoading(true);
-      setError("");
-      try {
-        // Consider adding language parameter to API request if needed
-        const res = await fetch(`/api/courses?tags=${searchValue.trim()}`);
-        if (!res.ok) throw new Error("Course not found");
-        const data = await res.json();
-        setCourse(data);
-      } catch (err) {
-        setCourse(null);
-        setError(language === "en" ? "Course not found" : "الدورة غير موجودة");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    const delayDebounce = setTimeout(() => {
-      fetchCourse();
-    }, 600); // debounce
-
-    return () => clearTimeout(delayDebounce);
-  }, [searchValue, language]);
 
   // Animation variants
   const fadeInUp = {
@@ -285,55 +245,6 @@ const LandingPage = () => {
               {t.heroDescription}
             </p>
           </motion.div>
-
-          {/* Search box */}
-          <motion.div
-            className="w-full max-w-xl px-4 mx-auto mb-10"
-            variants={fadeInUp}
-          >
-            <div className="flex flex-col sm:flex-row items-stretch gap-3 bg-card rounded-xl shadow-lg p-4 border border-card-border">
-              <div className="flex items-center gap-2 w-full">
-                <FaSearch className="text-primary text-xl" />
-                <input
-                  type="text"
-                  value={searchValue}
-                  onChange={(e) => setSearchValue(e.target.value)}
-                  placeholder={t.searchPlaceholder}
-                  className="w-full outline-none bg-transparent text-text placeholder-muted"
-                  aria-label="Course code"
-                />
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Status */}
-          {loading && (
-            <p className="text-center text-muted mt-4">{t.searching}</p>
-          )}
-          {error && <p className="text-center text-red-500 mt-2">{error}</p>}
-
-          {/* Course card */}
-          {course && (
-            <motion.div
-              className="bg-card p-6 rounded-xl shadow-md border border-card-border mt-6 w-full max-w-xl mx-auto"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
-            >
-              <h3 className="text-xl md:text-2xl font-bold text-text mb-2">
-                {course.title}
-              </h3>
-              <p className="text-muted mb-6 text-sm md:text-base">
-                {course.description}
-              </p>
-              <Link
-                to={`/signup?role=student&courseCode=${course.code}`}
-                className="inline-block bg-primary hover:bg-secondary text-white px-5 py-2 rounded-lg font-medium transition-all"
-              >
-                {t.joinCourse}
-              </Link>
-            </motion.div>
-          )}
 
           {/* CTA Buttons with consistent styling */}
           <motion.div
@@ -430,15 +341,6 @@ const LandingPage = () => {
                   {feature.title}
                 </h3>
                 <p className="text-muted flex-grow">{feature.description}</p>
-                <Link
-                  to={`/learn-more/${encodeURIComponent(feature.title.toLowerCase())}`}
-                  className={`${feature.colorClass} mt-4 flex items-center font-medium ${language === "ar" ? "flex-row-reverse" : ""}`}
-                >
-                  {t.learnMore}
-                  <FaArrowRight
-                    className={`${language === "ar" ? "mr-2 rotate-180" : "ml-2"} text-xs`}
-                  />
-                </Link>
               </motion.div>
             ))}
           </motion.div>
@@ -446,7 +348,7 @@ const LandingPage = () => {
       </motion.section>
 
       {/* How It Works Section with improved visual flow */}
-      <section className="py-20 md:py-28 bg-background/50">
+      <section className="py-20 bg-background/50">
         <div className="max-w-6xl mx-auto px-4">
           <motion.div
             className="text-center mb-16"
@@ -574,15 +476,14 @@ const StepCard = ({ icon: Icon, title, steps, color }: StepCardProps) => {
 
   return (
     <motion.div
+      dir={isRTL ? "rtl" : "ltr"} // ✅ This enforces actual DOM direction
       className="bg-card rounded-xl p-8 shadow-lg border border-card-border"
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       whileHover={{ y: -5 }}
     >
-      <div
-        className={`flex items-center mb-6 ${isRTL ? "flex-row-reverse" : ""}`}
-      >
+      <div className="flex items-center mb-6">
         <div
           className={`bg-${color}/10 p-3 rounded-lg ${isRTL ? "ml-4" : "mr-4"}`}
         >
@@ -592,12 +493,11 @@ const StepCard = ({ icon: Icon, title, steps, color }: StepCardProps) => {
       </div>
       <ul className="space-y-4">
         {steps.map((step, index) => (
-          <li
-            key={index}
-            className={`flex items-start ${isRTL ? "flex-row-reverse text-right" : ""}`}
-          >
+          <li key={index} className="flex items-start">
             <span
-              className={`bg-${color} text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-medium ${isRTL ? "ml-3" : "mr-3"} flex-shrink-0 mt-0.5`}
+              className={`bg-${color} text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-medium ${
+                isRTL ? "ml-3" : "mr-3"
+              } flex-shrink-0 mt-0.5`}
             >
               {index + 1}
             </span>

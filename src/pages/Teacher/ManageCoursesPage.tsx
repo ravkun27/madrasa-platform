@@ -43,7 +43,7 @@ const ManageCoursesPage = () => {
         title: newCourse.title,
         description: newCourse.description,
         category: newCourse.category,
-        tags: newCourse.tags,
+        tags: tags,
       });
 
       if (result.success) {
@@ -72,6 +72,8 @@ const ManageCoursesPage = () => {
     setIsCreating(false);
     setShowCourseForm(false);
     setNewCourse({});
+    setTags([]);
+    setTagInput("");
   };
 
   useEffect(() => {
