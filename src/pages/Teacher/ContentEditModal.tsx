@@ -25,6 +25,8 @@ const ContentEditModal = ({
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [contentType, setContentType] = useState<"file" | "link">("file");
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
   const isQuiz = addingContent?.type?.toLowerCase() === "quiz";
 
   const handleAddContent = async () => {
@@ -61,25 +63,59 @@ const ContentEditModal = ({
 
       // === Handle File Uploads Only ===
       if (isFileType && contentDetails.file) {
+        setIsUploading(true);
+        setUploadProgress(0);
+
         const uploadUrlResult: any = await getFetch(
-          `/user/teacher/course/getUpdateLink?filename=${contentDetails.file.name}&contentType=${contentDetails.file.type}&courseId=${addingContent.courseId}`
+          `/user/teacher/course/getUpdateLink?filename=${encodeURIComponent(contentDetails.file.name)}&contentType=${encodeURIComponent(contentDetails.file.type)}&courseId=${encodeURIComponent(addingContent.courseId)}`,
+          { showToast: false }
         );
 
         if (uploadUrlResult?.success) {
-          const uploadResponse = await fetch(uploadUrlResult.data.signedUrl, {
-            method: "PUT",
-            body: contentDetails.file,
+          // Create XMLHttpRequest for progress tracking
+          const xhr = new XMLHttpRequest();
+
+          // Upload progress tracking
+          xhr.upload.addEventListener("progress", (event) => {
+            if (event.lengthComputable) {
+              const percentComplete = Math.round(
+                (event.loaded / event.total) * 100
+              );
+              setUploadProgress(percentComplete);
+            }
           });
 
-          if (!uploadResponse.ok) {
-            throw new Error("File upload failed");
-          }
+          // Upload completion/error handling
+          const uploadPromise = new Promise((resolve, reject) => {
+            xhr.onload = () => {
+              if (xhr.status >= 200 && xhr.status < 300) {
+                setUploadProgress(100);
+                resolve(xhr.response);
+              } else {
+                reject(new Error("Upload failed"));
+              }
+            };
+            xhr.onerror = () => reject(new Error("Upload failed"));
+          });
+
+          // Start the upload
+          xhr.open("PUT", uploadUrlResult.data.signedUrl);
+          xhr.send(contentDetails.file);
+
+          // Wait for upload to complete
+          await uploadPromise;
 
           filePath = uploadUrlResult.data.fileKey;
           fileType = contentDetails.file.type;
+
+          // Small delay to show 100% progress
+          await new Promise((resolve) => setTimeout(resolve, 500));
         } else {
           throw new Error("Failed to get signed upload URL");
         }
+
+        setIsUploading(false);
+        setUploadProgress(0);
       }
 
       // === Handle Link Type ===
@@ -124,6 +160,8 @@ const ContentEditModal = ({
       console.error("Error adding content:", error);
     } finally {
       setIsSubmitting(false);
+      setIsUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -270,6 +308,26 @@ const ContentEditModal = ({
                       required
                     />
                   </label>
+
+                  {/* Upload Progress Bar */}
+                  {isUploading && (
+                    <div className="mt-4">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-sm font-medium text-gray-700">
+                          {language === "en" ? "Uploading..." : "جاري الرفع..."}
+                        </span>
+                        <span className="text-sm text-gray-500">
+                          {uploadProgress}%
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2.5">
+                        <div
+                          className="bg-indigo-600 h-2.5 rounded-full transition-all duration-300 ease-out"
+                          style={{ width: `${uploadProgress}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : isQuiz ? (
                 <div>
@@ -299,18 +357,25 @@ const ContentEditModal = ({
               <button
                 onClick={() => setIsAddingContent(false)}
                 className="px-6 py-2 text-gray-200 hover:bg-gray-50 rounded-lg transition-colors"
+                disabled={isUploading}
               >
                 {language === "en" ? "Cancel" : "إلغاء"}
               </button>
               <button
                 onClick={handleAddContent}
-                disabled={isSubmitting}
+                disabled={isSubmitting || isUploading}
                 className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
-                {isSubmitting && (
+                {(isSubmitting || isUploading) && (
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 )}
-                {language === "en" ? "Add Content" : "إضافة المحتوى"}
+                {isUploading
+                  ? language === "en"
+                    ? "Uploading..."
+                    : "جاري الرفع..."
+                  : language === "en"
+                    ? "Add Content"
+                    : "إضافة المحتوى"}
               </button>
             </div>
           </div>

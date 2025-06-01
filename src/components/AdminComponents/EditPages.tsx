@@ -345,7 +345,6 @@ const EditPages = () => {
 
         {/* Privacy and Terms Pages Fields */}
         {(activePage === "about" ||
-          activePage === "contact" ||
           activePage === "privacy" ||
           activePage === "terms") && (
           <div className="space-y-6">

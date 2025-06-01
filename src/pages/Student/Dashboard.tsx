@@ -25,7 +25,9 @@ const StudentDashboard = () => {
   const fetchEnrolledCourses = async () => {
     setLoading(true);
     try {
-      const res: any = await getFetch("/user/student/course/all");
+      const res: any = await getFetch("/user/student/course/all", {
+        showToast: false,
+      });
       if (res.success) {
         const coursesWithProgress = res.data.courseList.map((course: any) => ({
           ...course,

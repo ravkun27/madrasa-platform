@@ -75,6 +75,8 @@ export const CourseSidebar = ({
     null
   );
 
+  const [trigger, setTrigger] = useState(false);
+
   // Initialize completion states from lessonMetas and fetch individual lesson states
   useEffect(() => {
     const initialStates: Record<string, boolean> = {};
@@ -115,7 +117,7 @@ export const CourseSidebar = ({
     if (courseId) {
       fetchLessonStates();
     }
-  }, [courseId, lessonMetas]);
+  }, [courseId, lessonMetas, trigger]);
 
   // Update completion state when selectedLesson changes
   useEffect(() => {
@@ -183,6 +185,7 @@ export const CourseSidebar = ({
     }
 
     setLoadingLesson(lessonMeta._id);
+    setTrigger(!trigger);
 
     try {
       await onLessonSelect(lessonMeta);

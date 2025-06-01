@@ -8,7 +8,7 @@ type Course = {
   createdAt: string;
   deletedAt?: string;
   active: boolean;
-  published?: boolean;
+  published?: { value: boolean };
   enrolledStudentIds?: string[];
 };
 
@@ -21,7 +21,7 @@ interface CoursesTableProps {
 const getCourseStatus = (course: Course): string => {
   if (!course.active) return "Deleted";
 
-  return course.published ? "Published" : "Draft";
+  return course.published?.value ? "Published" : "Not Published";
 };
 
 const CoursesTable: React.FC<CoursesTableProps> = ({ courses }) => {
@@ -63,7 +63,7 @@ const CoursesTable: React.FC<CoursesTableProps> = ({ courses }) => {
                       ? "bg-green-100 text-green-800"
                       : getCourseStatus(course) === "Deleted"
                         ? "bg-red-100 text-red-800"
-                        : "bg-gray-100"
+                        : "bg-yellow-100 text-yellow-800"
                   }`}
                 >
                   {getCourseStatus(course)}

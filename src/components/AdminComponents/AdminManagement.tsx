@@ -179,7 +179,7 @@ const AdminManagement = () => {
               className="flex justify-between items-center p-4 border-b dark:border-gray-700"
             >
               <div>
-                <h4 className="font-semibold text-black">
+                <h4 className="font-semibold text-text">
                   {admin.firstName} {admin.lastName}
                 </h4>
                 <p className="text-gray-600 dark:text-gray-400">
