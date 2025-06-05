@@ -14,6 +14,7 @@ import {
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import { useLanguage } from "../../context/LanguageContext";
+import FingerprintJS from "@fingerprintjs/fingerprintjs";
 
 type LoginResponse = {
   success: boolean;
@@ -32,7 +33,6 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
   const navigate = useNavigate();
 
   // Animation variants
@@ -93,7 +93,6 @@ const Login = () => {
     const storedIdentifier = localStorage.getItem("remembered_identifier");
     if (storedIdentifier) {
       setIdentifier(storedIdentifier);
-      setRememberMe(true);
     }
   }, []);
 
@@ -127,12 +126,9 @@ const Login = () => {
       if (result.success && result.data) {
         const { token, role } = result.data;
 
-        // Handle "remember me" option
-        if (rememberMe) {
-          localStorage.setItem("remembered_identifier", identifier);
-        } else {
-          localStorage.removeItem("remembered_identifier");
-        }
+        const fp = await FingerprintJS.load();
+        const tracking_result = await fp.get();
+        console.log(tracking_result);
 
         login(token, role);
 
@@ -173,24 +169,6 @@ const Login = () => {
         variants={containerVariants}
         className={`relative w-full max-w-md p-6 sm:p-8 rounded-2xl shadow-2xl ${cardBgColor} border ${borderColor}`}
       >
-        {/* Admin Login Button */}
-        {/* <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => navigate("/admin/login")}
-          aria-label="Admin Login"
-          className={`absolute top-2 right-2 flex items-center gap-2 px-2 py-1 rounded-md ${
-            isDark
-              ? "bg-gray-800 hover:bg-gray-700 text-secondary"
-              : "bg-gray-100 hover:bg-gray-200 text-primary"
-          } transition-all duration-300 shadow-md`}
-        >
-          <FaUserShield className="text-base" />
-          <span className="hidden sm:inline text-xs font-medium">
-            {t.adminLogin}
-          </span>
-        </motion.button> */}
-
         {/* Title */}
         <motion.div variants={itemVariants} className="mb-8">
           <h1

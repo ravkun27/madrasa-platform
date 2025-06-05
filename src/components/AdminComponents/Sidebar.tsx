@@ -14,10 +14,15 @@ import {
   FiEdit,
   FiUserPlus,
   FiActivity,
+  FiSettings,
+  FiArrowLeft,
+  FiX,
 } from "react-icons/fi";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
-import { LockOpenIcon } from "lucide-react";
+import { LockOpenIcon, ShieldIcon } from "lucide-react";
+import { patchFetch } from "../../utils/apiCall";
+import toast from "react-hot-toast";
 
 interface SidebarProps {
   activeTab: string;
@@ -27,6 +32,9 @@ interface SidebarProps {
 const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
   const [role, setRole] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(true);
+  const [showSettings, setShowSettings] = useState(false);
+  const [authCode, setAuthCode] = useState("");
+  const [showAuthInputModal, setShowAuthInputModal] = useState(false);
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
   const { logout } = useAuth();
@@ -64,6 +72,21 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
       navigate("/login");
     } catch (error) {
       console.error(error);
+    }
+  };
+  const handleDisable2FA = async () => {
+    setShowAuthInputModal(true);
+    try {
+      const response: any = await patchFetch("/admin/auth/2fa/disable", {
+        code: authCode.trim(),
+      });
+      if (response.success) {
+        setShowAuthInputModal(false);
+        toast.success("2FA disabled successfully!");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to disable 2FA");
     }
   };
 
@@ -152,8 +175,36 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
     },
   ];
 
+  const authCodeInputModal = () => {
+    return (
+      <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
+        <div className="bg-card border-4 border-card-border p-6 rounded shadow-lg">
+          <div className="flex items-start justify-between">
+            <h2 className="text-lg font-semibold mb-4">Enter 2FA Code</h2>
+            <FiX
+              onClick={() => setShowAuthInputModal(false)}
+              className="text-2xl cursor-pointer hover:text-secondary"
+            />
+          </div>
+          <input
+            type="text"
+            value={authCode}
+            onChange={(e) => setAuthCode(e.target.value)}
+            className="bg-input-bg text-text border border-gray-300 rounded px-3 py-2 mb-4 w-full"
+          />
+          <button
+            onClick={handleDisable2FA}
+            className="bg-secondary text-text hover:bg-opacity-20 px-4 py-2 rounded"
+          >
+            Submit
+          </button>
+        </div>
+      </div>
+    );
+  };
   return (
     <>
+      {showAuthInputModal && authCodeInputModal()}
       {/* Mobile Overlay */}
       {isOpen && screenWidth < 768 && (
         <motion.div
@@ -177,6 +228,7 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
         </motion.button>
       )}
 
+      {/* Inside your sidebar component */}
       <motion.div
         className="fixed h-screen bg-white dark:bg-gray-800 shadow-lg z-30 overflow-hidden"
         variants={sidebarVariants}
@@ -184,7 +236,7 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
         animate={isOpen ? "open" : "closed"}
       >
         <div className="flex flex-col h-full">
-          {/* Header - Fixed Height */}
+          {/* Header */}
           <div className="h-16 flex items-center px-4 justify-between border-b border-gray-200 dark:border-gray-700">
             <motion.div
               className="flex-1 flex items-center"
@@ -197,148 +249,185 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
               </h2>
             </motion.div>
 
-            {/* Buttons in header */}
             <div className="flex items-center space-x-1">
-              {/* Toggle button */}
               <motion.button
                 onClick={toggleSidebar}
-                className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300"
+                className="md:hidden w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
               >
                 {isOpen ? (
-                  <FiChevronLeft className="w-5 h-5 z-50" />
+                  <FiChevronLeft className="w-5 h-5" />
                 ) : (
-                  <FiChevronRight className="w-5 h-5 z-50" />
+                  <FiChevronRight className="w-5 h-5" />
                 )}
               </motion.button>
             </div>
           </div>
 
-          {/* Nav Items - Fixed Spacing */}
-          <nav className="flex-1 overflow-y-auto py-4">
-            <div className="space-y-1 px-3">
-              {menuItems.map(
-                (item) =>
-                  item.visible && (
-                    <motion.button
-                      key={item.id}
-                      onClick={() => {
-                        setActiveTab(item.id);
-                        if (screenWidth < 768) setIsOpen(false);
-                      }}
-                      className={`w-full h-12 flex items-center rounded-lg transition-colors ${
-                        activeTab === item.id
-                          ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-100"
-                          : "text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
-                      } ${!isOpen ? "justify-center" : "px-4"}`}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <motion.div
-                        className="flex items-center justify-center"
-                        variants={iconContainerVariants}
-                        initial="closed"
-                        animate={isOpen ? "open" : "closed"}
-                      >
-                        {item.icon}
-                      </motion.div>
+          {/* Main Nav OR Settings */}
+          {showSettings ? (
+            <div className="flex-1 overflow-y-auto py-4 px-3 flex flex-col justify-between">
+              <div className="space-y-3">
+                {/* Logout */}
 
-                      <motion.span
-                        variants={textVariants}
-                        initial="closed"
-                        animate={isOpen ? "open" : "closed"}
-                        className="whitespace-nowrap"
-                      >
-                        {item.label}
-                      </motion.span>
-                    </motion.button>
-                  )
-              )}
+                <FiArrowLeft
+                  onClick={() => setShowSettings(false)}
+                  size={28}
+                  className="cursor-pointer hover:text-gray-500"
+                />
+                <motion.button
+                  onClick={handleLogout}
+                  className={`flex items-center w-full h-12 rounded-lg text-red-700 hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-900/30 transition-colors ${
+                    !isOpen ? "justify-center" : "justify-start px-4"
+                  }`}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <motion.div
+                    className="flex items-center justify-center mr-2"
+                    variants={iconContainerVariants}
+                    initial="closed"
+                    animate={isOpen ? "open" : "closed"}
+                  >
+                    <FiLogOut size={20} />
+                  </motion.div>
+                  <motion.span
+                    variants={textVariants}
+                    initial="closed"
+                    animate={isOpen ? "open" : "closed"}
+                    className="whitespace-nowrap"
+                  >
+                    Logout
+                  </motion.span>
+                </motion.button>
+
+                {/* Forgot Password */}
+                <motion.button
+                  onClick={() => navigate("/forgot-password")}
+                  className={`flex items-center w-full h-12 rounded-lg text-blue-700 hover:bg-blue-100 dark:text-blue-400 dark:hover:bg-blue-900/30 transition-colors ${
+                    !isOpen ? "justify-center" : "justify-start px-4"
+                  }`}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <LockOpenIcon size={20} className="mr-2" />
+                  <motion.span
+                    variants={textVariants}
+                    initial="closed"
+                    animate={isOpen ? "open" : "closed"}
+                    className="whitespace-nowrap"
+                  >
+                    Forgot Password
+                  </motion.span>
+                </motion.button>
+                <motion.button
+                  onClick={() => setShowAuthInputModal(true)}
+                  className={`flex items-center w-full h-12 rounded-lg text-blue-700 hover:bg-blue-100 dark:text-blue-400 dark:hover:bg-blue-900/30 transition-colors ${
+                    !isOpen ? "justify-center" : "justify-start px-4"
+                  }`}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <ShieldIcon size={20} className="mr-2" />
+                  <motion.span
+                    variants={textVariants}
+                    initial="closed"
+                    animate={isOpen ? "open" : "closed"}
+                    className="whitespace-nowrap"
+                  >
+                    Disable 2FA
+                  </motion.span>
+                </motion.button>
+
+                {/* Theme Toggle */}
+                <motion.button
+                  onClick={toggleTheme}
+                  className={`flex items-center w-full h-12 rounded-lg transition-colors ${
+                    isOpen
+                      ? "justify-start px-4 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                      : "justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  }`}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <motion.div
+                    className="flex items-center justify-center mr-2"
+                    variants={iconContainerVariants}
+                    initial="closed"
+                    animate={isOpen ? "open" : "closed"}
+                  >
+                    {theme === "light" ? (
+                      <FiMoon size={20} />
+                    ) : (
+                      <FiSun size={20} />
+                    )}
+                  </motion.div>
+                  <motion.span
+                    variants={textVariants}
+                    initial="closed"
+                    animate={isOpen ? "open" : "closed"}
+                    className="whitespace-nowrap"
+                  >
+                    {theme === "light" ? "Dark Mode" : "Light Mode"}
+                  </motion.span>
+                </motion.button>
+              </div>
             </div>
-          </nav>
+          ) : (
+            <>
+              {/* Menu Items */}
+              <nav className="flex-1 overflow-y-auto py-4 px-3">
+                <div className="space-y-1">
+                  {menuItems.map(
+                    (item) =>
+                      item.visible && (
+                        <motion.button
+                          key={item.id}
+                          onClick={() => {
+                            setActiveTab(item.id);
+                            if (screenWidth < 768) setIsOpen(false);
+                          }}
+                          className={`w-full h-12 flex items-center rounded-lg transition-colors ${
+                            activeTab === item.id
+                              ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-100"
+                              : "text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                          } ${!isOpen ? "justify-center" : "px-4"}`}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          <motion.div
+                            className="flex items-center justify-center"
+                            variants={iconContainerVariants}
+                            initial="closed"
+                            animate={isOpen ? "open" : "closed"}
+                          >
+                            {item.icon}
+                          </motion.div>
+                          <motion.span
+                            variants={textVariants}
+                            initial="closed"
+                            animate={isOpen ? "open" : "closed"}
+                            className="whitespace-nowrap"
+                          >
+                            {item.label}
+                          </motion.span>
+                        </motion.button>
+                      )
+                  )}
+                </div>
+              </nav>
 
-          {/* Logout Button */}
-          <div
-            className={`flex ${
-              isOpen ? "flex-col justify-between" : "flex-col items-center"
-            } border-t border-gray-200 dark:border-gray-700 py-3 px-3 gap-3`}
-          >
-            {/* Logout */}
-            <motion.button
-              onClick={handleLogout}
-              className={`flex items-center w-full h-12 rounded-lg text-red-700 hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-900/30 transition-colors ${
-                !isOpen ? "justify-center" : "justify-start px-4"
-              }`}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <motion.div
-                className="flex items-center justify-center mr-2"
-                variants={iconContainerVariants}
-                initial="closed"
-                animate={isOpen ? "open" : "closed"}
+              {/* Settings Toggle */}
+              <button
+                onClick={() => setShowSettings(true)}
+                className="flex items-center gap-2 px-4 py-3 border-t border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
               >
-                <FiLogOut size={20} />
-              </motion.div>
-              <motion.span
-                variants={textVariants}
-                initial="closed"
-                animate={isOpen ? "open" : "closed"}
-                className="whitespace-nowrap"
-              >
-                Logout
-              </motion.span>
-            </motion.button>
-
-            {/* Forgot Password */}
-            <motion.button
-              onClick={() => navigate("/forgot-password")}
-              className={`flex items-center w-full h-12 rounded-lg text-blue-700 hover:bg-blue-100 dark:text-blue-400 dark:hover:bg-blue-900/30 transition-colors ${
-                !isOpen ? "justify-center" : "justify-start px-4"
-              }`}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <LockOpenIcon size={20} className="mr-2" />
-              <motion.span
-                variants={textVariants}
-                initial="closed"
-                animate={isOpen ? "open" : "closed"}
-                className="whitespace-nowrap"
-              >
-                Forgot Password
-              </motion.span>
-            </motion.button>
-            {/* Theme Toggle Button */}
-            <motion.button
-              onClick={toggleTheme}
-              className={`flex items-center w-full h-12 rounded-lg transition-colors ${
-                isOpen
-                  ? "justify-start px-4 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
-                  : "justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-              }`}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <motion.div
-                className="flex items-center justify-center mr-2"
-                variants={iconContainerVariants}
-                initial="closed"
-                animate={isOpen ? "open" : "closed"}
-              >
-                {theme === "light" ? <FiMoon size={20} /> : <FiSun size={20} />}
-              </motion.div>
-              <motion.span
-                variants={textVariants}
-                initial="closed"
-                animate={isOpen ? "open" : "closed"}
-                className="whitespace-nowrap"
-              >
-                {theme === "light" ? "Dark Mode" : "Light Mode"}
-              </motion.span>
-            </motion.button>
-          </div>
+                <FiSettings size={20} />
+                {isOpen && <span>Settings</span>}
+              </button>
+            </>
+          )}
         </div>
       </motion.div>
     </>

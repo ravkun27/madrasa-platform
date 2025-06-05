@@ -24,11 +24,13 @@ const App: React.FC = () => {
   useEffect(() => {
     document.documentElement.style.scrollBehavior = "smooth";
 
-    const timer = setTimeout(() => setLoading(false), 2000);
+    const timer = setTimeout(() => setLoading(false), 5000);
     const handleBeforeInstallPrompt = (e: any) => {
       e.preventDefault(); // Stop the default prompt
       setDeferredPrompt(e); // Save the event
-      setShowInstallPrompt(true); // Show your custom install UI
+      setShowInstallPrompt(true);
+      setTimeout(() => setShowInstallPrompt(false), 10000);
+      // Show your custom install UI
     };
 
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
@@ -78,6 +80,11 @@ const App: React.FC = () => {
             <RouterProvider router={router} />
             {showInstallPrompt && (
               <button
+                className={`
+      fixed bottom-6 right-6 z-50 px-4 py-2 rounded-xl bg-blue-600 text-white shadow-lg
+      transform transition-all duration-700 ease-in-out
+      
+    `}
                 onClick={handleInstallClick}
                 style={{
                   position: "fixed",

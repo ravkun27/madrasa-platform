@@ -13,6 +13,7 @@ type ApiBody = Record<string, any> | FormData;
 interface ApiOptions {
   language?: string;
   showToast?: boolean; // New option to control toast display
+  skipAuth?: boolean; // Add this
 }
 
 async function apiCall<T = any>(
@@ -21,7 +22,7 @@ async function apiCall<T = any>(
   method: ApiMethod = "GET",
   options: ApiOptions = {}
 ): ApiResponse<T> {
-  const { language, showToast = true } = options; // Default to showing toast
+  const { language, showToast = true, skipAuth } = options;
   const url = `${apiUrl}${path}`;
 
   // Initialize options with credentials included
@@ -46,7 +47,7 @@ async function apiCall<T = any>(
   }
 
   const token = localStorage.getItem("token");
-  if (token) {
+  if (token && !skipAuth) {
     fetchOptions.headers = {
       ...fetchOptions.headers,
       Authorization: `Bearer ${token}`,
