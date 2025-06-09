@@ -21,7 +21,6 @@ import UserSettingsPage from "../pages/shared/UserSettingsPage";
 import LanguageToggle from "./LanguageToggle";
 import { useLanguage } from "../context/LanguageContext";
 
-
 const Header = () => {
   const { theme, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
@@ -348,7 +347,6 @@ const Header = () => {
 
                 {/* Settings */}
                 <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700 flex justify-end">
-                  
                   <div className="flex items-center space-x-4">
                     <button
                       onClick={toggleTheme}
@@ -377,7 +375,4 @@ const Header = () => {
     </motion.header>
   );
 };
-
-// User Settings Component
-
 export default Header;

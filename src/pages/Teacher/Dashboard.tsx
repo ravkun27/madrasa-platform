@@ -88,8 +88,6 @@ const Dashboard = () => {
             coursesResponse.data?.courseList.filter(
               (course: any) => course.published.value
             ) || [];
-          console.log(publishedCourses);
-
           setTeacherCourses(publishedCourses);
         }
       }

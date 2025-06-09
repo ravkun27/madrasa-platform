@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import CourseSearch from "../../components/CourseSearch";
 import { FiCheckCircle } from "react-icons/fi";
 import { useAuth } from "../../context/AuthContext";
-import { useLanguage } from "../../context/LanguageContext"; // Import useLanguage
+import { useLanguage } from "../../context/LanguageContext";
 
 interface Course {
   _id: string;

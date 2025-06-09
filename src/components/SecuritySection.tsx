@@ -174,8 +174,6 @@ const SecuritySection = ({ userData }: SecuritySectionProps) => {
     }
   };
 
-  console.log(otpState);
-
   const handleUpdatePassword = async () => {
     if (!editState.value) {
       toast.error(t.enterNewPassword);

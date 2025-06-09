@@ -56,8 +56,6 @@ const App: React.FC = () => {
   const handleInstallClick = async () => {
     if (deferredPrompt) {
       deferredPrompt.prompt(); // ✅ This is allowed, because it's inside a user click
-      const choiceResult = await deferredPrompt.userChoice;
-      console.log("User choice", choiceResult.outcome);
       setDeferredPrompt(null);
       setShowInstallPrompt(false);
     }

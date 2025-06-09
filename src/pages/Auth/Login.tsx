@@ -15,12 +15,14 @@ import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import { useLanguage } from "../../context/LanguageContext";
 import FingerprintJS from "@fingerprintjs/fingerprintjs";
+import SuspendedModal from "../../components/Modal/SuspendedModal";
 
 type LoginResponse = {
   success: boolean;
   data?: {
     token: string;
     role: string;
+    suspended?: boolean;
   };
   message?: string;
 };
@@ -33,6 +35,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
 
   // Animation variants
@@ -96,6 +99,47 @@ const Login = () => {
     }
   }, []);
 
+  const tracking = async () => {
+    try {
+      // 1. Get IP and Geolocation
+      const geoRes = await fetch("https://ipapi.co/json/");
+      const geoData = await geoRes.json();
+
+      // 2. Get FingerprintJS Visitor ID
+      const fp = await FingerprintJS.load();
+      const tracking_result = await fp.get();
+
+      // 3. Get device & browser info
+      const userAgent = navigator.userAgent;
+      const screenResolution = `${window.screen.width}x${window.screen.height}`;
+      const deviceType = /Mobi|Android/i.test(userAgent) ? "Mobile" : "Desktop";
+
+      const getOS = (ua: string): string => {
+        if (/Windows NT 10.0/.test(ua)) return "Windows 10 / 11";
+        if (/Mac OS X/.test(ua)) return "macOS";
+        if (/Android/.test(ua)) return "Android";
+        if (/iPhone|iPad/.test(ua)) return "iOS";
+        return "Unknown";
+      };
+
+      const trackingData = {
+        userId: tracking_result.visitorId, // You may want to replace this with your real app user ID
+        visitorId: tracking_result.visitorId,
+        ipAddress: geoData.ip,
+        trackingCountry: geoData.country_name,
+        deviceType,
+        os: getOS(userAgent),
+        userAgent,
+        screenResolution,
+      };
+
+      console.log("Tracking Data:", trackingData);
+      return trackingData;
+    } catch (error) {
+      console.error("Tracking error:", error);
+    }
+  };
+
   const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
     setLoading(true);
@@ -115,27 +159,38 @@ const Login = () => {
       setLoading(false);
       return;
     }
+    const trackingData = await tracking(); // Fetch device, IP, location, etc.
 
-    const payload = isEmail
-      ? { email: identifier, password }
-      : { phoneNumber: identifier.replace(/^0/, ""), password };
+    const basePayload = isEmail
+      ? { email: trimmed, password }
+      : { phoneNumber: trimmed.replace(/^0/, ""), password };
+
+    const payloadWithTracking = {
+      ...basePayload,
+      trackingData: trackingData,
+    };
 
     try {
-      const result = await postFetch<LoginResponse>("/user/login", payload);
+      const result = await postFetch<LoginResponse>(
+        "/user/login",
+        payloadWithTracking,
+        {
+          showToast: false,
+        }
+      );
 
       if (result.success && result.data) {
         const { token, role } = result.data;
-
-        const fp = await FingerprintJS.load();
-        const tracking_result = await fp.get();
-        console.log(tracking_result);
-
         login(token, role);
+        toast.success("Login successful!");
 
-        // Redirect with a slight delay for better UX
-        setTimeout(() => {
-          navigate(`/${role.toLowerCase()}-dashboard`);
-        }, 1000);
+        if (role === "student" && result.data?.suspended === true) {
+          setShowModal(true);
+        } else {
+          setTimeout(() => {
+            navigate(`/${role.toLowerCase()}-dashboard`);
+          }, 1000);
+        }
       }
     } catch (error: any) {
       const errorMessage = error.message || t.errorOccurred;
@@ -163,6 +218,7 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-b from-background to-background/90">
+      {showModal && <SuspendedModal onClose={() => setShowModal(false)} />}
       <motion.div
         initial="hidden"
         animate="visible"

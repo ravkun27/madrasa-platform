@@ -63,7 +63,6 @@ const CourseSearch = ({ onEnrollSuccess, user }: Props) => {
       }
     } catch (error) {
       setSearchError("Error searching course");
-      console.error("Search error:", error);
     } finally {
       setIsSearching(false);
     }

@@ -285,12 +285,8 @@ export const MediaModal: React.FC<MediaPlayerProps> = ({
           },
         });
 
-        console.log("Video sources configured:", sources);
-        console.log("Content type:", contentType);
-
         // Add event listeners
         playerRef.current.ready(() => {
-          console.log("Video.js player ready");
           setIsLoading(false);
 
           // Ensure proper sizing and aspect ratio
@@ -351,7 +347,6 @@ export const MediaModal: React.FC<MediaPlayerProps> = ({
                 break;
               case 4: // MEDIA_ERR_SRC_NOT_SUPPORTED
                 // Try native HTML5 video as fallback
-                console.log("Attempting fallback to native HTML5 video...");
                 tryNativeVideoFallback();
                 return; // Don't set error immediately, let fallback try first
               default:
@@ -365,8 +360,6 @@ export const MediaModal: React.FC<MediaPlayerProps> = ({
 
         // Fallback function for native HTML5 video
         const tryNativeVideoFallback = () => {
-          console.log("Trying native HTML5 video fallback...");
-
           if (videoRef.current) {
             // Dispose Video.js player
             if (playerRef.current && !playerRef.current.isDisposed()) {
@@ -407,7 +400,6 @@ export const MediaModal: React.FC<MediaPlayerProps> = ({
             };
 
             const handleNativeLoad = () => {
-              console.log("Native HTML5 video loaded successfully");
               setIsLoading(false);
               setError(null);
             };
@@ -435,15 +427,6 @@ export const MediaModal: React.FC<MediaPlayerProps> = ({
 
         playerRef.current.on("playing", () => {
           setIsLoading(false);
-        });
-
-        // Additional event listeners for debugging
-        playerRef.current.on("loadedmetadata", () => {
-          console.log("Video metadata loaded");
-        });
-
-        playerRef.current.on("loadeddata", () => {
-          console.log("Video data loaded");
         });
       } catch (err) {
         console.error("Video.js initialization error:", err);

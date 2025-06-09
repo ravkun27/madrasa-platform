@@ -102,7 +102,7 @@ const UserSettingsPage = ({
     },
   };
   const t = translations[language];
-  
+
   useEffect(() => {
     if (user && isOpen) {
       fetchUserData();
@@ -118,7 +118,7 @@ const UserSettingsPage = ({
   const fetchUserData = async () => {
     setIsLoading(true);
     try {
-      const result: any = await getFetch("/user");
+      const result: any = await getFetch("/user", { showToast: false });
       if (result.success) {
         setUserData({
           name: `${result.data.firstName || ""} ${result.data.lastName || ""}`.trim(),
@@ -182,7 +182,7 @@ const UserSettingsPage = ({
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={onClose}
           />
-          
+
           {/* Sidebar */}
           <div className="absolute inset-y-0 right-0 max-w-full flex pointer-events-none">
             <motion.div

@@ -81,11 +81,6 @@ body {
     color 0.3s ease;
 }
 
-html,
-body {
-  overflow-x: hidden;
-}
-
 /* Custom Classes */
 .bg-gradient-landing {
   background: linear-gradient(

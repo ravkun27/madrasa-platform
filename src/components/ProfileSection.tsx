@@ -144,8 +144,6 @@ const ProfileSection = ({ userData, setUserData }: any) => {
       const result: any = await postFetch(endpoint, payload);
 
       if (result.success) {
-        console.log(result);
-
         setOtpState((prev) => ({
           ...prev,
           otpId: result.data?.optId,
