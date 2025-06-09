@@ -3,7 +3,6 @@ import { deleteFetch, getFetch, postFetch } from "../../utils/apiCall";
 
 const StudentsManagement = () => {
   const [students, setStudents] = useState<any[]>([]);
-  const [suspiciousStudents, setSuspiciousStudents] = useState<any[]>([]);
   const [suspendedStudents, setSuspendedStudents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<
@@ -11,7 +10,6 @@ const StudentsManagement = () => {
   >("all");
   const [suspendingId, setSuspendingId] = useState<string | null>(null);
   const [unsuspiciousId, setUnsuspiciousId] = useState<string | null>(null);
-  const [suspiciousLoaded, setSuspiciousLoaded] = useState(false);
   const [suspendedLoaded, setSuspendedLoaded] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [expandedStudents, setExpandedStudents] = useState<Set<string>>(
@@ -26,19 +24,6 @@ const StudentsManagement = () => {
       }
     } catch (err) {
       console.error("Failed to fetch students", err);
-    }
-  };
-
-  const fetchSuspiciousStudents = async () => {
-    try {
-      const response: any = await getFetch(
-        "/admin/auth/student/suspicious-list"
-      );
-      if (response?.success && response?.data?.suspiciousList) {
-        setSuspiciousStudents(response.data.suspiciousList);
-      }
-    } catch (err) {
-      console.error("Failed to fetch suspicious students", err);
     }
   };
 
@@ -72,9 +57,7 @@ const StudentsManagement = () => {
 
       if (response.ok) {
         setStudents((prev) => prev.filter((student) => student._id !== userID));
-        setSuspiciousStudents((prev) =>
-          prev.filter((student) => student._id !== userID)
-        );
+
         // Refresh suspended list if it's loaded
         if (suspendedLoaded) {
           await fetchSuspendedStudents();
@@ -111,13 +94,6 @@ const StudentsManagement = () => {
           `/admin/auth/student/un-suspicious?userID=${userID}`,
           {}
         );
-
-        if (response.ok) {
-          setSuspiciousStudents((prev) =>
-            prev.filter((student) => student._id !== userID)
-          );
-          await fetchSuspiciousStudents();
-        }
       }
     } catch (err) {
       console.error("Failed to update student status", err);
@@ -133,9 +109,7 @@ const StudentsManagement = () => {
       );
       if (response.ok) {
         setStudents((prev) => prev.filter((student) => student._id !== userID));
-        setSuspiciousStudents((prev) =>
-          prev.filter((student) => student._id !== userID)
-        );
+
         // Refresh suspended list if it's loaded
         if (suspendedLoaded) {
           await fetchSuspendedStudents();
@@ -166,18 +140,6 @@ const StudentsManagement = () => {
   }, []);
 
   useEffect(() => {
-    if (activeTab === "suspicious" && !suspiciousLoaded) {
-      const loadSuspicious = async () => {
-        setLoading(true);
-        await fetchSuspiciousStudents();
-        setSuspiciousLoaded(true);
-        setLoading(false);
-      };
-      loadSuspicious();
-    }
-  }, [activeTab, suspiciousLoaded]);
-
-  useEffect(() => {
     if (activeTab === "suspended" && !suspendedLoaded) {
       const loadSuspended = async () => {
         setLoading(true);
@@ -191,8 +153,6 @@ const StudentsManagement = () => {
 
   const getCurrentStudents = () => {
     switch (activeTab) {
-      case "suspicious":
-        return suspiciousStudents;
       case "suspended":
         return suspendedStudents;
       default:
@@ -268,19 +228,7 @@ const StudentsManagement = () => {
               {students.length}
             </span>
           </button>
-          <button
-            onClick={() => setActiveTab("suspicious")}
-            className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors ${
-              activeTab === "suspicious"
-                ? "border-red-500 text-red-600 dark:text-red-400"
-                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400"
-            }`}
-          >
-            Suspicious Students
-            <span className="ml-2 bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-300 px-2 py-1 rounded-full text-xs">
-              {suspiciousStudents.length}
-            </span>
-          </button>
+
           <button
             onClick={() => setActiveTab("suspended")}
             className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors ${

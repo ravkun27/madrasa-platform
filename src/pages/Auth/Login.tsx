@@ -114,6 +114,8 @@ const Login = () => {
       const screenResolution = `${window.screen.width}x${window.screen.height}`;
       const deviceType = /Mobi|Android/i.test(userAgent) ? "Mobile" : "Desktop";
 
+      const sessionId = crypto.randomUUID();
+
       const getOS = (ua: string): string => {
         if (/Windows NT 10.0/.test(ua)) return "Windows 10 / 11";
         if (/Mac OS X/.test(ua)) return "macOS";
@@ -123,7 +125,7 @@ const Login = () => {
       };
 
       const trackingData = {
-        userId: tracking_result.visitorId, // You may want to replace this with your real app user ID
+        sessionId: sessionId, // You may want to replace this with your real app user ID
         visitorId: tracking_result.visitorId,
         ipAddress: geoData.ip,
         trackingCountry: geoData.country_name,
@@ -133,7 +135,6 @@ const Login = () => {
         screenResolution,
       };
 
-      console.log("Tracking Data:", trackingData);
       return trackingData;
     } catch (error) {
       console.error("Tracking error:", error);
@@ -169,6 +170,7 @@ const Login = () => {
       ...basePayload,
       trackingData: trackingData,
     };
+    console.log(payloadWithTracking);
 
     try {
       const result = await postFetch<LoginResponse>(
