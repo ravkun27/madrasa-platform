@@ -105,7 +105,7 @@ const StudentsManagement = () => {
   const deleteStudent = async (userID: string) => {
     try {
       const response: any = await deleteFetch(
-        `/admin/auth/student/delete?userID=${userID}`
+        `/admin/auth/student?userID=${userID}`
       );
       if (response.ok) {
         setStudents((prev) => prev.filter((student) => student._id !== userID));
