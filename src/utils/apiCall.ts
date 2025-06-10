@@ -90,10 +90,16 @@ async function apiCall<T = any>(
     if (!res.ok) {
       const errorMessage =
         result && typeof result === "object" && "message" in result
-          ? (result.message as string)
+          ? result.message
           : `API Error: ${res.status} ${res.statusText}`;
-      console.error("API Error:", errorMessage);
-      throw new Error(errorMessage);
+
+      // Still show toast (optional)
+      if (showToast) {
+        toast.error(errorMessage);
+      }
+
+      // Return the result object with error info for caller to inspect
+      return result;
     }
 
     // Only show success toast if showToast is true

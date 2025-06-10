@@ -170,29 +170,27 @@ const Login = () => {
       ...basePayload,
       trackingData: trackingData,
     };
-    console.log(payloadWithTracking);
 
     try {
       const result = await postFetch<LoginResponse>(
         "/user/login",
         payloadWithTracking,
-        {
-          showToast: false,
-        }
+        { showToast: false }
       );
+      if (result?.data?.suspended) {
+        setShowModal(true);
+        return;
+      }
 
-      if (result.success && result.data) {
+      if (result?.success && result?.data?.token && result?.data?.role) {
         const { token, role } = result.data;
         login(token, role);
         toast.success("Login successful!");
-
-        if (role === "student" && result.data?.suspended === true) {
-          setShowModal(true);
-        } else {
-          setTimeout(() => {
-            navigate(`/${role.toLowerCase()}-dashboard`);
-          }, 1000);
-        }
+        setTimeout(() => {
+          navigate(`/${role.toLowerCase()}-dashboard`);
+        }, 1000);
+      } else {
+        toast.error(result?.message || "Invalid login credentials.");
       }
     } catch (error: any) {
       const errorMessage = error.message || t.errorOccurred;
@@ -220,7 +218,12 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-b from-background to-background/90">
-      {showModal && <SuspendedModal onClose={() => setShowModal(false)} />}
+      {showModal && (
+        <>
+          {console.log("Rendering SuspendedModal")}
+          <SuspendedModal onClose={() => setShowModal(false)} />
+        </>
+      )}
       <motion.div
         initial="hidden"
         animate="visible"
