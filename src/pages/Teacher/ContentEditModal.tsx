@@ -299,14 +299,63 @@ const ContentEditModal = ({
                           : "image/*, application/pdf"
                       }
                       className="hidden"
-                      onChange={(e) =>
-                        setContentDetails({
-                          ...contentDetails,
-                          file: e.target.files?.[0] || null,
-                        })
-                      }
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+
+                        const MAX_SIZE_BYTES = 3 * 1024 * 1024 * 1024; // 3GB
+                        if (file.size > MAX_SIZE_BYTES) {
+                          toast.error(
+                            language === "en"
+                              ? "File too large. Max allowed size is 3GB."
+                              : "الملف كبير جدًا. الحجم الأقصى المسموح به هو 3 جيجابايت."
+                          );
+                          return;
+                        }
+
+                        // Only check resolution if it's a video
+                        if (addingContent?.type === "video") {
+                          const video = document.createElement("video");
+                          video.preload = "metadata";
+
+                          video.onloadedmetadata = () => {
+                            window.URL.revokeObjectURL(video.src);
+                            const { videoWidth, videoHeight } = video;
+
+                            if (videoWidth > 1920 || videoHeight > 1080) {
+                              toast.error(
+                                language === "en"
+                                  ? "Video resolution must not exceed 1080p."
+                                  : "يجب ألا يتجاوز دقة الفيديو 1080 بكسل."
+                              );
+                            } else {
+                              setContentDetails({ ...contentDetails, file });
+                            }
+                          };
+
+                          video.onerror = () => {
+                            toast.error(
+                              language === "en"
+                                ? "Unable to read video file resolution."
+                                : "تعذر قراءة دقة الفيديو."
+                            );
+                          };
+
+                          video.src = URL.createObjectURL(file);
+                        } else {
+                          // For non-video files
+                          setContentDetails({ ...contentDetails, file });
+                        }
+                      }}
                       required
                     />
+                    {addingContent.type === "video" && (
+                      <span className="mt-2 text-xs text-gray-500 text-center block">
+                        {language === "en"
+                          ? "Max file size: 3GB. Video resolution must be 1080p or lower."
+                          : "الحد الأقصى لحجم الملف: 3 جيجابايت. يجب ألا تتجاوز دقة الفيديو 1080 بكسل."}
+                      </span>
+                    )}
                   </label>
 
                   {/* Upload Progress Bar */}
@@ -338,7 +387,7 @@ const ContentEditModal = ({
                     <FiLink className="text-gray-400 mr-2" size={18} />
                     <input
                       type="url"
-                      placeholder="https://example.com/quiz"
+                      placeholder="https://madrasaplatform.com/quiz"
                       className="w-full bg-transparent focus:outline-none"
                       value={contentDetails.link}
                       onChange={(e) =>
